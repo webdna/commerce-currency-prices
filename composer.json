@@ -1,0 +1,43 @@
+{
+	"name": "kuriousagency/currency-prices",
+	"description": "add multiple currency prices for products",
+	"type": "craft-plugin",
+	"version": "1.0.0",
+	"keywords": [
+		"craft",
+		"cms",
+		"craftcms",
+		"craft-plugin",
+		"currency prices"
+	],
+	"support": {
+		"docs": "???",
+		"issues": "???"
+	},
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Kurious Agency",
+			"homepage": "https://kurious.agency"
+		}
+	],
+	"require": {
+		"craftcms/cms": "^3.0.0-RC1"
+	},
+	"autoload": {
+		"psr-4": {
+			"kuriousagency\\currencyprices\\": "src/"
+		}
+	},
+	"extra": {
+		"name": "Currency Prices",
+		"handle": "currency-prices",
+		"hasCpSettings": false,
+		"hasCpSection": false,
+		"changelogUrl": "???",
+		"components": {
+			"currencyPricesService": "kuriousagency\\currencyprices\\services\\CurrencyPricesService"
+		},
+		"class": "kuriousagency\\currencyprices\\CurrencyPrices"
+	}
+}

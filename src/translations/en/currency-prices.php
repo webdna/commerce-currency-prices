@@ -2,7 +2,7 @@
 /**
  * Currency Prices plugin for Craft CMS 3.x
  *
- * add multiple currency prices for products
+ * Adds payment currency prices to products
  *
  * @link      https://kurious.agency
  * @copyright Copyright (c) 2018 Kurious Agency

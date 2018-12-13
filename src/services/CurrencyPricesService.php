@@ -2,19 +2,25 @@
 /**
  * Currency Prices plugin for Craft CMS 3.x
  *
- * add multiple currency prices for products
+ * Adds payment currency prices to products
  *
  * @link      https://kurious.agency
  * @copyright Copyright (c) 2018 Kurious Agency
  */
 
-namespace kuriousagency\currencyprices\services;
+namespace kuriousagency\commerce\currencyprices\services;
 
-use kuriousagencyx\currencyprices\CurrencyPrices;
+use kuriousagency\commerce\currencyprices\CurrencyPrices;
+use kuriousagency\commerce\currencyprices\models\CurrencyPricesModel;
+use kuriousagency\commerce\currencyprices\records\CurrencyPricesRecord;
+
+use craft\commerce\Plugin as Commerce;
 
 use Craft;
 use craft\base\Component;
-use craft\commerce\Plugin as Commerce;
+use craft\helpers\MigrationHelper;
+use craft\helpers\Db;
+use craft\db\Query;
 
 /**
  * @author    Kurious Agency
@@ -23,27 +29,76 @@ use craft\commerce\Plugin as Commerce;
  */
 class CurrencyPricesService extends Component
 {
+	private $_migration;
+
     // Public Methods
-    // =========================================================================
+	// =========================================================================
 
-    /*
-     * @return mixed
-     */
-    public function setCurrency($currency)
-    {
-		$session = Craft::$app->getSession();
-		$session->set('commerce_paymentCurrency', $currency);
+	public function getPricesByPurchasableId($id)
+	{
+		$result = (new Query())
+			->select(['*'])
+			->from(['{{%commerce_currencyprices}}'])
+			->where(['purchasableId' => $id])
+			->one();
 
-		$cart = Commerce::getInstance()->getCarts()->getCart();
-		$cart->setPaymentCurrency($currency);
-		$cart->currency = $currency;
+		if (!$result) {
+			return null;
+		}
+
+		return $result;
+	}
+
+	public function savePrices($purchasable, $prices)
+	{
+		$record = CurrencyPricesRecord::findOne($purchasable->id);
+		
+		if (!$record) {
+			$record = new CurrencyPricesRecord();
+		}
+
+		$record->purchasableId = $purchasable->id;
+		$record->siteId = $purchasable->siteId;
+		
+		$primaryIso = Commerce::getInstance()->getPaymentCurrencies()->getPrimaryPaymentCurrencyIso();
+		$record->{$primaryIso} = $purchasable->price;
+
+		foreach ($prices as $iso => $value)
+		{
+			$record->{$iso} = $value;
+		}
+
+		$record->save();
+	}
+
+	public function deletePrices($purchasableId)
+	{
+		$record = CurrencyPricesRecord::findOne($purchasableId);
+
+		if ($record) {
+			$record->delete();
+		}
+	}
+
+	
+	public function renameCurrency($old, $new)
+	{
+		Craft::$app->getDb()->createCommand()
+				->renameColumn('{{%commerce_currencyprices}}', $old, $new)
+				->execute();
 	}
 	
-	public function getCurrency()
+	public function addCurrency($column)
 	{
-		$session = Craft::$app->getSession();
-		$paymentCurrency = $session['commerce_paymentCurrency'];
+		Craft::$app->getDb()->createCommand()
+			->addColumn('{{%commerce_currencyprices}}', $column, 'decimal(14,4) NOT NULL')
+			->execute();
+	}
 
-		return $paymentCurrency;
+	public function removeCurrency($column)
+	{
+		Craft::$app->getDb()->createCommand()
+			->dropColumn('{{%commerce_currencyprices}}', $column)
+			->execute();
 	}
 }

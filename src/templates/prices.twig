@@ -1,0 +1,50 @@
+{%- import "_includes/forms" as forms -%}
+{%- import "commerce/_includes/forms/commerceForms" as commerceForms -%}
+<div class="hidden">
+{% set newCount = 1 %}
+{% for variant in variants %}
+	{% set id = variant.id %}
+	{% if not id %}
+		{% set id = 'new'~newCount %}
+		{% set newCount = newCount+1 %}
+	{% endif %}
+ <div id="prices-{{ id }}">
+	{% for currency in craft.commerce.paymentCurrencies.allPaymentCurrencies if currency.primary == false %}
+		{% set price = variant|currencyPrice(currency.iso, false) %}
+		{% set prices = craft.app.request.getBodyParam('prices') %}
+		{% if prices and prices[id][currency.iso] %}
+			{% set price = prices[id][currency.iso] %}
+		{% endif %}
+		{% if variant.getErrors('prices-'~id~'-'~currency.iso)|length %}
+			{% set price = '' %}
+		{% endif %}
+
+		{{ forms.textField({
+			id: 'variants-'~id~'-'~currency.iso~'-price',
+			label: 'Price'|t('commerce')~' ('~currency.iso|upper~')',
+			name: 'prices['~id~']['~currency.iso~']',
+			class: 'currency-price',
+			value: (price == '0' ? '0'|number : (price ? price|number ?: '')),
+			placeholder: 'Enter price'|t('commerce'),
+			required: true,
+			errors: variant.getErrors('prices-'~currency.iso)
+		}) }}
+	{% endfor %}
+</div>
+{% endfor %}
+
+<div id="prices-new">
+	{% for currency in craft.commerce.paymentCurrencies.allPaymentCurrencies if currency.primary == false %}
+		{{ forms.textField({
+			id: 'variants-new-'~currency.iso~'-price',
+			label: 'Price'|t('commerce')~' ('~currency.iso|upper~')',
+			name: 'prices[new]['~currency.iso~']',
+			class: 'currency-price',
+			value: '',
+			placeholder: 'Enter price'|t('commerce'),
+			required: true
+		}) }}
+	{% endfor %}
+</div>
+
+</div>

@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2018 Kurious Agency
  */
 
-namespace kuriousagency\commerce\currencyprices\assetbundles\currencyprices;
+namespace kuriousagency\commerce\currencyprices\assetbundles\paymentcurrencies;
 
 use Craft;
 use craft\web\AssetBundle;
@@ -19,7 +19,7 @@ use craft\web\assets\cp\CpAsset;
  * @package   CurrencyPrices
  * @since     1.0.0
  */
-class CurrencyPricesAsset extends AssetBundle
+class PaymentCurrenciesAsset extends AssetBundle
 {
     // Public Methods
     // =========================================================================
@@ -37,11 +37,11 @@ class CurrencyPricesAsset extends AssetBundle
         ];
 
         $this->js = [
-            'js/CurrencyPrices.js',
+            'js/PaymentCurrencies.js',
         ];
 
         $this->css = [
-            'css/CurrencyPrices.css',
+            'css/PaymentCurrencies.css',
         ];
 
         parent::init();

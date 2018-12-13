@@ -2,13 +2,13 @@
 /**
  * Currency Prices plugin for Craft CMS 3.x
  *
- * add multiple currency prices for products
+ * Adds payment currency prices to products
  *
  * @link      https://kurious.agency
  * @copyright Copyright (c) 2018 Kurious Agency
  */
 
-namespace kuriousagency\currencyprices\assetbundles\currencyprices;
+namespace kuriousagency\commerce\currencyprices\assetbundles\currencyprices;
 
 use Craft;
 use craft\web\AssetBundle;
@@ -29,18 +29,19 @@ class CurrencyPricesAsset extends AssetBundle
      */
     public function init()
     {
-        $this->sourcePath = "@kuriousagency/currencyprices/assetbundles/currencyprices/dist";
+		//$this->sourcePath = "@kuriousagency/currency-prices/assetbundles/paymentcurrencies/dist";
+		$this->sourcePath = __DIR__.'/dist';
 
         $this->depends = [
             CpAsset::class,
         ];
 
         $this->js = [
-            'js/CurrencyPricesField.js',
+            'js/CurrencyPrices.js',
         ];
 
         $this->css = [
-            'css/CurrencyPricesField.css',
+            'css/CurrencyPrices.css',
         ];
 
         parent::init();

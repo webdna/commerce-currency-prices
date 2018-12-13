@@ -2,33 +2,30 @@
 /**
  * Currency Prices plugin for Craft CMS 3.x
  *
- * add multiple currency prices for products
+ * Adds payment currency prices to products
  *
  * @link      https://kurious.agency
  * @copyright Copyright (c) 2018 Kurious Agency
  */
 
-namespace kuriousagency\currencyprices;
+namespace kuriousagency\commerce\currencyprices;
 
-use kuriousagency\currencyprices\services\CurrencyPricesService;
-use kuriousagency\currencyprices\fields\CurrencyPricesField;
-use kuriousagency\currencyprices\twigextensions\CurrencyPricesTwigExtension;
+use kuriousagency\commerce\currencyprices\services\CurrencyPricesService;
+use kuriousagency\commerce\currencyprices\twigextensions\CurrencyPricesTwigExtension;
+use kuriousagency\commerce\currencyprices\assetbundles\currencyprices\CurrencyPricesAsset;
 
 use Craft;
 use craft\base\Plugin;
 use craft\services\Plugins;
 use craft\events\PluginEvent;
-use craft\services\Fields;
-use craft\events\RegisterComponentTypesEvent;
-use craft\commerce\Plugin as Commerce;
-use craft\commerce\elements\Order;
+use craft\web\UrlManager;
+use craft\events\RegisterUrlRulesEvent;
+use craft\web\View;
+use craft\events\TemplateEvent;
+use craft\services\Elements;
+use craft\base\Element;
 
-use craft\commerce\events\LineItemEvent;
-use craft\commerce\services\LineItems;
-use craft\commerce\events\ProcessPaymentEvent;
-use craft\commerce\services\Payments;
 use yii\base\Event;
-
 
 /**
  * Class CurrencyPrices
@@ -37,6 +34,7 @@ use yii\base\Event;
  * @package   CurrencyPrices
  * @since     1.0.0
  *
+ * @property  CurrencyPricesServiceService $currencyPricesService
  */
 class CurrencyPrices extends Plugin
 {
@@ -66,20 +64,43 @@ class CurrencyPrices extends Plugin
     {
         parent::init();
 		self::$plugin = $this;
-
+		
 		$this->setComponents([
-            'service' => CurrencyPricesService::class,
+			'service' => CurrencyPricesService::class,
 		]);
 
-		$this->service->setCurrency('EUR');
-		
 		Craft::$app->view->registerTwigExtension(new CurrencyPricesTwigExtension());
+		
+		if (Craft::$app->getRequest()->getIsCpRequest()) {
+            Event::on(
+                View::class,
+                View::EVENT_BEFORE_RENDER_TEMPLATE,
+                function (TemplateEvent $event) {
+                    try {
+                        Craft::$app->getView()->registerAssetBundle(CurrencyPricesAsset::class);
+                    } catch (InvalidConfigException $e) {
+                        Craft::error(
+                            'Error registering AssetBundle - '.$e->getMessage(),
+                            __METHOD__
+                        );
+                    }
+                }
+            );
+		}
+
+        // Event::on(
+        //     UrlManager::class,
+        //     UrlManager::EVENT_REGISTER_SITE_URL_RULES,
+        //     function (RegisterUrlRulesEvent $event) {
+        //         $event->rules['siteActionTrigger1'] = 'currency-prices/default';
+        //     }
+        // );
 
         Event::on(
-            Fields::class,
-            Fields::EVENT_REGISTER_FIELD_TYPES,
-            function (RegisterComponentTypesEvent $event) {
-                $event->types[] = CurrencyPricesField::class;
+            UrlManager::class,
+            UrlManager::EVENT_REGISTER_CP_URL_RULES,
+            function (RegisterUrlRulesEvent $event) {
+                $event->rules['currency-prices/payment-currencies/delete'] = 'currency-prices/payment-currencies/delete';
             }
         );
 
@@ -91,41 +112,57 @@ class CurrencyPrices extends Plugin
                 }
             }
 		);
-		
-		Event::on(
-			LineItems::class, 
-			LineItems::EVENT_POPULATE_LINE_ITEM, 
-			function(LineItemEvent $e) {
 
-				$order = $e->lineItem->getOrder();
-				$paymentCurrency = $order->getPaymentCurrency();
-				$primaryCurrency = Commerce::getInstance()->getPaymentCurrencies()->getPrimaryPaymentCurrencyIso();
-
-				//if ($paymentCurrency !== $e->lineItem->order->currency) {
-					//Craft::dd($paymentCurrency);
-					if ($paymentCurrency == $primaryCurrency) {
-						$price = $e->lineItem->purchasable->price;
+		Event::on(Element::class, Element::EVENT_BEFORE_SAVE, function(Event $event) {
+			if ($event->sender instanceof \craft\commerce\elements\Product) {
+				$prices = Craft::$app->getRequest()->getBodyParam('prices');
+				$newCount = 1;
+				foreach ($event->sender->variants as $key => $variant)
+				{
+					if ($variant->id) {
+						$price = $prices[$variant->id];
 					} else {
-						$price = isset($e->lineItem->purchasable->prices) ? $e->lineItem->purchasable->prices->{$paymentCurrency} : $e->lineItem->purchasable->product->prices->{$paymentCurrency};
+						$price = $prices['new'.$newCount];
+						$newCount++;
 					}
-
-					//$price = isset($e->lineItem->purchasable->prices) ? $e->lineItem->purchasable->prices->{$paymentCurrency} : $e->lineItem->purchasable->product->prices->{$paymentCurrency};
-					$e->lineItem->snapshot['priceIn'] = $paymentCurrency;
-					$e->lineItem->price = $price;
-					//$e->lineItem->note = $paymentCurrency;
-				//}
-				  
-				//$cart = Commerce::getInstance()->getCarts()->getCart();
-				//$cart->setPaymentCurrency($paymentCurrency);
+					foreach ($price as $iso => $value)
+					{
+						if ($value == '') {
+							$event->sender->variants[$key]->addError('prices-'.$iso, 'Price cannot be blank.');
+							$event->isValid = false;
+						}
+					}
+				}
 			}
-		);
-
-		Event::on(Order::class, Order::EVENT_BEFORE_COMPLETE_ORDER, function(Event $e) {
-			$e->sender->currency = $e->sender->paymentCurrency;
 		});
 
-		Event::on(Payments::class, Payments::EVENT_BEFORE_PROCESS_PAYMENT_EVENT, function(ProcessPaymentEvent $e) {
-			$e->order->currency = $e->order->paymentCurrency;
+		Event::on(Element::class, Element::EVENT_AFTER_SAVE, function(Event $event) {
+			if ($event->sender instanceof \craft\commerce\elements\Product) {
+				$prices = Craft::$app->getRequest()->getBodyParam('prices');
+				$count = 0;
+				foreach ($prices as $key => $price)
+				{
+					if ($key != 'new') {
+						$this->service->savePrices($event->sender->variants[$count], $price);
+						$count++;
+					}
+				}
+			}
+		});
+
+		Event::on(Element::class, Element::EVENT_AFTER_DELETE, function(Event $event) {
+			//Craft::dd($event);
+			if ($event->sender instanceof \craft\commerce\elements\Variant) {
+				
+				$this->service->deletePrices($event->sender->id);
+			}
+		});
+
+		
+		Craft::$app->view->hook('cp.commerce.product.edit.details', function(array &$context) {
+			$view = Craft::$app->getView();
+			//Craft::dd($context);
+        	return $view->renderTemplate('currency-prices/prices', ['variants'=>$context['product']->variants]);
 		});
 
         Craft::info(

@@ -15,6 +15,7 @@ use kuriousagency\commerce\currencyprices\models\CurrencyPricesModel;
 use kuriousagency\commerce\currencyprices\records\CurrencyPricesRecord;
 
 use craft\commerce\Plugin as Commerce;
+use craft\commerce\records\Sale as SaleRecord;
 
 use Craft;
 use craft\base\Component;
@@ -78,6 +79,69 @@ class CurrencyPricesService extends Component
 		if ($record) {
 			$record->delete();
 		}
+	}
+
+	public function getSalePrice($purchasable, $currency)
+	{
+		$sales = Commerce::getInstance()->getSales()->getSalesForPurchasable($purchasable);
+		$prices = CurrencyPrices::$plugin->service->getPricesByPurchasableId($purchasable->id);
+		$originalPrice = '';
+
+		if ($prices) {
+			$originalPrice = $prices[$currency];
+		}
+        
+		$takeOffAmount = 0;
+        $newPrice = null;
+
+        /** @var Sale $sale */
+        foreach ($sales as $sale) {
+
+            switch ($sale->apply) {
+                case SaleRecord::APPLY_BY_PERCENT:
+                    // applyAmount is stored as a negative already
+                    $takeOffAmount += ($sale->applyAmount * $originalPrice);
+                    if ($sale->ignorePrevious) {
+                        $newPrice = $originalPrice + ($sale->applyAmount * $originalPrice);
+                    }
+                    break;
+                case SaleRecord::APPLY_TO_PERCENT:
+                    // applyAmount needs to be reversed since it is stored as negative
+                    $newPrice = (-$sale->applyAmount * $originalPrice);
+                    break;
+                case SaleRecord::APPLY_BY_FLAT:
+                    // applyAmount is stored as a negative already
+                    $takeOffAmount += $sale->applyAmount;
+                    if ($sale->ignorePrevious) {
+                        // applyAmount is always negative so add the negative amount to the original price for the new price.
+                        $newPrice = $originalPrice + $sale->applyAmount;
+                    }
+                    break;
+                case SaleRecord::APPLY_TO_FLAT:
+                    // applyAmount needs to be reversed since it is stored as negative
+                    $newPrice = -$sale->applyAmount;
+                    break;
+            }
+
+            // If the stop processing flag is true, it must been the last
+            // since the sales for this purchasable would have returned it last.
+            if ($sale->stopProcessing) {
+                break;
+            }
+        }
+
+        $salePrice = ($originalPrice + $takeOffAmount);
+
+        // A newPrice has been set so use it.
+        if (null !== $newPrice) {
+            $salePrice = $newPrice;
+        }
+
+        if ($salePrice < 0) {
+            $salePrice = 0;
+		}
+
+        return $salePrice;
 	}
 
 	

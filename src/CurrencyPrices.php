@@ -24,6 +24,13 @@ use craft\web\View;
 use craft\events\TemplateEvent;
 use craft\services\Elements;
 use craft\base\Element;
+use craft\commerce\Plugin as Commerce;
+use craft\commerce\elements\Order;
+
+use craft\commerce\events\LineItemEvent;
+use craft\commerce\services\LineItems;
+use craft\commerce\events\ProcessPaymentEvent;
+use craft\commerce\services\Payments;
 
 use yii\base\Event;
 
@@ -156,6 +163,34 @@ class CurrencyPrices extends Plugin
 				
 				$this->service->deletePrices($event->sender->id);
 			}
+		});
+
+		Event::on(LineItems::class, LineItems::EVENT_POPULATE_LINE_ITEM, function(LineItemEvent $event) {
+
+				$order = $event->lineItem->getOrder();
+				$paymentCurrency = $order->getPaymentCurrency();
+				$primaryCurrency = Commerce::getInstance()->getPaymentCurrencies()->getPrimaryPaymentCurrencyIso();
+
+				$prices = $this->service->getPricesByPurchasableId($event->lineItem->purchasable->id);
+				$price = $prices[$paymentCurrency];
+				
+				$salePrice = $this->service->getSalePrice($event->lineItem->purchasable, $paymentCurrency);
+				$saleAmount = 0- ($price - $salePrice);
+
+				$event->lineItem->snapshot['priceIn'] = $paymentCurrency;
+				$event->lineItem->price = $price;
+				$event->lineItem->saleAmount = $saleAmount;
+				$event->lineItem->salePrice = $salePrice;
+				//Craft::dd($event->lineItem);
+			}
+		);
+
+		Event::on(Order::class, Order::EVENT_BEFORE_COMPLETE_ORDER, function(Event $event) {
+			$event->sender->currency = $event->sender->paymentCurrency;
+		});
+
+		Event::on(Payments::class, Payments::EVENT_BEFORE_PROCESS_PAYMENT_EVENT, function(ProcessPaymentEvent $event) {
+			$event->order->currency = $event->order->paymentCurrency;
 		});
 
 		

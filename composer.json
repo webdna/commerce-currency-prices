@@ -2,7 +2,7 @@
 	"name": "kuriousagency/commerce-currency-prices",
 	"description": "Adds payment currency prices to products",
 	"type": "craft-plugin",
-	"version": "1.0.2",
+	"version": "2.0.2",
 	"keywords": [
 		"craft",
 		"cms",

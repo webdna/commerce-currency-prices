@@ -11,6 +11,7 @@
 namespace kuriousagency\commerce\currencyprices;
 
 use kuriousagency\commerce\currencyprices\services\CurrencyPricesService;
+use kuriousagency\commerce\currencyprices\adjusters\Shipping;
 use kuriousagency\commerce\currencyprices\twigextensions\CurrencyPricesTwigExtension;
 use kuriousagency\commerce\currencyprices\assetbundles\currencyprices\CurrencyPricesAsset;
 
@@ -26,11 +27,13 @@ use craft\services\Elements;
 use craft\base\Element;
 use craft\commerce\Plugin as Commerce;
 use craft\commerce\elements\Order;
+use craft\events\RegisterComponentTypesEvent;
 
 use craft\commerce\events\LineItemEvent;
 use craft\commerce\services\LineItems;
 use craft\commerce\events\ProcessPaymentEvent;
 use craft\commerce\services\Payments;
+use craft\commerce\services\OrderAdjustments;
 
 use yii\base\Event;
 
@@ -191,6 +194,15 @@ class CurrencyPrices extends Plugin
 
 		Event::on(Payments::class, Payments::EVENT_BEFORE_PROCESS_PAYMENT_EVENT, function(ProcessPaymentEvent $event) {
 			$event->order->currency = $event->order->paymentCurrency;
+		});
+
+		Event::on(OrderAdjustments::class, OrderAdjustments::EVENT_REGISTER_ORDER_ADJUSTERS, function(RegisterComponentTypesEvent $e) {
+			foreach ($e->types as $key => $type)
+			{
+				if ($type == 'craft\\commerce\\adjusters\\Shipping') {
+					$e->types[$key] = Shipping::class;
+				}
+			}
 		});
 
 		

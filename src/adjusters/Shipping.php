@@ -94,7 +94,9 @@ class Shipping extends Component implements AdjusterInterface
                     $weightAmount = ($item->weight * $item->qty) * $weightRate;
 
 					$adjustment->amount = Currency::round($percentageAmount + $perItemAmount + $weightAmount);
-					$adjustment->amount = $this->_getShippingAmount($adjustment->amount, $paymentCurrency);
+					if ($adjustment->amount > 0) {
+						$adjustment->amount = $this->_getShippingAmount($adjustment->amount, $paymentCurrency);
+					}
 					
                     $adjustment->lineItemId = $item->id;
                     if ($adjustment->amount) {

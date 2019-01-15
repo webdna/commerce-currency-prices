@@ -6,7 +6,7 @@
 			var timer = setInterval(function() {
 				if (window.adminTable) {
 					clearInterval(timer);
-					window.adminTable.settings.deleteAction = 'currency-prices/payment-currencies/delete';
+					window.adminTable.settings.deleteAction = 'commerce-currency-prices/payment-currencies/delete';
 				}
 			}, 50);
 		})();
@@ -15,7 +15,7 @@
 	//add/edit payment currency
 	var $newCurrencyAction = $('input[value="commerce/payment-currencies/save"]');
 	if ($newCurrencyAction[0]) {
-		$newCurrencyAction.val('currency-prices/payment-currencies/save');
+		$newCurrencyAction.val('commerce-currency-prices/payment-currencies/save');
 	}
 
 	// edit product

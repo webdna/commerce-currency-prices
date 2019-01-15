@@ -110,7 +110,7 @@ class CurrencyPrices extends Plugin
             UrlManager::class,
             UrlManager::EVENT_REGISTER_CP_URL_RULES,
             function (RegisterUrlRulesEvent $event) {
-                $event->rules['currency-prices/payment-currencies/delete'] = 'currency-prices/payment-currencies/delete';
+                $event->rules['commerce-currency-prices/payment-currencies/delete'] = 'commerce-currency-prices/payment-currencies/delete';
             }
         );
 
@@ -209,12 +209,12 @@ class CurrencyPrices extends Plugin
 		Craft::$app->view->hook('cp.commerce.product.edit.details', function(array &$context) {
 			$view = Craft::$app->getView();
 			//Craft::dd($context);
-        	return $view->renderTemplate('currency-prices/prices', ['variants'=>$context['product']->variants]);
+        	return $view->renderTemplate('commerce-currency-prices/prices', ['variants'=>$context['product']->variants]);
 		});
 
         Craft::info(
             Craft::t(
-                'currency-prices',
+                'commerce-currency-prices',
                 '{name} plugin loaded',
                 ['name' => $this->name]
             ),

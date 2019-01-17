@@ -11,16 +11,16 @@
 namespace kuriousagency\commerce\currencyprices\adjusters;
 
 use kuriousagency\commerce\currencyprices\CurrencyPrices;
+use kuriousagency\commerce\currencyprices\models\ShippingRule;
 
 use Craft;
 use craft\base\Component;
+use craft\commerce\Plugin;
 use craft\commerce\base\AdjusterInterface;
 use craft\commerce\elements\Order;
 use craft\commerce\helpers\Currency;
 use craft\commerce\models\OrderAdjustment;
 use craft\commerce\models\ShippingMethod;
-use craft\commerce\models\ShippingRule;
-use craft\commerce\Plugin as Commerce;
 
 /**
  * Tax Adjustments
@@ -53,30 +53,39 @@ class Shipping extends Component implements AdjusterInterface
     {
         $this->_order = $order;
 
-        $shippingMethods = Commerce::getInstance()->getShippingMethods()->getAvailableShippingMethods($this->_order);
-
-        $shippingMethod = null;
-
-        /** @var ShippingMethod $method */
-        foreach ($shippingMethods as $method) {
-            if ($method['method']->getIsEnabled() == true && ($method['method']->getHandle() == $this->_order->shippingMethodHandle)) {
-                /** @var ShippingMethod $shippingMethod */
-                $shippingMethod = $method['method'];
-            }
-        }
+        $shippingMethod = $order->getShippingMethod();
 
         if ($shippingMethod === null) {
             return [];
 		}
 		
-		$paymentCurrency = Commerce::getInstance()->getPaymentCurrencies()->getPaymentCurrencyByIso($order->paymentCurrency);
+		if (count($order->lineItems) == 0) {
+			return [];
+		}
 
-        $adjustments = [];
+		$adjustments = [];
 
         /** @var ShippingRule $rule */
-		//$rule = Commerce::getInstance()->getShippingMethods()->getMatchingShippingRule($this->_order, $shippingMethod);
-		$rule = $this->_getMatchingRule($this->_order, $shippingMethod, $paymentCurrency);
-		
+		//$rule = $shippingMethod->getMatchingShippingRule($this->_order);
+		$rule = null;
+		$price = null;
+		foreach ($shippingMethod->getShippingRules() as $ru) {
+			$p = (Object) CurrencyPrices::$plugin->service->getPricesByShippingRuleIdAndCurrency($ru->id, $order->paymentCurrency);
+			$ru->minTotal = $p->minTotal;
+			$ru->maxTotal = $p->maxTotal;
+			$ru->baseRate = $p->baseRate;
+			$ru->perItemRate = $p->perItemRate;
+			$ru->weightRate = $p->weightRate;
+			$ru->percentageRate = $p->percentageRate;
+			$ru->minRate = $p->minRate;
+			$ru->maxRate = $p->maxRate;
+
+			//$rul = new ShippingRule($ru);
+			if ($ru->matchOrder($order)) {
+				$rule = $ru;
+				$price = $p;
+            }
+        }
 		
         if ($rule) {
             $itemTotalAmount = 0;
@@ -93,12 +102,8 @@ class Shipping extends Component implements AdjusterInterface
                     $perItemAmount = $item->qty * $perItemRate;
                     $weightAmount = ($item->weight * $item->qty) * $weightRate;
 
-					$adjustment->amount = Currency::round($percentageAmount + $perItemAmount + $weightAmount);
-					if ($adjustment->amount > 0) {
-						$adjustment->amount = $this->_getShippingAmount($adjustment->amount, $paymentCurrency);
-					}
-					
-                    $adjustment->lineItemId = $item->id;
+                    $adjustment->amount = Currency::round($percentageAmount + $perItemAmount + $weightAmount);
+                    $adjustment->setLineItem($item);
                     if ($adjustment->amount) {
                         $adjustments[] = $adjustment;
                     }
@@ -109,9 +114,7 @@ class Shipping extends Component implements AdjusterInterface
             $baseAmount = Currency::round($rule->getBaseRate());
             if ($baseAmount && $baseAmount != 0) {
                 $adjustment = $this->_createAdjustment($shippingMethod, $rule);
-				//$adjustment->amount = $baseAmount;
-				$adjustment->amount = $this->_getShippingAmount($baseAmount, $paymentCurrency);
-				$adjustment->description = str_replace('{price}', Craft::$app->getFormatter()->asCurrency($rule->maxTotal, $paymentCurrency->iso, [],[],true), $adjustment->description);
+                $adjustment->amount = $baseAmount;
                 $adjustments[] = $adjustment;
             }
 
@@ -120,8 +123,7 @@ class Shipping extends Component implements AdjusterInterface
             if ($rule->getMinRate() != 0 && (($itemTotalAmount + $baseAmount) < Currency::round($rule->getMinRate()))) {
                 $adjustmentToMinimumAmount = Currency::round($rule->getMinRate()) - ($itemTotalAmount + $baseAmount);
                 $adjustment = $this->_createAdjustment($shippingMethod, $rule);
-				//$adjustment->amount = $adjustmentToMinimumAmount;
-				$adjustment->amount = $this->_getShippingAmount($adjustmentToMinimumAmount, $paymentCurrency);
+                $adjustment->amount = $adjustmentToMinimumAmount;
                 $adjustment->description .= ' Adjusted to minimum rate';
                 $adjustments[] = $adjustment;
             }
@@ -129,8 +131,7 @@ class Shipping extends Component implements AdjusterInterface
             if ($rule->getMaxRate() != 0 && (($itemTotalAmount + $baseAmount + $adjustmentToMinimumAmount) > Currency::round($rule->getMaxRate()))) {
                 $adjustmentToMaxAmount = Currency::round($rule->getMaxRate()) - ($itemTotalAmount + $baseAmount + $adjustmentToMinimumAmount);
                 $adjustment = $this->_createAdjustment($shippingMethod, $rule);
-				//$adjustment->amount = $adjustmentToMaxAmount;
-				$adjustment->amount = $this->_getShippingAmount($adjustmentToMaxAmount, $paymentCurrency);
+                $adjustment->amount = $adjustmentToMaxAmount;
                 $adjustment->description .= ' Adjusted to maximum rate';
                 $adjustments[] = $adjustment;
             }
@@ -140,29 +141,7 @@ class Shipping extends Component implements AdjusterInterface
     }
 
     // Private Methods
-	// =========================================================================
-	
-	private function _getShippingAmount($amount, $currency)
-	{
-		return Currency::round((ceil(($amount * $currency->rate) * 2) / 2) - 0.01);
-	}
-
-	private function _getRuleAmount($amount, $currency)
-	{
-		return ceil($amount * $currency->rate);
-	}
-
-	private function _getMatchingRule($order, $shippingMethod, $currency)
-	{
-		foreach ($shippingMethod->getShippingRules() as $rule) {
-			$rule->minTotal = $this->_getRuleAmount($rule->minTotal, $currency);
-			$rule->maxTotal = $this->_getRuleAmount($rule->maxTotal, $currency);
-            if ($rule->matchOrder($order)) {
-				return $rule;
-            }
-		}
-		return false;
-	}
+    // =========================================================================
 
     /**
      * @param ShippingMethod $shippingMethod
@@ -174,12 +153,20 @@ class Shipping extends Component implements AdjusterInterface
         //preparing model
         $adjustment = new OrderAdjustment;
         $adjustment->type = self::ADJUSTMENT_TYPE;
-        $adjustment->orderId = $this->_order->id;
-        $adjustment->lineItemId = null;
+        $adjustment->setOrder($this->_order);
         $adjustment->name = $shippingMethod->getName();
-        $adjustment->sourceSnapshot = $rule->getOptions();
-        $adjustment->description = $rule->getDescription();
+		$adjustment->sourceSnapshot = $rule->getOptions();
+		$adjustment->description = $rule->getDescription();
+
+		preg_match('/{(\w+)}/', $rule->getDescription(), $matches);
+		if (count($matches) > 1) {
+			$prop = $matches[1];
+			$currency = Plugin::getInstance()->getCurrencies()->getCurrencyByIso($this->_order->paymentCurrency);
+			$price = Craft::$app->getFormatter()->asCurrency($rule->$prop, $currency, [], [], false);
+			$adjustment->description = str_replace("{".$prop."}", $price, $rule->getDescription());
+		}
 
         return $adjustment;
-    }
+	}
+	
 }

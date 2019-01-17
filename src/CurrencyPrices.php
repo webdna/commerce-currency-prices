@@ -11,6 +11,7 @@
 namespace kuriousagency\commerce\currencyprices;
 
 use kuriousagency\commerce\currencyprices\services\CurrencyPricesService;
+use kuriousagency\commerce\currencyprices\controllers\PaymentCurrenciesController;
 use kuriousagency\commerce\currencyprices\adjusters\Shipping;
 use kuriousagency\commerce\currencyprices\twigextensions\CurrencyPricesTwigExtension;
 use kuriousagency\commerce\currencyprices\assetbundles\currencyprices\CurrencyPricesAsset;
@@ -44,7 +45,7 @@ use yii\base\Event;
  * @package   CurrencyPrices
  * @since     1.0.0
  *
- * @property  CurrencyPricesServiceService $currencyPricesService
+ * @property  CurrencyPricesService $currencyPricesService
  */
 class CurrencyPrices extends Plugin
 {
@@ -62,7 +63,8 @@ class CurrencyPrices extends Plugin
     /**
      * @var string
      */
-    public $schemaVersion = '1.0.0';
+	public $schemaVersion = '1.0.0';
+	
 
     // Public Methods
     // =========================================================================
@@ -110,7 +112,8 @@ class CurrencyPrices extends Plugin
             UrlManager::class,
             UrlManager::EVENT_REGISTER_CP_URL_RULES,
             function (RegisterUrlRulesEvent $event) {
-                $event->rules['commerce-currency-prices/payment-currencies/delete'] = 'commerce-currency-prices/payment-currencies/delete';
+				$event->rules['commerce-currency-prices/payment-currencies/delete'] = 'commerce-currency-prices/payment-currencies/delete';
+				$event->rules['commerce-currency-prices/payment-currencies/all'] = 'commerce-currency-prices/payment-currencies/all';
             }
         );
 
@@ -192,7 +195,7 @@ class CurrencyPrices extends Plugin
 			$event->sender->currency = $event->sender->paymentCurrency;
 		});
 
-		Event::on(Payments::class, Payments::EVENT_BEFORE_PROCESS_PAYMENT_EVENT, function(ProcessPaymentEvent $event) {
+		Event::on(Payments::class, Payments::EVENT_BEFORE_PROCESS_PAYMENT, function(ProcessPaymentEvent $event) {
 			$event->order->currency = $event->order->paymentCurrency;
 		});
 

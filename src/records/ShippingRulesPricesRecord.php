@@ -8,39 +8,28 @@
  * @copyright Copyright (c) 2018 Kurious Agency
  */
 
-namespace kuriousagency\commerce\currencyprices\models;
+namespace kuriousagency\commerce\currencyprices\records;
 
 use kuriousagency\commerce\currencyprices\CurrencyPrices;
 
 use Craft;
-use craft\base\Model;
+use craft\db\ActiveRecord;
 
 /**
  * @author    Kurious Agency
  * @package   CurrencyPrices
  * @since     1.0.0
  */
-class CurrencyPricesModel extends Model
+class ShippingRulesPricesRecord extends ActiveRecord
 {
-    // Public Properties
-    // =========================================================================
-
-    /**
-     * @var string
-     */
-    public $purchasableId;
-
-    // Public Methods
+    // Public Static Methods
     // =========================================================================
 
     /**
      * @inheritdoc
      */
-    public function rules()
+    public static function tableName()
     {
-        return [
-            ['someAttribute', 'string'],
-            ['someAttribute', 'default', 'value' => 'Some Default'],
-        ];
+        return '{{%commerce_shippingrules_currencyprices}}';
     }
 }

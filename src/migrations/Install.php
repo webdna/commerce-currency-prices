@@ -93,7 +93,39 @@ class Install extends Migration
                     'uid' => $this->uid(),
                     'siteId' => $this->integer()->notNull(),
 				], $paymentCurrencies)
-            );
+			);
+
+			$this->createTable('{{%commerce_shippingrule_categories_currencyprices}}', [
+				'id' => $this->primaryKey(),
+				'shippingRuleId' => $this->integer(),
+				'shippingCategoryId' => $this->integer(),
+				'paymentCurrencyIso' => $this->string()->notNull(),
+				'perItemRate' => $this->decimal(14, 4),
+				'weightRate' => $this->decimal(14, 4),
+				'percentageRate' => $this->decimal(14, 4),
+				'dateCreated' => $this->dateTime()->notNull(),
+				'dateUpdated' => $this->dateTime()->notNull(),
+				'uid' => $this->uid(),
+			]);
+	
+			$this->createTable('{{%commerce_shippingrules_currencyprices}}', [
+				'id' => $this->primaryKey(),
+				'shippingRuleId' => $this->integer(),
+				'paymentCurrencyIso' => $this->string()->notNull(),
+				'minTotal' => $this->decimal(14, 4)->notNull()->defaultValue(0),
+				'maxTotal' => $this->decimal(14, 4)->notNull()->defaultValue(0),
+				'minWeight' => $this->decimal(14, 4)->notNull()->defaultValue(0),
+				'maxWeight' => $this->decimal(14, 4)->notNull()->defaultValue(0),
+				'baseRate' => $this->decimal(14, 4)->notNull()->defaultValue(0),
+				'perItemRate' => $this->decimal(14, 4)->notNull()->defaultValue(0),
+				'weightRate' => $this->decimal(14, 4)->notNull()->defaultValue(0),
+				'percentageRate' => $this->decimal(14, 4)->notNull()->defaultValue(0),
+				'minRate' => $this->decimal(14, 4)->notNull()->defaultValue(0),
+				'maxRate' => $this->decimal(14, 4)->notNull()->defaultValue(0),
+				'dateCreated' => $this->dateTime()->notNull(),
+				'dateUpdated' => $this->dateTime()->notNull(),
+				'uid' => $this->uid(),
+			]);
         }
 
         return $tablesCreated;
@@ -113,7 +145,13 @@ class Install extends Migration
             '{{%commerce_currencyprices}}',
             'purchasableId',
             true
-        );
+		);
+		$this->createIndex(null, '{{%commerce_shippingrule_categories_currencyprices}}', 'shippingRuleId', false);
+		$this->createIndex(null, '{{%commerce_shippingrule_categories_currencyprices}}', 'shippingCategoryId', false);
+		$this->createIndex(null, '{{%commerce_shippingrule_categories_currencyprices}}', 'paymentCurrencyIso', false);
+		$this->createIndex(null, '{{%commerce_shippingrules_currencyprices}}', 'shippingRuleId', false);
+		$this->createIndex(null, '{{%commerce_shippingrules_currencyprices}}', 'paymentCurrencyIso', false);
+        
         // Additional commands depending on the db driver
         switch ($this->driver) {
             case DbConfig::DRIVER_MYSQL:
@@ -128,15 +166,13 @@ class Install extends Migration
      */
     protected function addForeignKeys()
     {
-        $this->addForeignKey(
-            $this->db->getForeignKeyName('{{%commerce_currencyprices}}', 'siteId'),
-            '{{%commerce_currencyprices}}',
-            'siteId',
-            '{{%sites}}',
-            'id',
-            'CASCADE',
-            'CASCADE'
-        );
+		//$this->addForeignKey(null, '{{%commerce_currencyprices}}', ['siteId'], '{{%sites}}', ['id'], 'CASCADE');
+		
+		$this->addForeignKey(null, '{{%commerce_shippingrule_categories_currencyprices}}', ['shippingCategoryId'], '{{%commerce_shippingcategories}}', ['id'], 'CASCADE');
+        $this->addForeignKey(null, '{{%commerce_shippingrule_categories_currencyprices}}', ['shippingRuleId'], '{{%commerce_shippingrules}}', ['id'], 'CASCADE');
+		$this->addForeignKey(null, '{{%commerce_shippingrule_categories_currencyprices}}', ['paymentCurrencyIso'], '{{%commerce_paymentcurrencies}}', ['iso'], 'CASCADE');
+		$this->addForeignKey(null, '{{%commerce_shippingrules_currencyprices}}', ['shippingRuleId'], '{{%commerce_shippingrules}}', ['id'], 'CASCADE');
+		$this->addForeignKey(null, '{{%commerce_shippingrules_currencyprices}}', ['paymentCurrencyIso'], '{{%commerce_paymentcurrencies}}', ['iso'], 'CASCADE');
     }
 
     /**
@@ -151,6 +187,8 @@ class Install extends Migration
      */
     protected function removeTables()
     {
-        $this->dropTableIfExists('{{%commerce_currencyprices}}');
+		$this->dropTableIfExists('{{%commerce_currencyprices}}');
+		$this->dropTableIfExists('{{%commerce_shippingrule_categories_currencyprices}}');
+        $this->dropTableIfExists('{{%commerce_shippingrules_currencyprices}}');
     }
 }

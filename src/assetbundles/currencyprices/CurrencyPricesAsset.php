@@ -37,7 +37,8 @@ class CurrencyPricesAsset extends AssetBundle
         ];
 
         $this->js = [
-            'js/CurrencyPrices.js',
+			'js/products.js',
+			'js/shipping.js',
         ];
 
         $this->css = [

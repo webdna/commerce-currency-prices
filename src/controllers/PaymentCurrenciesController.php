@@ -38,7 +38,7 @@ class PaymentCurrenciesController extends Controller
     protected $allowAnonymous = [];
 
     // Public Methods
-    // =========================================================================
+	// =========================================================================
 
 	/**
      * @throws HttpException

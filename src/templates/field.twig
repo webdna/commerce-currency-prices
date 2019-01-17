@@ -1,0 +1,17 @@
+{%- import "_includes/forms" as forms -%}
+{%- import "commerce-currency-prices/_includes/forms" as commerceForms -%}
+
+
+	{{ commerceForms.numberField({
+		label: label|t('commerce'),
+		name: name,
+		instructions: instructions|t('commerce'),
+		value: values,
+		type: 'number',
+		min: 0,
+		step: 'any',
+		errors: errors,
+		placeholder: '0',
+		required: true,
+	}) }}
+

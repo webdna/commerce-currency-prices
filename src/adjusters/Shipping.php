@@ -53,7 +53,8 @@ class Shipping extends Component implements AdjusterInterface
     {
         $this->_order = $order;
 
-        $shippingMethod = $order->getShippingMethod();
+		$shippingMethod = $order->getShippingMethod();
+		//raft::dd($shippingMethod);
 
         if ($shippingMethod === null) {
             return [];
@@ -68,24 +69,36 @@ class Shipping extends Component implements AdjusterInterface
         /** @var ShippingRule $rule */
 		//$rule = $shippingMethod->getMatchingShippingRule($this->_order);
 		$rule = null;
-		$price = null;
+		
 		foreach ($shippingMethod->getShippingRules() as $ru) {
-			$p = (Object) CurrencyPrices::$plugin->service->getPricesByShippingRuleIdAndCurrency($ru->id, $order->paymentCurrency);
-			$ru->minTotal = $p->minTotal;
-			$ru->maxTotal = $p->maxTotal;
-			$ru->baseRate = $p->baseRate;
-			$ru->perItemRate = $p->perItemRate;
-			$ru->weightRate = $p->weightRate;
-			$ru->percentageRate = $p->percentageRate;
-			$ru->minRate = $p->minRate;
-			$ru->maxRate = $p->maxRate;
+			$price = (Object) CurrencyPrices::$plugin->service->getPricesByShippingRuleIdAndCurrency($ru->id, $order->paymentCurrency);
+			$ru->minTotal = $price->minTotal;
+			$ru->maxTotal = $price->maxTotal;
+			$ru->baseRate = $price->baseRate;
+			$ru->perItemRate = $price->perItemRate;
+			$ru->weightRate = $price->weightRate;
+			$ru->percentageRate = $price->percentageRate;
+			$ru->minRate = $price->minRate;
+			$ru->maxRate = $price->maxRate;
 
-			//$rul = new ShippingRule($ru);
+			/* TODO: rule categories prices */
+			$cats = $ru->getShippingRuleCategories();
+			
+			foreach ($cats as $key => $cat)
+			{
+				$price = (Object) CurrencyPrices::$plugin->service->getPricesByShippingRuleCategoryIdAndCurreny($cat->shippingRuleId, $cat->shippingCategoryId, $order->paymentCurrency);
+				$cats[$key]->perItemRate = $price->perItemRate;
+				$cats[$key]->weightRate = $price->weightRate;
+				$cats[$key]->percentageRate = $price->percentageRate;
+			}
+			$ru->setShippingRuleCategories($cats);
+//Craft::dump($ru->enabled ? 'yes' : 'no');
 			if ($ru->matchOrder($order)) {
 				$rule = $ru;
-				$price = $p;
-            }
-        }
+				continue;
+			}
+		}
+		//Craft::dd($rule);
 		
         if ($rule) {
             $itemTotalAmount = 0;
@@ -112,11 +125,11 @@ class Shipping extends Component implements AdjusterInterface
             }
 
             $baseAmount = Currency::round($rule->getBaseRate());
-            if ($baseAmount && $baseAmount != 0) {
+            //if ($baseAmount && $baseAmount != 0) {
                 $adjustment = $this->_createAdjustment($shippingMethod, $rule);
                 $adjustment->amount = $baseAmount;
                 $adjustments[] = $adjustment;
-            }
+            //}
 
             $adjustmentToMinimumAmount = 0;
             // Is there a minimum rate and is the total shipping cost currently below it?

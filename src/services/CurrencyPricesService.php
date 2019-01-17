@@ -97,6 +97,21 @@ class CurrencyPricesService extends Component
 		return $result;
 	}
 
+	public function getPricesByShippingRuleCategoryIdAndCurreny($id, $catId, $iso)
+	{
+		$result = (new Query())
+			->select(['*'])
+			->from(['{{%commerce_shippingrule_categories_currencyprices}}'])
+			->where(['shippingRuleId' => $id, 'shippingCategoryId'=> $catId, 'paymentCurrencyIso' => $iso])
+			->one();
+
+		if (!$result) {
+			return null;
+		}
+
+		return $result;
+	}
+
 	public function savePrices($purchasable, $prices)
 	{
 		$record = CurrencyPricesRecord::findOne($purchasable->id);

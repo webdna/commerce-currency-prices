@@ -206,6 +206,7 @@ class CurrencyPrices extends Plugin
 					$e->types[$key] = Shipping::class;
 				}
 			}
+			//Craft::dd($e->types);
 		});
 
 		

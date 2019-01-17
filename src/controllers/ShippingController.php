@@ -201,6 +201,10 @@ class ShippingController extends Controller
         foreach ($fields as $field) {
             $shippingRule->$field = Craft::$app->getRequest()->getBodyParam($field);
 		}
+		if ($shippingRule->enabled == '') {
+			$shippingRule->enabled = false;
+		}
+		
 		//'minTotal', 'maxTotal',
 		$currencyPrices = [];
 		$currencyFields = ['minTotal', 'maxTotal', 'baseRate', 'perItemRate', 'weightRate', 'percentageRate', 'minRate', 'maxRate'];

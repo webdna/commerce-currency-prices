@@ -5,6 +5,9 @@
 		var $conditions = $('#conditions-tab');
 		if ($conditions[0]) {
 			console.log('shipping');
+
+			$('#header').find('.submit').prop('disabled',true);
+
 			$('[name="action"]').val('commerce-currency-prices/shipping/save');
 			//
 			//var values = $conditions.parents('form').serializeArray();
@@ -61,6 +64,9 @@
 					.find('[name="percentageRate"]')
 					.parents('.field')
 					.replaceWith($(response.html));
+
+				$('#header').find('.submit').prop('disabled',false);
+
 			});
 
 			$costs.find('#shipping-categories-rates tr[data-name]').each(function() {

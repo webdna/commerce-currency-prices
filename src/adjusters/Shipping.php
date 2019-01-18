@@ -174,9 +174,13 @@ class Shipping extends Component implements AdjusterInterface
 		preg_match('/{(\w+)}/', $rule->getDescription(), $matches);
 		if (count($matches) > 1) {
 			$prop = $matches[1];
-			$currency = Plugin::getInstance()->getCurrencies()->getCurrencyByIso($this->_order->paymentCurrency);
-			$price = Craft::$app->getFormatter()->asCurrency($rule->$prop, $currency, [], [], false);
-			$adjustment->description = str_replace("{".$prop."}", $price, $rule->getDescription());
+
+			if(property_exists($rule,$prop)) {
+				$currency = Plugin::getInstance()->getCurrencies()->getCurrencyByIso($this->_order->paymentCurrency);
+				$price = Craft::$app->getFormatter()->asCurrency($rule->$prop, $currency, [], [], false);
+				$adjustment->description = str_replace("{".$prop."}", $price, $rule->getDescription());
+			}
+
 		}
 
         return $adjustment;

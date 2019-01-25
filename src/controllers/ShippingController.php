@@ -189,6 +189,8 @@ class ShippingController extends Controller
 		$this->requirePostRequest();
 		$request = Craft::$app->getRequest();
 
+		// Craft::dd($request);
+
 		$iso = Commerce::getInstance()->getPaymentCurrencies()->getPrimaryPaymentCurrencyIso();
 
         $shippingRule = new ShippingRule();
@@ -213,6 +215,16 @@ class ShippingController extends Controller
 		{
 			//Craft::dd($request->getBodyParam($field));
 			$values = $request->getBodyParam($field);
+
+			// Craft::dd($values);
+			
+			// replace empty values with 0
+			if(is_array($values)) {
+				$values = array_map(function($value) {
+					return $value === "" ? 0 : $value;
+				}, $values);
+			}
+
 			$shippingRule->$field = $values[$iso];
 			foreach ($values as $key => $price)
 			{

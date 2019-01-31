@@ -5,6 +5,7 @@
 	{{ commerceForms.numberField({
 		label: label|t('commerce'),
 		name: name,
+		id: id ?? null,
 		instructions: instructions|t('commerce'),
 		value: values,
 		type: 'number',

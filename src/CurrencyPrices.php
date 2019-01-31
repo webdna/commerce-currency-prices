@@ -13,6 +13,7 @@ namespace kuriousagency\commerce\currencyprices;
 use kuriousagency\commerce\currencyprices\services\CurrencyPricesService;
 use kuriousagency\commerce\currencyprices\controllers\PaymentCurrenciesController;
 use kuriousagency\commerce\currencyprices\adjusters\Shipping;
+use kuriousagency\commerce\currencyprices\adjusters\Discount;
 use kuriousagency\commerce\currencyprices\twigextensions\CurrencyPricesTwigExtension;
 use kuriousagency\commerce\currencyprices\assetbundles\currencyprices\CurrencyPricesAsset;
 
@@ -63,7 +64,7 @@ class CurrencyPrices extends Plugin
     /**
      * @var string
      */
-	public $schemaVersion = '1.0.0';
+	public $schemaVersion = '1.1.0';
 	
 
     // Public Methods
@@ -205,9 +206,51 @@ class CurrencyPrices extends Plugin
 				if ($type == 'craft\\commerce\\adjusters\\Shipping') {
 					$e->types[$key] = Shipping::class;
 				}
+				if ($type == 'craft\\commerce\\adjusters\\Discount') {
+					//$e->types[$key] = Discount::class;
+				}
 			}
 			//Craft::dd($e->types);
 		});
+
+		/*Event::on(Discount::class, Discount::EVENT_AFTER_DISCOUNT_ADJUSTMENTS_CREATED, function(DiscountAdjustmentsEvent $e) {
+			Craft::dd($e->adjustments);
+			foreach ($e->adjustments as $key => $adjustment)
+			{
+				$price = (Object) CurrencyPrices::$plugin->service->getPricesByDiscountIdAndCurrency($e->discount->id, $e->order->paymentCurrency);
+				if ($price) {
+					foreach ($e->order->getLineItems() as $item) {
+						if (in_array($item->id, $matchingLineIds, false)) {
+							$adjustment = $this->_createOrderAdjustment($this->_discount);
+							$adjustment->setLineItem($item);
+			
+							$amountPerItem = Currency::round($this->_discount->perItemDiscount * $item->qty);
+			
+							//Default is percentage off already discounted price
+							$existingLineItemDiscount = $item->getAdjustmentsTotalByType('discount');
+							$existingLineItemPrice = ($item->getSubtotal() + $existingLineItemDiscount);
+							$amountPercentage = Currency::round($this->_discount->percentDiscount * $existingLineItemPrice);
+			
+							if ($this->_discount->percentageOffSubject == DiscountRecord::TYPE_ORIGINAL_SALEPRICE) {
+								$amountPercentage = Currency::round($this->_discount->percentDiscount * $item->getSubtotal());
+							}
+			
+							$adjustment->amount = $amountPerItem + $amountPercentage;
+			
+							if ($adjustment->amount != 0) {
+								$adjustments[] = $adjustment;
+							}
+						}
+					}
+					if ($discount->baseDiscount !== null && $discount->baseDiscount != 0) {
+						$baseDiscountAdjustment = $this->_createOrderAdjustment($discount);
+						$baseDiscountAdjustment->amount = $discount->baseDiscount;
+						$adjustments[] = $baseDiscountAdjustment;
+					}
+					$e->adjustments[$key]['amount'] = 
+				}
+			}
+		});*/
 
 		
 		Craft::$app->view->hook('cp.commerce.product.edit.details', function(array &$context) {

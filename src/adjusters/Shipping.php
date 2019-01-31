@@ -86,7 +86,7 @@ class Shipping extends Component implements AdjusterInterface
 			
 			foreach ($cats as $key => $cat)
 			{
-				$price = (Object) CurrencyPrices::$plugin->service->getPricesByShippingRuleCategoryIdAndCurreny($cat->shippingRuleId, $cat->shippingCategoryId, $order->paymentCurrency);
+				$price = (Object) CurrencyPrices::$plugin->service->getPricesByShippingRuleCategoryIdAndCurrency($cat->shippingRuleId, $cat->shippingCategoryId, $order->paymentCurrency);
 				$cats[$key]->perItemRate = $price->perItemRate;
 				$cats[$key]->weightRate = $price->weightRate;
 				$cats[$key]->percentageRate = $price->percentageRate;

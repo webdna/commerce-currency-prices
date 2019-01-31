@@ -1,9 +1,7 @@
-body.commercesettings #conditions-tab .currency[data-iso] input,
-body.commercesettings #costs-tab .currency[data-iso] input {
+body.commerce .currency[data-iso] input {
 	padding-left: 50px;
 }
-body.commercesettings #conditions-tab .currency[data-iso]:before,
-body.commercesettings #costs-tab .currency[data-iso]:before {
+body.commerce .currency[data-iso]:before {
 	content: attr(data-iso);
 	display: inline-block;
 	width: 50px;
@@ -12,7 +10,6 @@ body.commercesettings #costs-tab .currency[data-iso]:before {
 	margin-left: 7px;
 	color: grey;
 }
-body.commercesettings #conditions-tab .currency[data-iso]:not(first-child),
-body.commercesettings #costs-tab .currency[data-iso]:not(first-child) {
+body.commerce .currency[data-iso]:not(first-child) {
 	margin-top: -1px;
 }

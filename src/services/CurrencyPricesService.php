@@ -15,6 +15,7 @@ use kuriousagency\commerce\currencyprices\models\CurrencyPricesModel;
 use kuriousagency\commerce\currencyprices\records\CurrencyPricesRecord;
 use kuriousagency\commerce\currencyprices\records\ShippingRulesPricesRecord;
 use kuriousagency\commerce\currencyprices\records\ShippingCategoriesPricesRecord;
+use kuriousagency\commerce\currencyprices\records\DiscountsPricesRecord;
 
 use craft\commerce\Plugin as Commerce;
 use craft\commerce\records\Sale as SaleRecord;
@@ -97,12 +98,42 @@ class CurrencyPricesService extends Component
 		return $result;
 	}
 
-	public function getPricesByShippingRuleCategoryIdAndCurreny($id, $catId, $iso)
+	public function getPricesByShippingRuleCategoryIdAndCurrency($id, $catId, $iso)
 	{
 		$result = (new Query())
 			->select(['*'])
 			->from(['{{%commerce_shippingrule_categories_currencyprices}}'])
 			->where(['shippingRuleId' => $id, 'shippingCategoryId'=> $catId, 'paymentCurrencyIso' => $iso])
+			->one();
+
+		if (!$result) {
+			return null;
+		}
+
+		return $result;
+	}
+
+	public function getPricesByDiscountId($id)
+	{
+		$results = (new Query())
+			->select(['*'])
+			->from(['{{%commerce_discounts_currencyprices}}'])
+			->where(['discountId' => $id])
+			->all();
+
+		if (!$results) {
+			return [];
+		}
+
+		return $results;
+	}
+
+	public function getPricesByDiscountIdAndCurrency($id, $iso)
+	{
+		$result = (new Query())
+			->select(['*'])
+			->from(['{{%commerce_discounts_currencyprices}}'])
+			->where(['discountId' => $id, 'paymentCurrencyIso' => $iso])
 			->one();
 
 		if (!$result) {
@@ -197,6 +228,24 @@ class CurrencyPricesService extends Component
 				$record->percentageRate = $value['percentageRate'];
 				$record->save();
 			}
+		}
+	}
+
+	public function saveDiscount($id, $prices)
+	{
+		foreach ($prices as $key => $value)
+		{
+			$record = DiscountsPricesRecord::findOne(['discountId'=>$id, 'paymentCurrencyIso'=>$key]);
+			
+			if (!$record) {
+				$record = new DiscountsPricesRecord();
+			}
+
+			$record->discountId = $id;
+			$record->paymentCurrencyIso = $key;
+			$record->baseDiscount = $value['baseDiscount'];
+			$record->perItemDiscount = $value['perItemDiscount'];
+			$record->save();
 		}
 	}
 

@@ -144,7 +144,7 @@ class Discount extends Component implements AdjusterInterface
         $adjustment = new OrderAdjustment();
         $adjustment->type = self::ADJUSTMENT_TYPE;
         $adjustment->name = $discount->name;
-        $adjustment->setOrder($this->_order);
+        $adjustment->orderId = $this->_order->id;
         $adjustment->description = $discount->description;
         $adjustment->sourceSnapshot = $discount->attributes;
 

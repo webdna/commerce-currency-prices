@@ -131,19 +131,21 @@ class CurrencyPrices extends Plugin
 			if ($event->sender instanceof \craft\commerce\elements\Product) {
 				$prices = Craft::$app->getRequest()->getBodyParam('prices');
 				$newCount = 1;
-				foreach ($event->sender->variants as $key => $variant)
-				{
-					if ($variant->id) {
-						$price = $prices[$variant->id];
-					} else {
-						$price = $prices['new'.$newCount];
-						$newCount++;
-					}
-					foreach ($price as $iso => $value)
+				if ($prices) {
+					foreach ($event->sender->variants as $key => $variant)
 					{
-						if ($value == '') {
-							$event->sender->variants[$key]->addError('prices-'.$iso, 'Price cannot be blank.');
-							$event->isValid = false;
+						if ($variant->id) {
+							$price = $prices[$variant->id];
+						} else {
+							$price = $prices['new'.$newCount];
+							$newCount++;
+						}
+						foreach ($price as $iso => $value)
+						{
+							if ($value == '') {
+								$event->sender->variants[$key]->addError('prices-'.$iso, 'Price cannot be blank.');
+								$event->isValid = false;
+							}
 						}
 					}
 				}
@@ -154,11 +156,13 @@ class CurrencyPrices extends Plugin
 			if ($event->sender instanceof \craft\commerce\elements\Product) {
 				$prices = Craft::$app->getRequest()->getBodyParam('prices');
 				$count = 0;
-				foreach ($prices as $key => $price)
-				{
-					if ($key != 'new') {
-						$this->service->savePrices($event->sender->variants[$count], $price);
-						$count++;
+				if ($prices) {
+					foreach ($prices as $key => $price)
+					{
+						if ($key != 'new') {
+							$this->service->savePrices($event->sender->variants[$count], $price);
+							$count++;
+						}
 					}
 				}
 			}
@@ -179,16 +183,18 @@ class CurrencyPrices extends Plugin
 				$primaryCurrency = Commerce::getInstance()->getPaymentCurrencies()->getPrimaryPaymentCurrencyIso();
 
 				$prices = $this->service->getPricesByPurchasableId($event->lineItem->purchasable->id);
-				$price = $prices[$paymentCurrency];
-				
-				$salePrice = $this->service->getSalePrice($event->lineItem->purchasable, $paymentCurrency);
-				$saleAmount = 0- ($price - $salePrice);
+				if ($prices) {
+					$price = $prices[$paymentCurrency];
+					
+					$salePrice = $this->service->getSalePrice($event->lineItem->purchasable, $paymentCurrency);
+					$saleAmount = 0- ($price - $salePrice);
 
-				$event->lineItem->snapshot['priceIn'] = $paymentCurrency;
-				$event->lineItem->price = $price;
-				$event->lineItem->saleAmount = $saleAmount;
-				$event->lineItem->salePrice = $salePrice;
-				//Craft::dd($event->lineItem);
+					$event->lineItem->snapshot['priceIn'] = $paymentCurrency;
+					$event->lineItem->price = $price;
+					$event->lineItem->saleAmount = $saleAmount;
+					$event->lineItem->salePrice = $salePrice;
+					//Craft::dd($event->lineItem);
+				}
 			}
 		);
 

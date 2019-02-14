@@ -71,27 +71,30 @@ class Shipping extends Component implements AdjusterInterface
 		$rule = null;
 		
 		foreach ($shippingMethod->getShippingRules() as $ru) {
-			$price = (Object) CurrencyPrices::$plugin->service->getPricesByShippingRuleIdAndCurrency($ru->id, $order->paymentCurrency);
-			$ru->minTotal = $price->minTotal;
-			$ru->maxTotal = $price->maxTotal;
-			$ru->baseRate = $price->baseRate;
-			$ru->perItemRate = $price->perItemRate;
-			$ru->weightRate = $price->weightRate;
-			$ru->percentageRate = $price->percentageRate;
-			$ru->minRate = $price->minRate;
-			$ru->maxRate = $price->maxRate;
+			$price = CurrencyPrices::$plugin->service->getPricesByShippingRuleIdAndCurrency($ru->id, $order->paymentCurrency);
+			if ($price) {
+				$price = (Object) $price;
+				$ru->minTotal = $price->minTotal;
+				$ru->maxTotal = $price->maxTotal;
+				$ru->baseRate = $price->baseRate;
+				$ru->perItemRate = $price->perItemRate;
+				$ru->weightRate = $price->weightRate;
+				$ru->percentageRate = $price->percentageRate;
+				$ru->minRate = $price->minRate;
+				$ru->maxRate = $price->maxRate;
 
-			/* TODO: rule categories prices */
-			$cats = $ru->getShippingRuleCategories();
-			
-			foreach ($cats as $key => $cat)
-			{
-				$price = (Object) CurrencyPrices::$plugin->service->getPricesByShippingRuleCategoryIdAndCurrency($cat->shippingRuleId, $cat->shippingCategoryId, $order->paymentCurrency);
-				$cats[$key]->perItemRate = $price->perItemRate;
-				$cats[$key]->weightRate = $price->weightRate;
-				$cats[$key]->percentageRate = $price->percentageRate;
+				/* TODO: rule categories prices */
+				$cats = $ru->getShippingRuleCategories();
+				
+				foreach ($cats as $key => $cat)
+				{
+					$price = (Object) CurrencyPrices::$plugin->service->getPricesByShippingRuleCategoryIdAndCurrency($cat->shippingRuleId, $cat->shippingCategoryId, $order->paymentCurrency);
+					$cats[$key]->perItemRate = $price->perItemRate;
+					$cats[$key]->weightRate = $price->weightRate;
+					$cats[$key]->percentageRate = $price->percentageRate;
+				}
+				$ru->setShippingRuleCategories($cats);
 			}
-			$ru->setShippingRuleCategories($cats);
 //Craft::dump($ru->enabled ? 'yes' : 'no');
 			if ($ru->matchOrder($order)) {
 				$rule = $ru;

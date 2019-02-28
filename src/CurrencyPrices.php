@@ -16,6 +16,7 @@ use kuriousagency\commerce\currencyprices\adjusters\Shipping;
 use kuriousagency\commerce\currencyprices\adjusters\Discount;
 use kuriousagency\commerce\currencyprices\twigextensions\CurrencyPricesTwigExtension;
 use kuriousagency\commerce\currencyprices\assetbundles\currencyprices\CurrencyPricesAsset;
+use kuriousagency\commerce\currencyprices\fields\CurrencyField;
 
 use Craft;
 use craft\base\Plugin;
@@ -30,6 +31,7 @@ use craft\base\Element;
 use craft\commerce\Plugin as Commerce;
 use craft\commerce\elements\Order;
 use craft\events\RegisterComponentTypesEvent;
+use craft\services\Fields;
 
 use craft\commerce\events\LineItemEvent;
 use craft\commerce\services\LineItems;
@@ -115,6 +117,14 @@ class CurrencyPrices extends Plugin
             function (RegisterUrlRulesEvent $event) {
 				$event->rules['commerce-currency-prices/payment-currencies/delete'] = 'commerce-currency-prices/payment-currencies/delete';
 				$event->rules['commerce-currency-prices/payment-currencies/all'] = 'commerce-currency-prices/payment-currencies/all';
+            }
+		);
+		
+		Event::on(
+            Fields::class,
+            Fields::EVENT_REGISTER_FIELD_TYPES,
+            function (RegisterComponentTypesEvent $event) {
+                $event->types[] = CurrencyField::class;
             }
         );
 

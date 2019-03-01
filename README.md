@@ -1,8 +1,6 @@
 # Currency Prices plugin for Craft CMS 3.x
 
-Adds payment currency prices to products
-
-![Screenshot](resources/img/plugin-logo.png)
+Adds the option to set product prices in different currencies
 
 ## Requirements
 
@@ -18,26 +16,43 @@ To install the plugin, follow these instructions.
 
 2. Then tell Composer to load the plugin:
 
-        composer require KuriousAgency/commerce-currency-prices/currency-prices
+        composer require kuriousagency/commerce-currency-prices
 
 3. In the Control Panel, go to Settings → Plugins and click the “Install” button for Currency Prices.
 
 ## Currency Prices Overview
 
--Insert text here-
+Configure your payment currencies in Craft Commerce settings, additional currency price fields will be added to Products, Discounts and Shipping Rules.
 
-## Configuring Currency Prices
+**Products**
 
--Insert text here-
+Products will now display a price field for each currency setup.
 
-## Using Currency Prices
+The product price used in the cart will change depending on which payment currency is selected.
 
--Insert text here-
+![Screenshot](resources/screenshots/currency-prices.png)
 
-## Currency Prices Roadmap
+**Discounts**
 
-Some things to do, and ideas for potential features:
+Add product discounts for each of your currencies
 
-* Release it
+![Screenshot](resources/screenshots/currency-discounts.png)
+
+**Shipping**
+
+Setup shipping conditions and costs for each of your payment currencies.
+
+_Shipping Conditions_
+
+![Screenshot](resources/screenshots/currency-shipping-conditions.png)
+
+_Shipping Costs_
+
+![Screenshot](resources/screenshots/currency-shipping-costs.png)
+
+
+**Currency Fieldtype**
+
+Adds a 'Currencies' fieldtype giving a dropdown list of payment currencies
 
 Brought to you by [Kurious Agency](https://kurious.agency)

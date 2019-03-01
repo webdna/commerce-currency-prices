@@ -22,7 +22,11 @@ To install the plugin, follow these instructions.
 
 ## Currency Prices Overview
 
-Configure your payment currencies in Craft Commerce settings, additional currency price fields will be added to Products, Discounts and Shipping Rules.
+Configure your payment currencies in Craft Commerce settings - foreach currency set the conversion rate to 1.
+
+![Screenshot](resources/screenshots/payment-currencies.png)
+
+Additional currency price fields will be added to Products, Discounts and Shipping Rules.
 
 **Products**
 
@@ -31,6 +35,22 @@ Products will now display a price field for each currency setup.
 The product price used in the cart will change depending on which payment currency is selected.
 
 ![Screenshot](resources/screenshots/currency-prices.png)
+
+To display a product currency price use one of the the following Twig filter:
+
+```twig
+{{ product.defaultVariant|currencyPrice('GBP') }}
+
+{{ product.defaultVariant|currencySalePrice('GBP') }}
+```
+
+The current cart payment currency could be used to set the currency in the Twig filter:
+
+```twig
+{{ product.defaultVariant|currencyPrice(cart.paymentCurrency) }}
+
+{{ product.defaultVariant|currencySalePrice(cart.paymentCurrency) }}
+```
 
 **Discounts**
 

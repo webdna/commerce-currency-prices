@@ -2,7 +2,7 @@
 	"name": "kuriousagency/commerce-currency-prices",
 	"description": "Adds payment currency prices to products",
 	"type": "craft-plugin",
-	"version": "2.3.3",
+	"version": "2.3.4",
 	"keywords": [
 		"craft",
 		"cms",
@@ -14,7 +14,7 @@
 		"docs": "https://github.com/KuriousAgency/commerce-currency-prices/currency-prices/blob/master/README.md",
 		"issues": "https://github.com/KuriousAgency/commerce-currency-prices/currency-prices/issues"
 	},
-	"license": "MIT",
+	"license": "proprietary",
 	"authors": [
 		{
 			"name": "Kurious Agency",

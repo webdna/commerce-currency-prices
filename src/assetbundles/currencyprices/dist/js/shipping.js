@@ -1,12 +1,12 @@
 (function() {
-	if ($('body').hasClass('commercesettings')) {
-		console.log('commerce settings');
-
+	if ($('body').hasClass('commerce')) {
 		var $conditions = $('#conditions-tab');
 		if ($conditions[0]) {
 			console.log('shipping');
 
-			$('#header').find('.submit').prop('disabled',true);
+			$('#header')
+				.find('.submit')
+				.prop('disabled', true);
 
 			$('[name="action"]').val('commerce-currency-prices/shipping/save');
 			//
@@ -65,8 +65,9 @@
 					.parents('.field')
 					.replaceWith($(response.html));
 
-				$('#header').find('.submit').prop('disabled',false);
-
+				$('#header')
+					.find('.submit')
+					.prop('disabled', false);
 			});
 
 			$costs.find('#shipping-categories-rates tr[data-name]').each(function() {

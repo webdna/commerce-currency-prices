@@ -71,6 +71,7 @@ class Shipping extends Component implements AdjusterInterface
 		$rule = null;
 		
 		foreach ($shippingMethod->getShippingRules() as $ru) {
+			$ru = new ShippingRule($ru);
 			$price = CurrencyPrices::$plugin->service->getPricesByShippingRuleIdAndCurrency($ru->id, $order->paymentCurrency);
 			if ($price) {
 				$price = (Object) $price;

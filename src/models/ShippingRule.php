@@ -216,7 +216,7 @@ class ShippingRule extends Model implements ShippingRuleInterface
     /**
      * @inheritdoc
      */
-    public function matchOrder(Order $order, $price): bool
+    public function matchOrder(Order $order): bool
     {
         if (!$this->enabled) {
             return false;
@@ -266,17 +266,12 @@ class ShippingRule extends Model implements ShippingRuleInterface
         if ($this->maxQty && $this->maxQty < $order->totalQty) {
             return false;
         }
-//Craft::dump($this->maxTotal);
-//Craft::dd($order->paymentCurrency);
-		//get currency price minTotal 
-		//$price = (Object) CurrencyPrices::$plugin->service->getPricesByShippingRuleIdAndCurrency($this->id, $order->paymentCurrency);
-		//Craft::dd($price);
 
         // order total rules exclude maximum limit (min <= x < max)
-        if ($price->minTotal && $price->minTotal > $order->itemTotal) {
+        if ($this->minTotal && $this->minTotal > $order->getItemTotal()) {
             return false;
         }
-        if ($price->maxTotal && $price->maxTotal <= $order->itemTotal) {
+        if ($this->maxTotal && $this->maxTotal <= $order->getItemTotal()) {
             return false;
         }
 

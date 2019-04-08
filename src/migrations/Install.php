@@ -126,6 +126,18 @@ class Install extends Migration
 				'dateUpdated' => $this->dateTime()->notNull(),
 				'uid' => $this->uid(),
 			]);
+
+			$this->createTable('{{%commerce_discounts_currencyprices}}', [
+				'id' => $this->primaryKey(),
+				'discountId' => $this->integer(),
+				'paymentCurrencyIso' => $this->string()->notNull(),
+				'purchaseTotal' => $this->decimal(14, 4),
+				'baseDiscount' => $this->decimal(14, 4),
+				'perItemDiscount' => $this->decimal(14, 4),
+				'dateCreated' => $this->dateTime()->notNull(),
+				'dateUpdated' => $this->dateTime()->notNull(),
+				'uid' => $this->uid(),
+			]);
         }
 
         return $tablesCreated;
@@ -151,6 +163,8 @@ class Install extends Migration
 		$this->createIndex(null, '{{%commerce_shippingrule_categories_currencyprices}}', 'paymentCurrencyIso', false);
 		$this->createIndex(null, '{{%commerce_shippingrules_currencyprices}}', 'shippingRuleId', false);
 		$this->createIndex(null, '{{%commerce_shippingrules_currencyprices}}', 'paymentCurrencyIso', false);
+		$this->createIndex(null, '{{%commerce_discounts_currencyprices}}', 'discountId', false);
+		$this->createIndex(null, '{{%commerce_discounts_currencyprices}}', 'paymentCurrencyIso', false);
         
         // Additional commands depending on the db driver
         switch ($this->driver) {
@@ -173,6 +187,8 @@ class Install extends Migration
 		$this->addForeignKey(null, '{{%commerce_shippingrule_categories_currencyprices}}', ['paymentCurrencyIso'], '{{%commerce_paymentcurrencies}}', ['iso'], 'CASCADE');
 		$this->addForeignKey(null, '{{%commerce_shippingrules_currencyprices}}', ['shippingRuleId'], '{{%commerce_shippingrules}}', ['id'], 'CASCADE');
 		$this->addForeignKey(null, '{{%commerce_shippingrules_currencyprices}}', ['paymentCurrencyIso'], '{{%commerce_paymentcurrencies}}', ['iso'], 'CASCADE');
+		$this->addForeignKey(null, '{{%commerce_discounts_currencyprices}}', ['discountId'], '{{%commerce_discounts}}', ['id'], 'CASCADE');
+		$this->addForeignKey(null, '{{%commerce_discounts_currencyprices}}', ['paymentCurrencyIso'], '{{%commerce_paymentcurrencies}}', ['iso'], 'CASCADE');
     }
 
     /**
@@ -189,6 +205,7 @@ class Install extends Migration
     {
 		$this->dropTableIfExists('{{%commerce_currencyprices}}');
 		$this->dropTableIfExists('{{%commerce_shippingrule_categories_currencyprices}}');
-        $this->dropTableIfExists('{{%commerce_shippingrules_currencyprices}}');
+		$this->dropTableIfExists('{{%commerce_shippingrules_currencyprices}}');
+		$this->dropTableIfExists('{{%commerce_discounts_currencyprices}}');
     }
 }

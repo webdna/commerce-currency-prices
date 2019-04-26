@@ -24,6 +24,7 @@ use Craft;
 use craft\base\Component;
 use craft\helpers\MigrationHelper;
 use craft\helpers\Db;
+use craft\helpers\Localization as LocalizationHelper;
 use craft\db\Query;
 
 /**
@@ -159,7 +160,7 @@ class CurrencyPricesService extends Component
 
 		foreach ($prices as $iso => $value)
 		{
-			$record->{$iso} = $value;
+			$record->{$iso} = LocalizationHelper::normalizeNumber($value);
 		}
 
 		$record->save();

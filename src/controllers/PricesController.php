@@ -14,6 +14,7 @@ use kuriousagency\commerce\currencyprices\CurrencyPrices;
 
 use Craft;
 use craft\web\Controller;
+use craft\commerce\Plugin as Commerce;
 
 /**
  * @author    Kurious Agency
@@ -36,8 +37,20 @@ class PricesController extends Controller
     // Public Methods
     // =========================================================================
 
-	public function actionSave()
+	public function actionGetPurchasablePrices()
 	{
-		
+		$this->requireAcceptsJson();
+		$id = Craft::$app->getRequest()->getRequiredParam('id');
+
+		$purchasable = Commerce::getInstance()->getPurchasables()->getPurchasableById($id);
+
+		$variables = [
+			"purchasable" => $purchasable,
+		];
+		//Craft::dd($variables['values']);
+
+		return $this->asJson([
+			'html' => $this->getView()->renderTemplate('commerce-currency-prices/prices-purchasable', $variables)
+		]);
 	}
 }

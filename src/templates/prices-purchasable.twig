@@ -1,0 +1,40 @@
+{%- import "_includes/forms" as forms -%}
+{%- import "commerce/_includes/forms/commerceForms" as commerceForms -%}
+
+{% if purchasable.id %}
+	{% for currency in craft.commerce.paymentCurrencies.allPaymentCurrencies if currency.primary == false %}
+		{% set price = purchasable|currencyPrice(currency.iso, false) %}
+		{% set prices = craft.app.request.getBodyParam('prices') %}
+		{% if prices and prices[currency.iso] %}
+			{% set price = prices[currency.iso] %}
+		{% endif %}
+		{% if purchasable.getErrors('prices-'~currency.iso)|length %}
+			{% set price = '' %}
+		{% endif %}
+
+		{{ forms.textField({
+			id: 'price-'~currency.iso,
+			label: 'Price'|t('commerce'),
+			name: 'prices['~currency.iso~']',
+			class: 'currency-price',
+			value: (price == '0' ? '0'|number : (price ? price|number ?: '')),
+			placeholder: 'Enter price'|t('commerce'),
+			required: true,
+			unit: currency.iso | upper,
+			errors: purchasable.getErrors('prices-'~currency.iso)
+		}) }}
+	{% endfor %}
+{% else %}
+	{% for currency in craft.commerce.paymentCurrencies.allPaymentCurrencies if currency.primary == false %}
+		{{ forms.textField({
+			id: 'price-'~currency.iso,
+			label: 'Price'|t('commerce'),
+			name: 'prices['~currency.iso~']',
+			class: 'currency-price',
+			value: '',
+			placeholder: 'Enter price'|t('commerce'),
+			required: true,
+			unit: currency.iso | upper,
+		}) }}
+	{% endfor %}
+{% endif %}

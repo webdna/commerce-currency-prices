@@ -144,7 +144,7 @@ class CurrencyPrices extends Plugin
 				if ($prices) {
 					foreach ($event->sender->variants as $key => $variant)
 					{
-						if ($variant->id) {
+						if ($variant->id && isset($prices[$variant->id])) {
 							$price = $prices[$variant->id];
 						} else {
 							$price = $prices['new'.$newCount];

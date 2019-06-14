@@ -1,41 +1,43 @@
 {
-    "name": "kuriousagency/commerce-currency-prices",
-    "description": "Adds payment currency prices to products",
-    "type": "craft-plugin",
-    "version": "2.3.8",
-    "keywords": [
-        "craft",
-        "cms",
-        "craftcms",
-        "craft-plugin",
-        "currency prices"
-    ],
-    "support": {
-        "docs": "https://github.com/KuriousAgency/commerce-currency-prices/currency-prices/blob/master/README.md",
-        "issues": "https://github.com/KuriousAgency/commerce-currency-prices/currency-prices/issues"
-    },
-    "license": "proprietary",
-    "authors": [{
-        "name": "Kurious Agency",
-        "homepage": "https://kurious.agency"
-    }],
-    "require": {
-        "craftcms/cms": "^3.0.0-RC1"
-    },
-    "autoload": {
-        "psr-4": {
-            "kuriousagency\\commerce\\currencyprices\\": "src/"
-        }
-    },
-    "extra": {
-        "name": "Commerce Currency Prices",
-        "handle": "commerce-currency-prices",
-        "hasCpSettings": false,
-        "hasCpSection": false,
-        "changelogUrl": "https://raw.githubusercontent.com/KuriousAgency/commerce-currency-prices/currency-prices/master/CHANGELOG.md",
-        "components": {
-            "currencyPricesService": "kuriousagency\\commerce\\currencyprices\\services\\CurrencyPricesService"
-        },
-        "class": "kuriousagency\\commerce\\currencyprices\\CurrencyPrices"
-    }
+	"name": "kuriousagency/commerce-currency-prices",
+	"description": "Adds payment currency prices to products",
+	"type": "craft-plugin",
+	"version": "2.3.9",
+	"keywords": [
+		"craft",
+		"cms",
+		"craftcms",
+		"craft-plugin",
+		"currency prices"
+	],
+	"support": {
+		"docs": "https://github.com/KuriousAgency/commerce-currency-prices/currency-prices/blob/master/README.md",
+		"issues": "https://github.com/KuriousAgency/commerce-currency-prices/currency-prices/issues"
+	},
+	"license": "proprietary",
+	"authors": [
+		{
+			"name": "Kurious Agency",
+			"homepage": "https://kurious.agency"
+		}
+	],
+	"require": {
+		"craftcms/cms": "^3.0.0-RC1"
+	},
+	"autoload": {
+		"psr-4": {
+			"kuriousagency\\commerce\\currencyprices\\": "src/"
+		}
+	},
+	"extra": {
+		"name": "Commerce Currency Prices",
+		"handle": "commerce-currency-prices",
+		"hasCpSettings": false,
+		"hasCpSection": false,
+		"changelogUrl": "https://raw.githubusercontent.com/KuriousAgency/commerce-currency-prices/currency-prices/master/CHANGELOG.md",
+		"components": {
+			"currencyPricesService": "kuriousagency\\commerce\\currencyprices\\services\\CurrencyPricesService"
+		},
+		"class": "kuriousagency\\commerce\\currencyprices\\CurrencyPrices"
+	}
 }

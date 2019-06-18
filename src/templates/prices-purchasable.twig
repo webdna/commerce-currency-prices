@@ -1,6 +1,8 @@
 {%- import "_includes/forms" as forms -%}
 {%- import "commerce/_includes/forms/commerceForms" as commerceForms -%}
 
+<div class="hidden">
+<div id="prices">
 {% if purchasable.id %}
 	{% for currency in craft.commerce.paymentCurrencies.allPaymentCurrencies if currency.primary == false %}
 		{% set price = purchasable|currencyPrice(currency.iso, false) %}
@@ -38,3 +40,5 @@
 		}) }}
 	{% endfor %}
 {% endif %}
+</div>
+</div>

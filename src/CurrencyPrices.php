@@ -160,6 +160,34 @@ class CurrencyPrices extends Plugin
 					}
 				}
 			}
+			
+			if ($event->sender instanceof \kuriousagency\commerce\bundles\elements\Bundle) {
+				$prices = Craft::$app->getRequest()->getBodyParam('prices');
+
+				if ($prices) {
+					foreach ($prices as $iso => $value)
+					{
+						if ($value == '') {
+							$event->sender->addError('prices-'.$iso, 'Price cannot be blank.');
+							$event->isValid = false;
+						}
+					}
+				}
+			}
+
+			if ($event->sender instanceof \craft\digitalproducts\elements\Product) {
+				$prices = Craft::$app->getRequest()->getBodyParam('prices');
+				
+				if ($prices) {
+					foreach ($prices as $iso => $value)
+					{
+						if ($value == '') {
+							$event->sender->addError('prices-'.$iso, 'Price cannot be blank.');
+							$event->isValid = false;
+						}
+					}
+				}
+			}
 		});
 
 		Event::on(Element::class, Element::EVENT_AFTER_SAVE, function(Event $event) {
@@ -176,11 +204,32 @@ class CurrencyPrices extends Plugin
 					}
 				}
 			}
+			
+			if ($event->sender instanceof \kuriousagency\commerce\bundles\elements\Bundle) {
+				$prices = Craft::$app->getRequest()->getBodyParam('prices');
+				if ($prices) {
+					$this->service->savePrices($event->sender, $prices);
+				}
+			}
+			if ($event->sender instanceof \craft\digitalproducts\elements\Product) {
+				$prices = Craft::$app->getRequest()->getBodyParam('prices');
+				if ($prices) {
+					$this->service->savePrices($event->sender, $prices);
+				}
+			}
 		});
 
 		Event::on(Element::class, Element::EVENT_AFTER_DELETE, function(Event $event) {
 			//Craft::dd($event);
 			if ($event->sender instanceof \craft\commerce\elements\Variant) {
+				
+				$this->service->deletePrices($event->sender->id);
+			}
+			if ($event->sender instanceof \kuriousagency\commerce\bundles\elements\Bundle) {
+				
+				$this->service->deletePrices($event->sender->id);
+			}
+			if ($event->sender instanceof \craft\digitalproducts\elements\Product) {
 				
 				$this->service->deletePrices($event->sender->id);
 			}
@@ -273,6 +322,18 @@ class CurrencyPrices extends Plugin
 			$view = Craft::$app->getView();
 			//Craft::dd($context);
         	return $view->renderTemplate('commerce-currency-prices/prices', ['variants'=>$context['product']->variants]);
+		});
+
+		Craft::$app->view->hook('cp.commerce.bundle.edit.price', function(array &$context) {
+			$view = Craft::$app->getView();
+			//Craft::dd($context);
+        	return $view->renderTemplate('commerce-currency-prices/prices-purchasable', ['purchasable'=>$context['bundle']]);
+		});
+
+		Craft::$app->view->hook('cp.digital-products.product.edit.details', function(array &$context) {
+			$view = Craft::$app->getView();
+			//Craft::dd($context);
+        	return $view->renderTemplate('commerce-currency-prices/prices-purchasable', ['purchasable'=>$context['product']]);
 		});
 
         Craft::info(

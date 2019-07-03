@@ -254,7 +254,7 @@ class CurrencyPricesService extends Component
 	{
 		$sales = Commerce::getInstance()->getSales()->getSalesForPurchasable($purchasable);
 		$prices = CurrencyPrices::$plugin->service->getPricesByPurchasableId($purchasable->id);
-		$originalPrice = '';
+		$originalPrice = $purchasable->price;
 
 		if ($prices) {
 			$originalPrice = $prices[$currency];

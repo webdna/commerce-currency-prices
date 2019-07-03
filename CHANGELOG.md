@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 2.4.1 - 2019-07-03
+
+### Fixed
+
+-   Non-numeric value error when plugin installed and enabled but only one currency present.
+
 ## 2.4.0 - 2019-06-18
 
 ### Added

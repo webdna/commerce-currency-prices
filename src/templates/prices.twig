@@ -12,7 +12,7 @@
 	{% for currency in craft.commerce.paymentCurrencies.allPaymentCurrencies if currency.primary == false %}
 		{% set price = variant|currencyPrice(currency.iso, false) %}
 		{% set prices = craft.app.request.getBodyParam('prices') %}
-		{% if prices and prices[id][currency.iso] %}
+		{% if prices and prices[id] is defined and prices[id][currency.iso] %}
 			{% set price = prices[id][currency.iso] %}
 		{% endif %}
 		{% if variant.getErrors('prices-'~id~'-'~currency.iso)|length %}

@@ -146,15 +146,17 @@ class CurrencyPrices extends Plugin
 					{
 						if ($variant->id && isset($prices[$variant->id])) {
 							$price = $prices[$variant->id];
-						} else {
+						} elseif (isset($prices['new'.$newCount])) {
 							$price = $prices['new'.$newCount];
 							$newCount++;
 						}
-						foreach ($price as $iso => $value)
-						{
-							if ($value == '') {
-								$event->sender->variants[$key]->addError('prices-'.$iso, 'Price cannot be blank.');
-								$event->isValid = false;
+						if (isset($price)) {
+							foreach ($price as $iso => $value)
+							{
+								if ($value == '') {
+									$event->sender->variants[$key]->addError('prices-'.$iso, 'Price cannot be blank.');
+									$event->isValid = false;
+								}
 							}
 						}
 					}

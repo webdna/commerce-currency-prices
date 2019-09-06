@@ -11,6 +11,9 @@
 namespace kuriousagency\commerce\currencyprices;
 
 use kuriousagency\commerce\currencyprices\services\CurrencyPricesService;
+use kuriousagency\commerce\currencyprices\services\ShippingService;
+use kuriousagency\commerce\currencyprices\services\DiscountsService;
+use kuriousagency\commerce\currencyprices\services\AddonsService;
 use kuriousagency\commerce\currencyprices\controllers\PaymentCurrenciesController;
 use kuriousagency\commerce\currencyprices\adjusters\Shipping;
 use kuriousagency\commerce\currencyprices\adjusters\Discount;
@@ -40,6 +43,8 @@ use craft\commerce\services\Payments;
 use craft\commerce\services\OrderAdjustments;
 
 use yii\base\Event;
+use craft\db\ActiveRecord;
+use yii\db\AfterSaveEvent;
 
 /**
  * Class CurrencyPrices
@@ -66,7 +71,7 @@ class CurrencyPrices extends Plugin
     /**
      * @var string
      */
-	public $schemaVersion = '1.1.0';
+	public $schemaVersion = '1.2.0';
 	
 
     // Public Methods
@@ -82,6 +87,9 @@ class CurrencyPrices extends Plugin
 		
 		$this->setComponents([
 			'service' => CurrencyPricesService::class,
+			'shipping' => ShippingService::class,
+			'discounts' => DiscountsService::class,
+			'addons' => AddonsService::class,
 		]);
 
 		Craft::$app->view->registerTwigExtension(new CurrencyPricesTwigExtension());
@@ -219,6 +227,7 @@ class CurrencyPrices extends Plugin
 					$this->service->savePrices($event->sender, $prices);
 				}
 			}
+
 		});
 
 		Event::on(Element::class, Element::EVENT_AFTER_DELETE, function(Event $event) {
@@ -234,6 +243,29 @@ class CurrencyPrices extends Plugin
 			if ($event->sender instanceof \craft\digitalproducts\elements\Product) {
 				
 				$this->service->deletePrices($event->sender->id);
+			}
+		});
+
+		Event::on(ActiveRecord::class, ActiveRecord::EVENT_AFTER_INSERT, function(AfterSaveEvent $event) {
+			if ($event->sender instanceof \kuriousagency\commerce\addons\records\Discount) {
+				$this->addons->saveAddon($event->sender->id, $this->addons->getPrices());
+			}
+			if ($event->sender instanceof \craft\commerce\records\Discount) {
+				$this->discounts->saveDiscount($event->sender->id, $this->discounts->getPrices());
+			}
+			if ($event->sender instanceof \craft\commerce\records\ShippingRule) {
+				$this->shipping->saveShipping($event->sender->id, $this->shipping->getPrices(), Craft::$app->getRequest()->getBodyParam('ruleCategoriesCP'));
+			}
+		});
+		Event::on(ActiveRecord::class, ActiveRecord::EVENT_AFTER_UPDATE, function(AfterSaveEvent $event) {
+			if ($event->sender instanceof \kuriousagency\commerce\addons\records\Discount) {
+				$this->addons->saveAddon($event->sender->id, $this->addons->getPrices());
+			}
+			if ($event->sender instanceof \craft\commerce\records\Discount) {
+				$this->discounts->saveDiscount($event->sender->id, $this->discounts->getPrices());
+			}
+			if ($event->sender instanceof \craft\commerce\records\ShippingRule) {
+				$this->shipping->saveShipping($event->sender->id, $this->shipping->getPrices(), Craft::$app->getRequest()->getBodyParam('ruleCategoriesCP'));
 			}
 		});
 
@@ -274,7 +306,7 @@ class CurrencyPrices extends Plugin
 					$e->types[$key] = Shipping::class;
 				}
 				if ($type == 'craft\\commerce\\adjusters\\Discount') {
-					//$e->types[$key] = Discount::class;
+					$e->types[$key] = Discount::class;
 				}
 			}
 			//Craft::dd($e->types);

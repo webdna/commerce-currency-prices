@@ -72,7 +72,7 @@ class Shipping extends Component implements AdjusterInterface
 		
 		foreach ($shippingMethod->getShippingRules() as $ru) {
 			$ru = new ShippingRule($ru);
-			$price = CurrencyPrices::$plugin->service->getPricesByShippingRuleIdAndCurrency($ru->id, $order->paymentCurrency);
+			$price = CurrencyPrices::$plugin->shipping->getPricesByShippingRuleIdAndCurrency($ru->id, $order->paymentCurrency);
 			if ($price) {
 				$price = (Object) $price;
 				$ru->minTotal = $price->minTotal;
@@ -89,7 +89,7 @@ class Shipping extends Component implements AdjusterInterface
 				
 				foreach ($cats as $key => $cat)
 				{
-					$price = (Object) CurrencyPrices::$plugin->service->getPricesByShippingRuleCategoryIdAndCurrency($cat->shippingRuleId, $cat->shippingCategoryId, $order->paymentCurrency);
+					$price = (Object) CurrencyPrices::$plugin->shipping->getPricesByShippingRuleCategoryIdAndCurrency($cat->shippingRuleId, $cat->shippingCategoryId, $order->paymentCurrency);
 					$cats[$key]->perItemRate = $price->perItemRate;
 					$cats[$key]->weightRate = $price->weightRate;
 					$cats[$key]->percentageRate = $price->percentageRate;

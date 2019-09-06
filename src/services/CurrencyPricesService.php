@@ -13,9 +13,6 @@ namespace kuriousagency\commerce\currencyprices\services;
 use kuriousagency\commerce\currencyprices\CurrencyPrices;
 use kuriousagency\commerce\currencyprices\models\CurrencyPricesModel;
 use kuriousagency\commerce\currencyprices\records\CurrencyPricesRecord;
-use kuriousagency\commerce\currencyprices\records\ShippingRulesPricesRecord;
-use kuriousagency\commerce\currencyprices\records\ShippingCategoriesPricesRecord;
-use kuriousagency\commerce\currencyprices\records\DiscountsPricesRecord;
 
 use craft\commerce\Plugin as Commerce;
 use craft\commerce\records\Sale as SaleRecord;
@@ -54,96 +51,6 @@ class CurrencyPricesService extends Component
 		return $result;
 	}
 
-	public function getPricesByShippingRuleId($id)
-	{
-		$results = (new Query())
-			->select(['*'])
-			->from(['{{%commerce_shippingrules_currencyprices}}'])
-			->where(['shippingRuleId' => $id])
-			->all();
-
-		if (!$results) {
-			return [];
-		}
-
-		return $results;
-	}
-
-	public function getPricesByShippingRuleCategoryId($id, $catId)
-	{
-		$results = (new Query())
-			->select(['*'])
-			->from(['{{%commerce_shippingrule_categories_currencyprices}}'])
-			->where(['shippingRuleId' => $id, 'shippingCategoryId'=> $catId])
-			->all();
-
-		if (!$results) {
-			return [];
-		}
-
-		return $results;
-	}
-
-	public function getPricesByShippingRuleIdAndCurrency($id, $iso)
-	{
-		$result = (new Query())
-			->select(['*'])
-			->from(['{{%commerce_shippingrules_currencyprices}}'])
-			->where(['shippingRuleId' => $id, 'paymentCurrencyIso' => $iso])
-			->one();
-
-		if (!$result) {
-			return null;
-		}
-
-		return $result;
-	}
-
-	public function getPricesByShippingRuleCategoryIdAndCurrency($id, $catId, $iso)
-	{
-		$result = (new Query())
-			->select(['*'])
-			->from(['{{%commerce_shippingrule_categories_currencyprices}}'])
-			->where(['shippingRuleId' => $id, 'shippingCategoryId'=> $catId, 'paymentCurrencyIso' => $iso])
-			->one();
-
-		if (!$result) {
-			return null;
-		}
-
-		return $result;
-	}
-
-	public function getPricesByDiscountId($id)
-	{
-		$results = (new Query())
-			->select(['*'])
-			->from(['{{%commerce_discounts_currencyprices}}'])
-			->where(['discountId' => $id])
-			->all();
-
-		if (!$results) {
-			return [];
-		}
-
-		return $results;
-	}
-
-	public function getPricesByDiscountIdAndCurrency($id, $iso)
-	{
-		$result = (new Query())
-			->select(['*'])
-			->from(['{{%commerce_discounts_currencyprices}}'])
-			->where(['discountId' => $id, 'paymentCurrencyIso' => $iso])
-			->one();
-
-		if (!$result) {
-			return null;
-		}
-
-		return $result;
-	}
-
 	public function savePrices($purchasable, $prices)
 	{
 		$record = CurrencyPricesRecord::findOne($purchasable->id);
@@ -172,81 +79,6 @@ class CurrencyPricesService extends Component
 
 		if ($record) {
 			$record->delete();
-		}
-	}
-
-	public function saveShipping($id, $prices, $categories)
-	{
-		foreach ($prices as $key => $value)
-		{
-			$record = ShippingRulesPricesRecord::findOne(['shippingRuleId'=>$id, 'paymentCurrencyIso'=>$key]);
-			
-			if (!$record) {
-				$record = new ShippingRulesPricesRecord();
-			}
-
-			$record->shippingRuleId = $id;
-			$record->paymentCurrencyIso = $key;
-			$record->minTotal = $value['minTotal'];
-			$record->maxTotal = $value['maxTotal'];
-			$record->baseRate = $value['baseRate'];
-			$record->perItemRate = $value['perItemRate'];
-			$record->weightRate = $value['weightRate'];
-			$record->percentageRate = $value['percentageRate'];
-			$record->minRate = $value['minRate'];
-			$record->maxRate = $value['maxRate'];
-			$record->save();
-		}
-
-		$categoryPrices = [];
-		foreach ($categories as $cid => $props)
-		{
-			unset($props['condition']);
-			foreach ($props as $prop => $values)
-			{
-				foreach ($values as $k => $value)
-				{
-					$categoryPrices[$cid][$k][$prop] = $value;
-				}
-			}
-		}
-		//Craft::dd($categoryPrices);
-		foreach ($categoryPrices as $key => $values)
-		{
-			foreach ($values as $iso => $value)
-			{
-				$record = ShippingCategoriesPricesRecord::findOne(['shippingRuleId'=>$id, 'shippingCategoryId'=>$key, 'paymentCurrencyIso'=>$iso]);
-				
-				if (!$record) {
-					$record = new ShippingCategoriesPricesRecord();
-				}
-
-				$record->shippingRuleId = $id;
-				$record->shippingCategoryId = $key;
-				$record->paymentCurrencyIso = $iso;
-				$record->perItemRate = $value['perItemRate'];
-				$record->weightRate = $value['weightRate'];
-				$record->percentageRate = $value['percentageRate'];
-				$record->save();
-			}
-		}
-	}
-
-	public function saveDiscount($id, $prices)
-	{
-		foreach ($prices as $key => $value)
-		{
-			$record = DiscountsPricesRecord::findOne(['discountId'=>$id, 'paymentCurrencyIso'=>$key]);
-			
-			if (!$record) {
-				$record = new DiscountsPricesRecord();
-			}
-
-			$record->discountId = $id;
-			$record->paymentCurrencyIso = $key;
-			$record->baseDiscount = $value['baseDiscount'];
-			$record->perItemDiscount = $value['perItemDiscount'];
-			$record->save();
 		}
 	}
 

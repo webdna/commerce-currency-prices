@@ -27,7 +27,8 @@
 			value: (price == '0' ? '0'|number : (price ? price|number ?: '')),
 			placeholder: 'Enter price'|t('commerce'),
 			required: true,
-			errors: variant.getErrors('prices-'~currency.iso)
+			errors: variant.getErrors('prices-'~currency.iso),
+			unit: currency.iso | upper,
 		}) }}
 	{% endfor %}
 </div>
@@ -42,7 +43,8 @@
 			class: 'currency-price',
 			value: '',
 			placeholder: 'Enter price'|t('commerce'),
-			required: true
+			required: true,
+			unit: currency.iso | upper,
 		}) }}
 	{% endfor %}
 </div>

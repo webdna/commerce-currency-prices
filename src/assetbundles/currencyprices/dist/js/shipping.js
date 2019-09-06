@@ -1,87 +1,66 @@
 (function() {
-	if ($('body').hasClass('commerce')) {
-		var $conditions = $('#conditions-tab');
-		if ($conditions[0]) {
-			console.log('shipping');
+	if ($('body').hasClass('commerce') && !$('body').hasClass('currency-prices')) {
+		$('body').addClass('currency-prices');
 
-			$('#header')
-				.find('.submit')
-				.prop('disabled', true);
+		var fields = ['minTotal', 'maxTotal', 'baseRate', 'minRate', 'maxRate', 'perItemRate', 'weightRate', 'percentageRate'];
+		var found = 0;
+		var loaded = 0;
+		var id = $('[name="id"]').val();
 
+		$.each(fields, function() {
+			var name = this;
+			var $el = $('input[name="' + name + '"]');
+			if ($el[0]) {
+				found++;
+				if (found == 1) {
+					$('#header')
+						.find('.submit')
+						.prop('disabled', true);
+				}
+
+				Craft.postActionRequest(
+					'commerce-currency-prices/shipping/get-inputs',
+					{
+						id: id,
+						name: name + 'CP',
+						label: $el
+							.parents('.field')
+							.find('label')
+							.text(),
+						instructions: $el
+							.parents('.field')
+							.find('.instructions')
+							.text()
+					},
+					function(response, status) {
+						$el.parents('.field').replaceWith($(response.html));
+
+						loaded++;
+						if (loaded == found) {
+							$('#header')
+								.find('.submit')
+								.prop('disabled', false);
+						}
+					}
+				);
+			}
+		});
+
+		$('#shipping-categories-rates tr[data-name]').each(function() {
+			var $this = $(this),
+				data = { id: id, name: $this.attr('data-name') };
+			$this.find('input').each(function() {
+				var $el = $(this);
+				data[$el.attr('name')] = 0;
+			});
+
+			Craft.postActionRequest('commerce-currency-prices/shipping/get-category-inputs', data, function(response, status) {
+				$this.replaceWith($(response.html));
+			});
+		});
+
+		if (found) {
 			$('[name="action"]').val('commerce-currency-prices/shipping/save');
-			//
-			//var values = $conditions.parents('form').serializeArray();
-			var id = $('[name="id"]').val();
-
-			Craft.postActionRequest('commerce-currency-prices/shipping/get-inputs', { id: id, name: 'minTotal' }, function(response, status) {
-				$conditions
-					.find('[name="minTotal"]')
-					.parents('.field')
-					.replaceWith($(response.html));
-			});
-			Craft.postActionRequest('commerce-currency-prices/shipping/get-inputs', { id: id, name: 'maxTotal' }, function(response, status) {
-				$conditions
-					.find('[name="maxTotal"]')
-					.parents('.field')
-					.replaceWith($(response.html));
-			});
-		}
-
-		var $costs = $('#costs-tab');
-		if ($costs[0]) {
-			Craft.postActionRequest('commerce-currency-prices/shipping/get-inputs', { id: id, name: 'baseRate' }, function(response, status) {
-				$costs
-					.find('[name="baseRate"]')
-					.parents('.field')
-					.replaceWith($(response.html));
-			});
-			Craft.postActionRequest('commerce-currency-prices/shipping/get-inputs', { id: id, name: 'minRate' }, function(response, status) {
-				$costs
-					.find('[name="minRate"]')
-					.parents('.field')
-					.replaceWith($(response.html));
-			});
-			Craft.postActionRequest('commerce-currency-prices/shipping/get-inputs', { id: id, name: 'maxRate' }, function(response, status) {
-				$costs
-					.find('[name="maxRate"]')
-					.parents('.field')
-					.replaceWith($(response.html));
-			});
-			Craft.postActionRequest('commerce-currency-prices/shipping/get-inputs', { id: id, name: 'perItemRate' }, function(response, status) {
-				$costs
-					.find('[name="perItemRate"]')
-					.parents('.field')
-					.replaceWith($(response.html));
-			});
-			Craft.postActionRequest('commerce-currency-prices/shipping/get-inputs', { id: id, name: 'weightRate' }, function(response, status) {
-				$costs
-					.find('[name="weightRate"]')
-					.parents('.field')
-					.replaceWith($(response.html));
-			});
-			Craft.postActionRequest('commerce-currency-prices/shipping/get-inputs', { id: id, name: 'percentageRate' }, function(response, status) {
-				$costs
-					.find('[name="percentageRate"]')
-					.parents('.field')
-					.replaceWith($(response.html));
-
-				$('#header')
-					.find('.submit')
-					.prop('disabled', false);
-			});
-
-			$costs.find('#shipping-categories-rates tr[data-name]').each(function() {
-				var $this = $(this),
-					data = { id: id, name: $this.attr('data-name') };
-				$this.find('input').each(function() {
-					var $el = $(this);
-					data[$el.attr('name')] = 0;
-				});
-
-				Craft.postActionRequest('commerce-currency-prices/shipping/get-category-inputs', data, function(response, status) {
-					$this.replaceWith($(response.html));
-				});
-			});
 		}
 	}
 })();

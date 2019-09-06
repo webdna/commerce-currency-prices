@@ -33,7 +33,7 @@ use yii\web\Response;
  * @package   CurrencyPrices
  * @since     1.0.0
  */
-class DiscountsController extends Controller
+class AddonsController extends Controller
 {
 
     // Protected Properties
@@ -63,8 +63,6 @@ class DiscountsController extends Controller
 			"label" => Craft::$app->getRequest()->getParam('label'),
 			"instructions" => Craft::$app->getRequest()->getParam('instructions'),
 		];
-		//Craft::dump($name);
-		//Craft::dd($variables['values']);
 
 		return $this->asJson([
 			'html' => $this->getView()->renderTemplate('commerce-currency-prices/field', $variables)
@@ -76,7 +74,7 @@ class DiscountsController extends Controller
 		$values = [];
 		$prices = [];
 		if ($id) {
-			$prices = CurrencyPrices::$plugin->discounts->getPricesByDiscountId($id);
+			$prices = CurrencyPrices::$plugin->addons->getPricesByAddonId($id);
 		}
 		
 		foreach (Commerce::getInstance()->getPaymentCurrencies()->getAllPaymentCurrencies() as $currency)
@@ -88,7 +86,7 @@ class DiscountsController extends Controller
 					$val = $price;
 				}
 			}
-			
+			//Craft::dd($prop);
 			if ($val) {
 				$price = $val[$prop] != 0 ? $val[$prop] * -1 : 0;
 				$values[$currency->iso] = ['iso'=>$currency->iso, 'price'=>$price];
@@ -108,10 +106,11 @@ class DiscountsController extends Controller
 		$this->requirePostRequest();
 		$request = Craft::$app->getRequest();
 
-		$fields = CurrencyPrices::$plugin->discounts->getPrices(false);
+		$fields = CurrencyPrices::$plugin->addons->getPrices(false);
 		$request->setBodyParams(array_merge($request->getBodyParams(), $fields));
+
+		return Craft::$app->runAction('commerce-addons/default/save');
 		
-		return Craft::$app->runAction('commerce/discounts/save');
     }
 
 }

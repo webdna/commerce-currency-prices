@@ -1,8 +1,8 @@
 (function() {
-	if ($('body').hasClass('commerce')) {
-		console.log('commerce settings');
+	if ($('body').hasClass('commerce') && !$('body').hasClass('currency-prices')) {
+		$('body').addClass('currency-prices');
 
-		var fields = ['baseDiscount', 'perItemDiscount'];
+		var fields = ['purchaseTotal', 'baseDiscount', 'perItemDiscount'];
 		var found = 0;
 		var loaded = 0;
 		var id = $('[name="id"]').val();
@@ -22,7 +22,7 @@
 					'commerce-currency-prices/discounts/get-inputs',
 					{
 						id: id,
-						name: name,
+						name: name + 'CP',
 						label: $el.find('label').text(),
 						instructions: $el.find('.instructions').text()
 					},

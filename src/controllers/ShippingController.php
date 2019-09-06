@@ -50,42 +50,11 @@ class ShippingController extends Controller
 
 		$variables = [
 			"name" => $name,
-			"values" => $this->_getValues($id, $name),
+			"values" => $this->_getValues($id, str_replace('CP','',$name)),
 			"errors" => [],
+			"label" => Craft::$app->getRequest()->getParam('label'),
+			"instructions" => Craft::$app->getRequest()->getParam('instructions'),
 		];
-
-		switch ($name)
-		{
-			case 'minTotal':
-				$variables['label'] = "Minimum Order Total Price";
-				$variables['instructions'] = "The minimum total price of the cart to match this rule. Zero matches all carts.";
-				break;
-
-			case 'maxTotal':
-				$variables['label'] = "Maximum Order Total Price";
-				$variables['instructions'] = "The maximum total price of the cart to match this rule. Zero matches all carts.";
-				break;
-
-			case 'baseRate':
-				$variables['label'] = "Base Rate";
-				$variables['instructions'] = "Shipping costs added to the order as a whole before percentage, item, and weight rates are applied. Set to zero to disable this rate.";
-				break;
-
-			case 'minRate':
-				$variables['label'] = "Minimum Total Shipping Cost";
-				$variables['instructions'] = "The minimum the customer should spend on shipping. Set to zero to disable.";
-				break;
-
-			case 'maxRate':
-				$variables['label'] = "Maximum Total Shipping Cost";
-				$variables['instructions'] = "The maximum the customer should spend on shipping. Set to zero to disable.";
-				break;
-
-			default:
-				$variables['label'] = "";
-				$variables['instructions'] = "";
-				break;
-		}
 
 		return $this->asJson([
 			'html' => $this->getView()->renderTemplate('commerce-currency-prices/field', $variables)
@@ -111,7 +80,7 @@ class ShippingController extends Controller
 				//$values[] = $this->_getValues($id, $prop);
 				$html .= "<td data-title='$prop'>";
 				$html .= $this->getView()->renderTemplate('commerce-currency-prices/field', [
-					'name' => "ruleCategories[$key][$prop]",
+					'name' => "ruleCategoriesCP[$key][$prop]",
 					'values' => $this->_getCategoryValues($id, $key, $prop),
 					'errors' => [],
 					'label' => '',
@@ -132,7 +101,7 @@ class ShippingController extends Controller
 		$values = [];
 		$prices = [];
 		if ($id) {
-			$prices = CurrencyPrices::$plugin->service->getPricesByShippingRuleId($id);
+			$prices = CurrencyPrices::$plugin->shipping->getPricesByShippingRuleId($id);
 		}
 		
 		foreach (Commerce::getInstance()->getPaymentCurrencies()->getAllPaymentCurrencies() as $currency)
@@ -159,7 +128,7 @@ class ShippingController extends Controller
 		$values = [];
 		$prices = [];
 		if ($id) {
-			$prices = CurrencyPrices::$plugin->service->getPricesByShippingRuleCategoryId($id, $catId);
+			$prices = CurrencyPrices::$plugin->shipping->getPricesByShippingRuleCategoryId($id, $catId);
 		}
 		
 		foreach (Commerce::getInstance()->getPaymentCurrencies()->getAllPaymentCurrencies() as $currency)
@@ -189,6 +158,12 @@ class ShippingController extends Controller
 		$this->requirePostRequest();
 		$request = Craft::$app->getRequest();
 
+		$fields = CurrencyPrices::$plugin->shipping->getPrices(false);
+		$request->setBodyParams(array_merge($request->getBodyParams(), $fields));
+		//Craft::dd($request->getBodyParams());
+
+		return Craft::$app->runAction('commerce/shipping-rules/save');
+
 		// Craft::dd($request);
 
 		$iso = Commerce::getInstance()->getPaymentCurrencies()->getPrimaryPaymentCurrencyIso();
@@ -196,16 +171,16 @@ class ShippingController extends Controller
         $shippingRule = new ShippingRule();
 
         // Shared attributes
-        $fields = [
+        /*$fields = [
             'id', 'name', 'description', 'shippingZoneId', 'methodId', 'enabled', 'minQty', 'maxQty', 
             'minWeight', 'maxWeight',
         ];
         foreach ($fields as $field) {
-            $shippingRule->$field = Craft::$app->getRequest()->getBodyParam($field);
+            $shippingRule->$field = $request->getBodyParam($field);
 		}
 		if ($shippingRule->enabled == '') {
 			$shippingRule->enabled = false;
-		}
+		}*/
 		
 		//'minTotal', 'maxTotal',
 		$currencyPrices = [];

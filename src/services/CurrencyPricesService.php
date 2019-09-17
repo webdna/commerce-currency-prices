@@ -36,7 +36,7 @@ class CurrencyPricesService extends Component
     // Public Methods
 	// =========================================================================
 
-	public function getPricesByPurchasableId($id)
+	public function getPricesByPurchasableId($id, $currency = false)
 	{
 		$result = (new Query())
 			->select(['*'])
@@ -47,6 +47,10 @@ class CurrencyPricesService extends Component
 		if (!$result) {
 			return null;
 		}
+		
+		if ($currency) {
+            		return $result[$currency];
+        	}
 
 		return $result;
 	}

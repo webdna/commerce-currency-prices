@@ -42,6 +42,8 @@ class CurrencyPricesTwigExtension extends \Twig_Extension
         return [
 			new \Twig_SimpleFilter('currencyPrice', [$this, 'currencyPrice']),
 			new \Twig_SimpleFilter('currencySalePrice', [$this, 'currencySalePrice']),
+			new \Twig_SimpleFilter('currencyAddonDiscountPrice', [$this, 'currencyAddonDiscountPrice']),
+			new \Twig_SimpleFilter('currencyAddonDiscountPrices', [$this, 'currencyAddonDiscountPrices']),
         ];
     }
 
@@ -107,11 +109,11 @@ class CurrencyPricesTwigExtension extends \Twig_Extension
 
         // return input if no currency passed, and both convert and format are false.
         if (!$format) {
-            return $discount['perItemDiscount'];
+            return $discount['perItemDiscount'] * -1;
         }
 
         if ($format) {
-            $discount = Craft::$app->getFormatter()->asCurrency($discount['perItemDiscount'], $currency, [], [], $stripZeros);
+            $discount = Craft::$app->getFormatter()->asCurrency($discount['perItemDiscount'] * -1, $currency, [], [], $stripZeros);
         }
 
         return $discount;
@@ -124,7 +126,7 @@ class CurrencyPricesTwigExtension extends \Twig_Extension
 		$prices = [];
 		foreach ($discounts as $discount)
 		{
-			$prices[$discount['paymentCurrencyIso']] = $discount['perItemDiscount'];
+			$prices[$discount['paymentCurrencyIso']] = $discount['perItemDiscount'] * -1;
 		}
 
 		return $prices;

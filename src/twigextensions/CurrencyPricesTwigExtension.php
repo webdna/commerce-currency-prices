@@ -54,11 +54,11 @@ class CurrencyPricesTwigExtension extends \Twig_Extension
      * @param bool $stripZeros
      * @return string
      */
-    public function currencyPrice($variant, $currency, $format = true, $stripZeros = false): string
+    public function currencyPrice($purchasable, $currency, $format = true, $stripZeros = false): string
     {
 		$this->_validatePaymentCurrency($currency);
 		
-		$prices = CurrencyPrices::$plugin->service->getPricesByPurchasableId($variant->id);
+		$prices = CurrencyPrices::$plugin->service->getPricesByPurchasableId($purchasable->id);
 		$amount = '';
 
 		if ($prices) {
@@ -77,11 +77,11 @@ class CurrencyPricesTwigExtension extends \Twig_Extension
         return $amount;
 	}
 
-	public function currencySalePrice($variant, $currency, $format = true, $stripZeros = false): string
+	public function currencySalePrice($purchasable, $currency, $format = true, $stripZeros = false): string
     {
 		$this->_validatePaymentCurrency($currency);
 
-		$salePrice = CurrencyPrices::$plugin->service->getSalePrice($variant, $currency);
+		$salePrice = CurrencyPrices::$plugin->service->getSalePrice($purchasable, $currency);
 		
 		if (!$format) {
             return $salePrice;
@@ -93,6 +93,41 @@ class CurrencyPricesTwigExtension extends \Twig_Extension
 
         return $salePrice;
 		
+	}
+
+	public function currencyAddonDiscountPrice($discountId, $currency, $format = true, $stripZeros = false): string
+	{
+		$this->_validatePaymentCurrency($currency);
+
+		$discount = CurrencyPrices::$plugin->addons->getPricesByAddonIdAndCurrency($discountId, $currency);
+
+		if (!$discount) {
+			return null;
+		}
+
+        // return input if no currency passed, and both convert and format are false.
+        if (!$format) {
+            return $discount['perItemDiscount'];
+        }
+
+        if ($format) {
+            $discount = Craft::$app->getFormatter()->asCurrency($discount['perItemDiscount'], $currency, [], [], $stripZeros);
+        }
+
+        return $discount;
+	}
+
+	public function currencyAddonDiscountPrices($discountId)
+	{
+		$discounts = CurrencyPrices::$plugin->addons->getPricesByAddonId($discountId);
+
+		$prices = [];
+		foreach ($discounts as $discount)
+		{
+			$prices[$discount['paymentCurrencyIso']] = $discount['perItemDiscount'];
+		}
+
+		return $prices;
 	}
 
 

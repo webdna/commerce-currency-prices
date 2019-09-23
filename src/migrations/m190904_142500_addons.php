@@ -28,8 +28,8 @@ class m190904_142500_addons extends Migration
 		$this->createIndex(null, '{{%addons_discounts_currencyprices}}', 'discountId', false);
 		$this->createIndex(null, '{{%addons_discounts_currencyprices}}', 'paymentCurrencyIso', false);
 
-		$this->addForeignKey(null, '{{%addons_discounts_currencyprices}}', ['discountId'], '{{%addons_discounts}}', ['id'], 'CASCADE');
-		$this->addForeignKey(null, '{{%addons_discounts_currencyprices}}', ['paymentCurrencyIso'], '{{%commerce_paymentcurrencies}}', ['iso'], 'CASCADE');
+		// $this->addForeignKey(null, '{{%addons_discounts_currencyprices}}', ['discountId'], '{{%addons_discounts}}', ['id'], 'CASCADE');
+		// $this->addForeignKey(null, '{{%addons_discounts_currencyprices}}', ['paymentCurrencyIso'], '{{%commerce_paymentcurrencies}}', ['iso'], 'CASCADE');
 
 		return true;
     }

@@ -53,10 +53,11 @@ class Shipping extends Component implements AdjusterInterface
     {
         $this->_order = $order;
 
-		$shippingMethod = $order->getShippingMethod();
+		// $shippingMethod = $order->getShippingMethod();
+		$shippingMethods = Plugin::getInstance()->getShippingMethods()->getAllShippingMethods();
 		//raft::dd($shippingMethod);
 
-        if ($shippingMethod === null) {
+        if ($shippingMethods === null) {
             return [];
 		}
 		
@@ -70,39 +71,44 @@ class Shipping extends Component implements AdjusterInterface
 		//$rule = $shippingMethod->getMatchingShippingRule($this->_order);
 		$rule = null;
 		
-		foreach ($shippingMethod->getShippingRules() as $ru) {
-			$ru = new ShippingRule($ru);
-			$price = CurrencyPrices::$plugin->shipping->getPricesByShippingRuleIdAndCurrency($ru->id, $order->paymentCurrency);
-			if ($price) {
-				$price = (Object) $price;
-				$ru->minTotal = $price->minTotal;
-				$ru->maxTotal = $price->maxTotal;
-				$ru->baseRate = $price->baseRate;
-				$ru->perItemRate = $price->perItemRate;
-				$ru->weightRate = $price->weightRate;
-				$ru->percentageRate = $price->percentageRate;
-				$ru->minRate = $price->minRate;
-				$ru->maxRate = $price->maxRate;
+		foreach($shippingMethods as $method) { 
+			foreach ($method->getShippingRules() as $ru) {
+				$ru = new ShippingRule($ru);
+				$price = CurrencyPrices::$plugin->service->getPricesByShippingRuleIdAndCurrency($ru->id, $order->paymentCurrency);
+				if ($price) {
+					$price = (Object) $price;
+					$ru->minTotal = $price->minTotal;
+					$ru->maxTotal = $price->maxTotal;
+					$ru->baseRate = $price->baseRate;
+					$ru->perItemRate = $price->perItemRate;
+					$ru->weightRate = $price->weightRate;
+					$ru->percentageRate = $price->percentageRate;
+					$ru->minRate = $price->minRate;
+					$ru->maxRate = $price->maxRate;
 
-				/* TODO: rule categories prices */
-				$cats = $ru->getShippingRuleCategories();
-				
-				foreach ($cats as $key => $cat)
-				{
-					$price = (Object) CurrencyPrices::$plugin->shipping->getPricesByShippingRuleCategoryIdAndCurrency($cat->shippingRuleId, $cat->shippingCategoryId, $order->paymentCurrency);
-					$cats[$key]->perItemRate = $price->perItemRate;
-					$cats[$key]->weightRate = $price->weightRate;
-					$cats[$key]->percentageRate = $price->percentageRate;
+					/* TODO: rule categories prices */
+					$cats = $ru->getShippingRuleCategories();
+					
+					foreach ($cats as $key => $cat)
+					{
+						$price = (Object) CurrencyPrices::$plugin->service->getPricesByShippingRuleCategoryIdAndCurrency($cat->shippingRuleId, $cat->shippingCategoryId, $order->paymentCurrency);
+						$cats[$key]->perItemRate = $price->perItemRate;
+						$cats[$key]->weightRate = $price->weightRate;
+						$cats[$key]->percentageRate = $price->percentageRate;
+					}
+					$ru->setShippingRuleCategories($cats);
 				}
-				$ru->setShippingRuleCategories($cats);
-			}
-//Craft::dump($ru->enabled ? 'yes' : 'no');
-			if ($ru->matchOrder($order)) {
-				$rule = $ru;
-				continue;
+	//Craft::dump($ru->enabled ? 'yes' : 'no');
+				if ($ru->matchOrder($order)) {
+					$rule = $ru;
+					$shippingMethod = $method;
+					continue;
+				}
 			}
 		}
-		//Craft::dd($rule);
+
+
+		// Craft::dd($rule);
 		
         if ($rule) {
             $itemTotalAmount = 0;

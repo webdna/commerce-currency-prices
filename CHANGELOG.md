@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 2.5.2 - 2019-10-21
+
+### Fixed
+
+-   Fixed a bug where shipping rules were not using the correct currency
+
 ## 2.5.1 - 2019-09-23
 
 ### Fixed

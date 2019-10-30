@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 2.5.4 - 2019-10-30
+
+### Fixed
+
+-  Fixed a bug where the base discount was not using the correct currency value.
+
 ## 2.5.3 - 2019-10-22
 
 ### Fixed

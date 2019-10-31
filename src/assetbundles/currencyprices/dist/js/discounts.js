@@ -1,6 +1,5 @@
 (function() {
 	if ($('body').hasClass('commerce') && !$('body').hasClass('currency-prices')) {
-		$('body').addClass('currency-prices');
 
 		var fields = ['purchaseTotal', 'baseDiscount', 'perItemDiscount'];
 		var found = 0;
@@ -16,6 +15,8 @@
 					$('#header')
 						.find('.submit')
 						.prop('disabled', true);
+					$('body')
+						.addClass('currency-prices');
 				}
 
 				Craft.postActionRequest(

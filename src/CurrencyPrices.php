@@ -174,6 +174,31 @@ class CurrencyPrices extends Plugin
 					}
 				}
 			}
+
+			if ($event->sender instanceof \verbb\events\elements\Event) {
+				$prices = Craft::$app->getRequest()->getBodyParam('prices');
+				$newCount = 1;
+				if ($prices) {
+					foreach ($event->sender->tickets as $key => $ticket)
+					{
+						if ($ticket->id && isset($prices[$ticket->id])) {
+							$price = $prices[$ticket->id];
+						} elseif (isset($prices['new'.$newCount])) {
+							$price = $prices['new'.$newCount];
+							$newCount++;
+						}
+						if (isset($price)) {
+							foreach ($price as $iso => $value)
+							{
+								if ($value == '') {
+									$event->sender->tickets[$key]->addError('prices-'.$iso, 'Price cannot be blank.');
+									$event->isValid = false;
+								}
+							}
+						}
+					}
+				}
+			}
 			
 			if ($event->sender instanceof \kuriousagency\commerce\bundles\elements\Bundle) {
 				$prices = Craft::$app->getRequest()->getBodyParam('prices');
@@ -218,6 +243,19 @@ class CurrencyPrices extends Plugin
 					}
 				}
 			}
+			if ($event->sender instanceof \verbb\events\elements\Event) {
+				$prices = Craft::$app->getRequest()->getBodyParam('prices');
+				$count = 0;
+				if ($prices) {
+					foreach ($prices as $key => $price)
+					{
+						if ($key != 'new') {
+							$this->service->savePrices($event->sender->tickets[$count], $price);
+							$count++;
+						}
+					}
+				}
+			}
 			
 			if ($event->sender instanceof \kuriousagency\commerce\bundles\elements\Bundle) {
 				$prices = Craft::$app->getRequest()->getBodyParam('prices');
@@ -237,6 +275,10 @@ class CurrencyPrices extends Plugin
 		Event::on(Element::class, Element::EVENT_AFTER_DELETE, function(Event $event) {
 			//Craft::dd($event);
 			if ($event->sender instanceof \craft\commerce\elements\Variant) {
+				
+				$this->service->deletePrices($event->sender->id);
+			}
+			if ($event->sender instanceof \verbb\events\elements\Ticket) {
 				
 				$this->service->deletePrices($event->sender->id);
 			}
@@ -390,6 +432,12 @@ class CurrencyPrices extends Plugin
 			$view = Craft::$app->getView();
 			//Craft::dd($context);
         	return $view->renderTemplate('commerce-currency-prices/prices-purchasable', ['purchasable'=>$context['product']]);
+		});
+
+		Craft::$app->view->hook('cp.events.event.edit.details', function(array &$context) {
+			$view = Craft::$app->getView();
+			//Craft::dd($context);
+        	return $view->renderTemplate('commerce-currency-prices/prices', ['variants'=>$context['event']->tickets]);
 		});
 
         Craft::info(

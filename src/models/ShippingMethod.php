@@ -8,13 +8,14 @@
 namespace kuriousagency\commerce\currencyprices\models;
 
 use kuriousagency\commerce\currencyprices\CurrencyPrices;
-use kuriousagency\commerce\currencyprices\models\ShippingRule;
 
 use Craft;
 use craft\commerce\base\ShippingMethod as BaseShippingMethod;
 use craft\commerce\Plugin;
 use craft\commerce\elements\Order;
 use craft\commerce\records\ShippingMethod as ShippingMethodRecord;
+use craft\commerce\models\ShippingRule;
+
 use craft\helpers\UrlHelper;
 use craft\validators\UniqueValidator;
 

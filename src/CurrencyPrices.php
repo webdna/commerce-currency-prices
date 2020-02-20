@@ -249,7 +249,7 @@ class CurrencyPrices extends Plugin
 				if ($prices) {
 					foreach ($prices as $key => $price)
 					{
-						if ($key != 'new') {
+						if ($key !== 'new') {
 							$this->service->savePrices($event->sender->tickets[$count], $price);
 							$count++;
 						}

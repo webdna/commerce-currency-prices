@@ -150,124 +150,136 @@ class CurrencyPrices extends Plugin
 		);
 
 		Event::on(Element::class, Element::EVENT_BEFORE_SAVE, function(Event $event) {
-			if ($event->sender instanceof \craft\commerce\elements\Product) {
-				$prices = Craft::$app->getRequest()->getBodyParam('prices');
-				$newCount = 1;
-				if ($prices) {
-					foreach ($event->sender->variants as $key => $variant)
-					{
-						if ($variant->id && isset($prices[$variant->id])) {
-							$price = $prices[$variant->id];
-						} elseif (isset($prices['new'.$newCount])) {
-							$price = $prices['new'.$newCount];
-							$newCount++;
-						}
-						if (isset($price)) {
-							foreach ($price as $iso => $value)
-							{
-								if ($value == '') {
-									$event->sender->variants[$key]->addError('prices-'.$iso, 'Price cannot be blank.');
-									$event->isValid = false;
+
+			if (Craft::$app->getRequest()->getIsCpRequest()) {
+
+				if ($event->sender instanceof \craft\commerce\elements\Product) {
+					$prices = Craft::$app->getRequest()->getBodyParam('prices');
+					$newCount = 1;
+					if ($prices) {
+						foreach ($event->sender->variants as $key => $variant)
+						{
+							if ($variant->id && isset($prices[$variant->id])) {
+								$price = $prices[$variant->id];
+							} elseif (isset($prices['new'.$newCount])) {
+								$price = $prices['new'.$newCount];
+								$newCount++;
+							}
+							if (isset($price)) {
+								foreach ($price as $iso => $value)
+								{
+									if ($value == '') {
+										$event->sender->variants[$key]->addError('prices-'.$iso, 'Price cannot be blank.');
+										$event->isValid = false;
+									}
 								}
 							}
 						}
 					}
 				}
-			}
 
-			if ($event->sender instanceof \verbb\events\elements\Event) {
-				$prices = Craft::$app->getRequest()->getBodyParam('prices');
-				$newCount = 1;
-				if ($prices) {
-					foreach ($event->sender->tickets as $key => $ticket)
-					{
-						if ($ticket->id && isset($prices[$ticket->id])) {
-							$price = $prices[$ticket->id];
-						} elseif (isset($prices['new'.$newCount])) {
-							$price = $prices['new'.$newCount];
-							$newCount++;
-						}
-						if (isset($price)) {
-							foreach ($price as $iso => $value)
-							{
-								if ($value == '') {
-									$event->sender->tickets[$key]->addError('prices-'.$iso, 'Price cannot be blank.');
-									$event->isValid = false;
+				if ($event->sender instanceof \verbb\events\elements\Event) {
+					$prices = Craft::$app->getRequest()->getBodyParam('prices');
+					$newCount = 1;
+					if ($prices) {
+						foreach ($event->sender->tickets as $key => $ticket)
+						{
+							if ($ticket->id && isset($prices[$ticket->id])) {
+								$price = $prices[$ticket->id];
+							} elseif (isset($prices['new'.$newCount])) {
+								$price = $prices['new'.$newCount];
+								$newCount++;
+							}
+							if (isset($price)) {
+								foreach ($price as $iso => $value)
+								{
+									if ($value == '') {
+										$event->sender->tickets[$key]->addError('prices-'.$iso, 'Price cannot be blank.');
+										$event->isValid = false;
+									}
 								}
 							}
 						}
 					}
 				}
-			}
-			
-			if ($event->sender instanceof \kuriousagency\commerce\bundles\elements\Bundle) {
-				$prices = Craft::$app->getRequest()->getBodyParam('prices');
-
-				if ($prices) {
-					foreach ($prices as $iso => $value)
-					{
-						if ($value == '') {
-							$event->sender->addError('prices-'.$iso, 'Price cannot be blank.');
-							$event->isValid = false;
-						}
-					}
-				}
-			}
-
-			if ($event->sender instanceof \craft\digitalproducts\elements\Product) {
-				$prices = Craft::$app->getRequest()->getBodyParam('prices');
 				
-				if ($prices) {
-					foreach ($prices as $iso => $value)
-					{
-						if ($value == '') {
-							$event->sender->addError('prices-'.$iso, 'Price cannot be blank.');
-							$event->isValid = false;
+				if ($event->sender instanceof \kuriousagency\commerce\bundles\elements\Bundle) {
+					$prices = Craft::$app->getRequest()->getBodyParam('prices');
+
+					if ($prices) {
+						foreach ($prices as $iso => $value)
+						{
+							if ($value == '') {
+								$event->sender->addError('prices-'.$iso, 'Price cannot be blank.');
+								$event->isValid = false;
+							}
 						}
 					}
 				}
+
+				if ($event->sender instanceof \craft\digitalproducts\elements\Product) {
+					$prices = Craft::$app->getRequest()->getBodyParam('prices');
+					
+					if ($prices) {
+						foreach ($prices as $iso => $value)
+						{
+							if ($value == '') {
+								$event->sender->addError('prices-'.$iso, 'Price cannot be blank.');
+								$event->isValid = false;
+							}
+						}
+					}
+				}
+
 			}
 		});
 
 		Event::on(Element::class, Element::EVENT_AFTER_SAVE, function(Event $event) {
-			if ($event->sender instanceof \craft\commerce\elements\Product) {
-				$prices = Craft::$app->getRequest()->getBodyParam('prices');
-				$count = 0;
-				if ($prices) {
-					foreach ($prices as $key => $price)
-					{
-						if ($key != 'new') {
-							$this->service->savePrices($event->sender->variants[$count], $price);
-							$count++;
+
+			if (Craft::$app->getRequest()->getIsCpRequest()) {
+
+				if ($event->sender instanceof \craft\commerce\elements\Product) {
+					$prices = Craft::$app->getRequest()->getBodyParam('prices');
+					$count = 0;
+					if ($prices) {
+						foreach ($prices as $key => $price)
+						{
+							if ($key != 'new') {
+								$this->service->savePrices($event->sender->variants[$count], $price);
+								$count++;
+							}
 						}
 					}
 				}
-			}
-			if ($event->sender instanceof \verbb\events\elements\Event) {
-				$prices = Craft::$app->getRequest()->getBodyParam('prices');
-				$count = 0;
-				if ($prices) {
-					foreach ($prices as $key => $price)
-					{
-						if ($key !== 'new') {
-							$this->service->savePrices($event->sender->tickets[$count], $price);
-							$count++;
+
+				if ($event->sender instanceof \verbb\events\elements\Event) {
+					$prices = Craft::$app->getRequest()->getBodyParam('prices');
+					$count = 0;
+					if ($prices) {
+						foreach ($prices as $key => $price)
+						{
+							if ($key !== 'new') {
+								$this->service->savePrices($event->sender->tickets[$count], $price);
+								$count++;
+							}
 						}
 					}
 				}
-			}
-			
-			if ($event->sender instanceof \kuriousagency\commerce\bundles\elements\Bundle) {
-				$prices = Craft::$app->getRequest()->getBodyParam('prices');
-				if ($prices) {
-					$this->service->savePrices($event->sender, $prices);
+				
+				if ($event->sender instanceof \kuriousagency\commerce\bundles\elements\Bundle) {
+					$prices = Craft::$app->getRequest()->getBodyParam('prices');
+					if ($prices) {
+						$this->service->savePrices($event->sender, $prices);
+					}
 				}
-			}
-			if ($event->sender instanceof \craft\digitalproducts\elements\Product) {
-				$prices = Craft::$app->getRequest()->getBodyParam('prices');
-				if ($prices) {
-					$this->service->savePrices($event->sender, $prices);
+				
+				if ($event->sender instanceof \craft\digitalproducts\elements\Product) {
+					$prices = Craft::$app->getRequest()->getBodyParam('prices');
+					if ($prices) {
+						$this->service->savePrices($event->sender, $prices);
+					}
 				}
+
 			}
 
 		});

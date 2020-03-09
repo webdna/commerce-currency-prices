@@ -201,8 +201,8 @@ class Install extends Migration
 		$this->addForeignKey(null, '{{%commerce_shippingrules_currencyprices}}', ['paymentCurrencyIso'], '{{%commerce_paymentcurrencies}}', ['iso'], 'CASCADE');
 		$this->addForeignKey(null, '{{%commerce_discounts_currencyprices}}', ['discountId'], '{{%commerce_discounts}}', ['id'], 'CASCADE');
 		$this->addForeignKey(null, '{{%commerce_discounts_currencyprices}}', ['paymentCurrencyIso'], '{{%commerce_paymentcurrencies}}', ['iso'], 'CASCADE');
-		$this->addForeignKey(null, '{{%addons_discounts_currencyprices}}', ['discountId'], '{{%addons_discounts}}', ['id'], 'CASCADE');
-		$this->addForeignKey(null, '{{%addons_discounts_currencyprices}}', ['paymentCurrencyIso'], '{{%commerce_paymentcurrencies}}', ['iso'], 'CASCADE');
+		//$this->addForeignKey(null, '{{%addons_discounts_currencyprices}}', ['discountId'], '{{%addons_discounts}}', ['id'], 'CASCADE');
+		//$this->addForeignKey(null, '{{%addons_discounts_currencyprices}}', ['paymentCurrencyIso'], '{{%commerce_paymentcurrencies}}', ['iso'], 'CASCADE');
     }
 
     /**

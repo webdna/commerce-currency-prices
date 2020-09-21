@@ -87,6 +87,7 @@ class Install extends Migration
             $this->createTable(
                 '{{%commerce_currencyprices}}',
                 array_merge([
+                    'id' => $this->primaryKey(),
                     'purchasableId' => $this->integer()->notNull(),
                     'dateCreated' => $this->dateTime()->notNull(),
                     'dateUpdated' => $this->dateTime()->notNull(),

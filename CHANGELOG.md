@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 2.6.5 - 2020-09-21
+
+### Fixed
+- Adds primary key to commerce_currencyprices table
+
 ## 2.6.4 - 2020-02-20
 
 ### Fixed

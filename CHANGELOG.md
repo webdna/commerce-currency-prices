@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 2.6.6 - 2020-09-22
+### Fixed
+- an issue when saving products.
+
 ## 2.6.5 - 2020-09-21
 
 ### Fixed

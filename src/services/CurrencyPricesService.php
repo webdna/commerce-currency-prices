@@ -53,7 +53,7 @@ class CurrencyPricesService extends Component
 
 	public function savePrices($purchasable, $prices)
 	{
-		$record = CurrencyPricesRecord::findOne($purchasable->id);
+		$record = CurrencyPricesRecord::findOne(['purchasableId' => $purchasable->id]);
 		
 		if (!$record) {
 			$record = new CurrencyPricesRecord();
@@ -75,7 +75,7 @@ class CurrencyPricesService extends Component
 
 	public function deletePrices($purchasableId)
 	{
-		$record = CurrencyPricesRecord::findOne($purchasableId);
+		$record = CurrencyPricesRecord::findOne(['purchasableId' => $purchasableId]);
 
 		if ($record) {
 			$record->delete();

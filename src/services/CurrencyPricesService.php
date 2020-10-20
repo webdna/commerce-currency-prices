@@ -31,84 +31,94 @@ use craft\db\Query;
  */
 class CurrencyPricesService extends Component
 {
-	private $_migration;
+    private $_migration;
 
     // Public Methods
-	// =========================================================================
+    // =========================================================================
 
-	public function getPricesByPurchasableId($id)
-	{
-		$result = (new Query())
-			->select(['*'])
-			->from(['{{%commerce_currencyprices}}'])
-			->where(['purchasableId' => $id])
-			->one();
+    public function getPricesByPurchasableId($id)
+    {
+        $result = (new Query())
+            ->select(['*'])
+            ->from(['{{%commerce_currencyprices}}'])
+            ->where(['purchasableId' => $id])
+            ->one();
 
-		if (!$result) {
-			return null;
-		}
+        if (!$result) {
+            return null;
+        }
 
-		return $result;
-	}
+        return $result;
+    }
 
-	public function savePrices($purchasable, $prices)
-	{
-		$record = CurrencyPricesRecord::findOne(['purchasableId' => $purchasable->id]);
-		
-		if (!$record) {
-			$record = new CurrencyPricesRecord();
-		}
+    public function savePrices($purchasable, $prices)
+    {
+        $record = CurrencyPricesRecord::findOne([
+            'purchasableId' => $purchasable->id,
+        ]);
 
-		$record->purchasableId = $purchasable->id;
-		$record->siteId = $purchasable->siteId;
-		
-		$primaryIso = Commerce::getInstance()->getPaymentCurrencies()->getPrimaryPaymentCurrencyIso();
-		$record->{$primaryIso} = $purchasable->price;
+        if (!$record) {
+            $record = new CurrencyPricesRecord();
+        }
 
-		foreach ($prices as $iso => $value)
-		{
-			$record->{$iso} = LocalizationHelper::normalizeNumber($value);
-		}
+        $record->purchasableId = $purchasable->id;
+        $record->siteId = $purchasable->siteId;
 
-		$record->save();
-	}
+        $primaryIso = Commerce::getInstance()
+            ->getPaymentCurrencies()
+            ->getPrimaryPaymentCurrencyIso();
+        $record->{$primaryIso} = $purchasable->price;
 
-	public function deletePrices($purchasableId)
-	{
-		$record = CurrencyPricesRecord::findOne(['purchasableId' => $purchasableId]);
+        foreach ($prices as $iso => $value) {
+            $record->{$iso} = LocalizationHelper::normalizeNumber($value);
+        }
 
-		if ($record) {
-			$record->delete();
-		}
-	}
+        $record->save();
+    }
 
-	public function getSalePrice($purchasable, $currency)
-	{
-		$sales = Commerce::getInstance()->getSales()->getSalesForPurchasable($purchasable);
-		$prices = CurrencyPrices::$plugin->service->getPricesByPurchasableId($purchasable->id);
-		$originalPrice = $purchasable->price;
+    public function deletePrices($purchasableId)
+    {
+        $record = CurrencyPricesRecord::findOne([
+            'purchasableId' => $purchasableId,
+        ]);
 
-		if ($prices) {
-			$originalPrice = $prices[$currency];
-		}
-        
-		$takeOffAmount = 0;
+        if ($record) {
+            $record->delete();
+        }
+    }
+
+    public function getSalePrice($purchasable, $currency)
+    {
+        $sales = Commerce::getInstance()
+            ->getSales()
+            ->getSalesForPurchasable($purchasable);
+        $prices = CurrencyPrices::$plugin->service->getPricesByPurchasableId(
+            $purchasable->id
+        );
+        $originalPrice = $purchasable->price;
+
+        if ($prices) {
+            $originalPrice = $prices[$currency];
+        }
+
+        $takeOffAmount = 0;
         $newPrice = null;
 
         /** @var Sale $sale */
         foreach ($sales as $sale) {
-
             switch ($sale->apply) {
                 case SaleRecord::APPLY_BY_PERCENT:
                     // applyAmount is stored as a negative already
-                    $takeOffAmount += ($sale->applyAmount * $originalPrice);
+                    $takeOffAmount += $sale->applyAmount * $originalPrice;
                     if ($sale->ignorePrevious) {
-                        $newPrice = $originalPrice + ($sale->applyAmount * $originalPrice);
+                        $newPrice =
+                            $originalPrice +
+                            $sale->applyAmount * $originalPrice;
                     }
                     break;
                 case SaleRecord::APPLY_TO_PERCENT:
                     // applyAmount needs to be reversed since it is stored as negative
-                    $newPrice = (-$sale->applyAmount * $originalPrice);
+                    $newPrice = -$sale->applyAmount * $originalPrice;
                     break;
                 case SaleRecord::APPLY_BY_FLAT:
                     // applyAmount is stored as a negative already
@@ -131,7 +141,7 @@ class CurrencyPricesService extends Component
             }
         }
 
-        $salePrice = ($originalPrice + $takeOffAmount);
+        $salePrice = $originalPrice + $takeOffAmount;
 
         // A newPrice has been set so use it.
         if (null !== $newPrice) {
@@ -140,30 +150,39 @@ class CurrencyPricesService extends Component
 
         if ($salePrice < 0) {
             $salePrice = 0;
-		}
+        }
 
         return $salePrice;
-	}
+    }
 
-	
-	public function renameCurrency($old, $new)
-	{
-		Craft::$app->getDb()->createCommand()
-				->renameColumn('{{%commerce_currencyprices}}', $old, $new)
-				->execute();
-	}
-	
-	public function addCurrency($column)
-	{
-		Craft::$app->getDb()->createCommand()
-			->addColumn('{{%commerce_currencyprices}}', $column, 'decimal(14,4) NOT NULL')
-			->execute();
-	}
+    public function renameCurrency($old, $new)
+    {
+        Craft::$app
+            ->getDb()
+            ->createCommand()
+            ->renameColumn('{{%commerce_currencyprices}}', $old, $new)
+            ->execute();
+    }
 
-	public function removeCurrency($column)
-	{
-		Craft::$app->getDb()->createCommand()
-			->dropColumn('{{%commerce_currencyprices}}', $column)
-			->execute();
-	}
+    public function addCurrency($column)
+    {
+        Craft::$app
+            ->getDb()
+            ->createCommand()
+            ->addColumn(
+                '{{%commerce_currencyprices}}',
+                $column,
+                'decimal(14,4) NOT NULL DEFAULT 0'
+            )
+            ->execute();
+    }
+
+    public function removeCurrency($column)
+    {
+        Craft::$app
+            ->getDb()
+            ->createCommand()
+            ->dropColumn('{{%commerce_currencyprices}}', $column)
+            ->execute();
+    }
 }

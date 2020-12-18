@@ -8,7 +8,7 @@
 		{% set price = purchasable|currencyPrice(currency.iso, false) %}
 		{% set prices = craft.app.request.getBodyParam('prices') %}
 		{% if prices and prices[currency.iso] %}
-			{% set price = prices[currency.iso] %}
+			{% set price = prices[id][currency.iso]|localizationNormalizeNumber %}
 		{% endif %}
 		{% if purchasable.getErrors('prices-'~currency.iso)|length %}
 			{% set price = '' %}

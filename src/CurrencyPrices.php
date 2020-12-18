@@ -336,15 +336,11 @@ class CurrencyPrices extends Plugin
 				$prices = $this->service->getPricesByPurchasableId($event->lineItem->purchasable->id);
 				if ($prices) {
 					$price = $prices[$paymentCurrency];
-					
 					$salePrice = $this->service->getSalePrice($event->lineItem->purchasable, $paymentCurrency);
-					$saleAmount = 0- ($price - $salePrice);
 
 					$event->lineItem->snapshot['priceIn'] = $paymentCurrency;
 					$event->lineItem->price = $price;
-					$event->lineItem->saleAmount = $saleAmount;
 					$event->lineItem->salePrice = $salePrice;
-					//Craft::dd($event->lineItem);
 				}
 			}
 		);
@@ -427,8 +423,7 @@ class CurrencyPrices extends Plugin
 			}
 		});*/
 
-		
-		Craft::$app->view->hook('cp.commerce.product.edit.details', function(array &$context) {
+		Craft::$app->view->hook('cp.commerce.product.edit.content', function(array &$context) {
 			$view = Craft::$app->getView();
 			//Craft::dd($context);
         	return $view->renderTemplate('commerce-currency-prices/prices', ['variants'=>$context['product']->variants]);

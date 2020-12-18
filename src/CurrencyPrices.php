@@ -241,7 +241,8 @@ class CurrencyPrices extends Plugin
 				if ($event->sender instanceof \craft\commerce\elements\Product) {
 					$prices = Craft::$app->getRequest()->getBodyParam('prices');
 					$count = 0;
-					if ($prices) {
+					
+					if ($prices && $event->sender->variants) {
 						foreach ($prices as $key => $price)
 						{
 							if ($key != 'new') {

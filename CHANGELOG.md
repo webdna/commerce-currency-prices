@@ -4,7 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 2.2.7 - 2020-10-20
+## 2.7.0 - 2020-12-18
+
+### Added
+
+- Craft 3.5 compatibility.
+- Commerce 3 compatibility.
+
+### Added
+
+- Now requires Craft 3.5+.
+- Now requires Craft Commerce 3.2+.
+
+### Fixed
+- Fix a bug when trying to save a price with a comma
+
+## 2.6.7 - 2020-10-20
 
 ### Fixed
 

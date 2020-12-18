@@ -8,7 +8,6 @@
         (settings.size is defined and settings.size ? null : 'fullwidth')
     ]|filter|join(' ') %}
 
-<div class="meta">
 {% for key, value in settings.value %}
 <div class="currency" data-iso="{{ value.iso }}">
     <input class="{{ class }}" type="text"
@@ -16,7 +15,7 @@
             {%- if settings.id is defined %} id="{{ settings.id }}"{% endif %}
             {%- if settings.size is defined %} size="{{ settings.size }}"{% endif %}
             {%- if settings.name is defined %} name="{{ settings.name }}[{{ key }}]"{% endif %}
-            {%- if value.price is not null %} value="{{ value.price + 0 }}"{% endif %}
+            {%- if value.price is not null %} value="{{ (value.price + 0)|number }}"{% endif %}
             {%- if settings.maxlength is defined and settings.maxlength %} maxlength="{{ settings.maxlength }}"{% endif %}
             {%- if settings.autofocus is defined and settings.autofocus and not craft.app.request.isMobileBrowser(true) %} autofocus{% endif %}
             {%- if settings.autocomplete is not defined or not settings.autocomplete %} autocomplete="off"{% endif %}
@@ -27,7 +26,6 @@
             {%- if settings.max is defined %} max="{{ settings.max }}"{% endif %}
             {%- if settings.placeholder is defined %} placeholder="{{ settings.placeholder }}"{% endif %}
     >
-</div>
 {% endfor %}
 </div>
 {% endmacro %}

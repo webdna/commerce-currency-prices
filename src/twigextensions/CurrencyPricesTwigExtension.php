@@ -13,6 +13,7 @@ namespace kuriousagency\commerce\currencyprices\twigextensions;
 use kuriousagency\commerce\currencyprices\CurrencyPrices;
 use craft\commerce\errors\CurrencyException;
 use craft\commerce\Plugin as Commerce;
+use craft\helpers\Localization;
 
 use Craft;
 
@@ -44,6 +45,7 @@ class CurrencyPricesTwigExtension extends \Twig_Extension
 			new \Twig_SimpleFilter('currencySalePrice', [$this, 'currencySalePrice']),
 			new \Twig_SimpleFilter('currencyAddonDiscountPrice', [$this, 'currencyAddonDiscountPrice']),
 			new \Twig_SimpleFilter('currencyAddonDiscountPrices', [$this, 'currencyAddonDiscountPrices']),
+			new \Twig_SimpleFilter('localizationNormalizeNumber', [$this, 'localizationNormalizeNumber']),
         ];
     }
 
@@ -130,7 +132,12 @@ class CurrencyPricesTwigExtension extends \Twig_Extension
 		}
 
 		return $prices;
-	}
+    }
+    
+    public function localizationNormalizeNumber($number)
+    {
+        return Localization::normalizeNumber($number);
+    }
 
 
 	// Private methods

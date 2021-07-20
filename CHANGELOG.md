@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 2.7.2 - 2021-07-20
+
+### Fixed
+
+- error when setting min/max order value on a shipping rule
+
 ## 2.7.1 - 2020-12-18
 
 ### Fixed

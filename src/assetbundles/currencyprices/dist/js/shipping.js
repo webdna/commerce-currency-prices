@@ -25,16 +25,16 @@
 						id: id,
 						name: name + 'CP',
 						label: $el
-							.parents('.field')
+							.closest('.field')
 							.find('label')
 							.text(),
 						instructions: $el
-							.parents('.field')
+							.closest('.field')
 							.find('.instructions')
 							.text()
 					},
 					function(response, status) {
-						$el.parents('.field').replaceWith($(response.html));
+						$el.closest('.field').replaceWith($(response.html));
 
 						loaded++;
 						if (loaded == found) {

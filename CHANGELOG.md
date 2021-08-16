@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 2.7.3 - 2021-08-16
+
+### Fixed
+
+- error when applying a Commerce discount ([#21](https://github.com/KuriousAgency/commerce-currency-prices/issues/21))
+
 ## 2.7.2 - 2021-07-20
 
 ### Fixed

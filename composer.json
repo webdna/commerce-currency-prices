@@ -2,7 +2,7 @@
   "name": "kuriousagency/commerce-currency-prices",
   "description": "Adds payment currency prices to products",
   "type": "craft-plugin",
-  "version": "2.7.3",
+  "version": "2.7.4",
   "keywords": [
     "craft",
     "cms",
@@ -11,14 +11,14 @@
     "currency prices"
   ],
   "support": {
-    "docs": "https://github.com/KuriousAgency/commerce-currency-prices/currency-prices/blob/master/README.md",
-    "issues": "https://github.com/KuriousAgency/commerce-currency-prices/currency-prices/issues"
+    "docs": "https://github.com/webdna/commerce-currency-prices/currency-prices/blob/master/README.md",
+    "issues": "https://github.com/webdna/commerce-currency-prices/currency-prices/issues"
   },
   "license": "proprietary",
   "authors": [
     {
-      "name": "Kurious Agency",
-      "homepage": "https://kurious.agency"
+      "name": "WebDNA",
+      "homepage": "https://webdna.co.uk"
     }
   ],
   "require": {
@@ -35,7 +35,7 @@
     "handle": "commerce-currency-prices",
     "hasCpSettings": false,
     "hasCpSection": false,
-    "changelogUrl": "https://raw.githubusercontent.com/KuriousAgency/commerce-currency-prices/currency-prices/master/CHANGELOG.md",
+    "changelogUrl": "https://raw.githubusercontent.com/webdna/commerce-currency-prices/currency-prices/master/CHANGELOG.md",
     "components": {
       "currencyPricesService": "kuriousagency\\commerce\\currencyprices\\services\\CurrencyPricesService"
     },

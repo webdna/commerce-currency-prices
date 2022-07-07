@@ -4,14 +4,14 @@
  *
  * Adds payment currency prices to products
  *
- * @link      https://kurious.agency
- * @copyright Copyright (c) 2018 Kurious Agency
+ * @link      https://webdna.co.uk/
+ * @copyright Copyright (c) 2018 webdna
  */
 
-namespace kuriousagency\commerce\currencyprices\adjusters;
+namespace webdna\commerce\currencyprices\adjusters;
 
-use kuriousagency\commerce\currencyprices\CurrencyPrices;
-use kuriousagency\commerce\currencyprices\models\ShippingRule;
+use webdna\commerce\currencyprices\CurrencyPrices;
+use webdna\commerce\currencyprices\models\ShippingRule;
 
 use Craft;
 use craft\base\Component;
@@ -60,7 +60,7 @@ class Shipping extends Component implements AdjusterInterface
         if ($shippingMethods === null) {
             return [];
 		}
-		
+
 		if (count($order->lineItems) == 0) {
 			return [];
 		}
@@ -70,8 +70,8 @@ class Shipping extends Component implements AdjusterInterface
         /** @var ShippingRule $rule */
 		//$rule = $shippingMethod->getMatchingShippingRule($this->_order);
 		$rule = null;
-		
-		foreach($shippingMethods as $method) { 
+
+		foreach($shippingMethods as $method) {
 			foreach ($method->getShippingRules() as $ru) {
 				$ru = new ShippingRule($ru);
 				$price = CurrencyPrices::$plugin->shipping->getPricesByShippingRuleIdAndCurrency($ru->id, $order->paymentCurrency);
@@ -88,7 +88,7 @@ class Shipping extends Component implements AdjusterInterface
 
 					/* TODO: rule categories prices */
 					$cats = $ru->getShippingRuleCategories();
-					
+
 					foreach ($cats as $key => $cat)
 					{
 						$price = (Object) CurrencyPrices::$plugin->shipping->getPricesByShippingRuleCategoryIdAndCurrency($cat->shippingRuleId, $cat->shippingCategoryId, $order->paymentCurrency);
@@ -109,7 +109,7 @@ class Shipping extends Component implements AdjusterInterface
 
 
 		// Craft::dd($rule);
-		
+
         if ($rule) {
             $itemTotalAmount = 0;
             //checking items shipping categories
@@ -195,5 +195,5 @@ class Shipping extends Component implements AdjusterInterface
 
         return $adjustment;
 	}
-	
+
 }

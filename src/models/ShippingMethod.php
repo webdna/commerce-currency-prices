@@ -5,9 +5,9 @@
  * @license https://craftcms.github.io/license/
  */
 
-namespace kuriousagency\commerce\currencyprices\models;
+namespace webdna\commerce\currencyprices\models;
 
-use kuriousagency\commerce\currencyprices\CurrencyPrices;
+use webdna\commerce\currencyprices\CurrencyPrices;
 
 use Craft;
 use craft\commerce\base\ShippingMethod as BaseShippingMethod;
@@ -33,10 +33,10 @@ use craft\validators\UniqueValidator;
 
 class ShippingMethod extends BaseShippingMethod
 {
-	
+
 	private $_order;
-	
-	
+
+
 	// Public Methods
     // =========================================================================
 
@@ -55,7 +55,7 @@ class ShippingMethod extends BaseShippingMethod
     {
         return $this->id;
 	}
-	
+
 	public function setOrder($value)
     {
         $this->_order = $value;
@@ -73,7 +73,7 @@ class ShippingMethod extends BaseShippingMethod
      * @inheritdoc
      */
     public function getHandle(): string
-    {		
+    {
 		return (string)$this->handle;
 	}
 
@@ -82,11 +82,11 @@ class ShippingMethod extends BaseShippingMethod
      */
     public function getShippingRules(): array
     {
-		
+
 		$shippingRules = [];
 		// $order = Plugin::getInstance()->getCarts()->getCart();
 		$rules = Plugin::getInstance()->getShippingRules()->getAllShippingRulesByShippingMethodId($this->id);
-		
+
 		foreach($rules as $ru) {
 
 			$price = CurrencyPrices::$plugin->shipping->getPricesByShippingRuleIdAndCurrency($ru->id, $this->_order->paymentCurrency);
@@ -114,7 +114,7 @@ class ShippingMethod extends BaseShippingMethod
 				}
 
 				$cats = $ru->getShippingRuleCategories();
-				
+
 				foreach ($cats as $key => $cat)
 				{
 					$price = (Object) CurrencyPrices::$plugin->shipping->getPricesByShippingRuleCategoryIdAndCurrency($cat->shippingRuleId, $cat->shippingCategoryId, $this->_order->paymentCurrency);
@@ -127,17 +127,17 @@ class ShippingMethod extends BaseShippingMethod
 
 			$shippingRules[] = $ru;
 		}
-		
+
 		return $shippingRules;
 	}
-	
+
 	// /**
     //  * @inheritdoc
     //  */
     // public function matchOrder(Order $order): bool
     // {
 	// 	$this->_order = $order;
-		
+
 	// 	/** @var ShippingRuleInterface $rule */
     //     foreach ($this->getShippingRules() as $rule) {
     //         if ($rule->matchOrder($order)) {
@@ -154,7 +154,7 @@ class ShippingMethod extends BaseShippingMethod
     // public function getMatchingShippingRule(Order $order)
     // {
 	// 	$this->_order = $order;
-		
+
 	// 	foreach ($this->getShippingRules() as $rule) {
     //         /** @var ShippingRuleInterface $rule */
     //         if ($rule->matchOrder($order)) {

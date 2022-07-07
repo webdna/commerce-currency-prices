@@ -4,13 +4,13 @@
  *
  * Adds payment currency prices to products
  *
- * @link      https://kurious.agency
- * @copyright Copyright (c) 2018 Kurious Agency
+ * @link      https://webdna.co.uk/
+ * @copyright Copyright (c) 2018 webdna
  */
 
-namespace kuriousagency\commerce\currencyprices\twigextensions;
+namespace webdna\commerce\currencyprices\twigextensions;
 
-use kuriousagency\commerce\currencyprices\CurrencyPrices;
+use webdna\commerce\currencyprices\CurrencyPrices;
 use craft\commerce\errors\CurrencyException;
 use craft\commerce\Plugin as Commerce;
 use craft\helpers\Localization;
@@ -18,7 +18,7 @@ use craft\helpers\Localization;
 use Craft;
 
 /**
- * @author    Kurious Agency
+ * @author    webdna
  * @package   CurrencyPrices
  * @since     1.0.0
  */
@@ -61,7 +61,7 @@ class CurrencyPricesTwigExtension extends \Twig_Extension
     public function currencyPrice($purchasable, $currency, $format = true, $stripZeros = false): string
     {
 		$this->_validatePaymentCurrency($currency);
-		
+
 		$prices = CurrencyPrices::$plugin->service->getPricesByPurchasableId($purchasable->id);
 		$amount = '';
 
@@ -86,7 +86,7 @@ class CurrencyPricesTwigExtension extends \Twig_Extension
 		$this->_validatePaymentCurrency($currency);
 
 		$salePrice = CurrencyPrices::$plugin->service->getSalePrice($purchasable, $currency);
-		
+
 		if (!$format) {
             return $salePrice;
         }
@@ -96,7 +96,7 @@ class CurrencyPricesTwigExtension extends \Twig_Extension
         }
 
         return $salePrice;
-		
+
 	}
 
 	public function currencyAddonDiscountPrice($discountId, $currency, $format = true, $stripZeros = false): string
@@ -133,7 +133,7 @@ class CurrencyPricesTwigExtension extends \Twig_Extension
 
 		return $prices;
     }
-    
+
     public function localizationNormalizeNumber($number)
     {
         return Localization::normalizeNumber($number);

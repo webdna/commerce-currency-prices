@@ -4,14 +4,14 @@
  *
  * Adds payment currency prices to products
  *
- * @link      https://kurious.agency
- * @copyright Copyright (c) 2018 Kurious Agency
+ * @link      https://webdna.co.uk/
+ * @copyright Copyright (c) 2018 webdna
  */
 
-namespace kuriousagency\commerce\currencyprices\services;
+namespace webdna\commerce\currencyprices\services;
 
-use kuriousagency\commerce\currencyprices\CurrencyPrices;
-use kuriousagency\commerce\currencyprices\records\AddonsPricesRecord;
+use webdna\commerce\currencyprices\CurrencyPrices;
+use webdna\commerce\currencyprices\records\AddonsPricesRecord;
 
 use craft\commerce\Plugin as Commerce;
 
@@ -20,7 +20,7 @@ use craft\base\Component;
 use craft\db\Query;
 
 /**
- * @author    Kurious Agency
+ * @author    webdna
  * @package   CurrencyPrices
  * @since     1.0.0
  */
@@ -82,7 +82,7 @@ class AddonsService extends Component
 			}
 
 			$fields[$field] = (float)$values[$iso];
-			
+
 			foreach ($values as $key => $price)
 			{
 				if (!array_key_exists($key, $currencyPrices)) {
@@ -100,7 +100,7 @@ class AddonsService extends Component
 		foreach ($prices as $key => $value)
 		{
 			$record = AddonsPricesRecord::findOne(['discountId'=>$id, 'paymentCurrencyIso'=>$key]);
-			
+
 			if (!$record) {
 				$record = new AddonsPricesRecord();
 			}

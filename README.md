@@ -16,7 +16,7 @@ To install the plugin, follow these instructions.
 
 2. Then tell Composer to load the plugin:
 
-        composer require kuriousagency/commerce-currency-prices
+        composer require webdna/commerce-currency-prices
 
 3. In the Control Panel, go to Settings → Plugins and click the “Install” button for Currency Prices.
 
@@ -75,4 +75,4 @@ _Shipping Costs_
 
 Adds a 'Currencies' fieldtype giving a dropdown list of payment currencies
 
-Brought to you by [Kurious Agency](https://kurious.agency)
+Brought to you by [webdna](https://webdna.co.uk/)

@@ -4,13 +4,13 @@
  *
  * Adds payment currency prices to products
  *
- * @link      https://kurious.agency
- * @copyright Copyright (c) 2018 Kurious Agency
+ * @link      https://webdna.co.uk/
+ * @copyright Copyright (c) 2018 webdna
  */
 
-namespace kuriousagency\commerce\currencyprices\controllers;
+namespace webdna\commerce\currencyprices\controllers;
 
-use kuriousagency\commerce\currencyprices\CurrencyPrices;
+use webdna\commerce\currencyprices\CurrencyPrices;
 
 use Craft;
 use craft\web\Controller;
@@ -29,7 +29,7 @@ use yii\web\HttpException;
 use yii\web\Response;
 
 /**
- * @author    Kurious Agency
+ * @author    webdna
  * @package   CurrencyPrices
  * @since     1.0.0
  */
@@ -76,7 +76,7 @@ class TicketsController extends Controller
 		if ($id) {
 			$prices = CurrencyPrices::$plugin->tickets->getPricesByTicketId($id);
 		}
-		
+
 		foreach (Commerce::getInstance()->getPaymentCurrencies()->getAllPaymentCurrencies() as $currency)
 		{
 			$val = null;
@@ -110,7 +110,7 @@ class TicketsController extends Controller
 		$request->setBodyParams(array_merge($request->getBodyParams(), $fields));
 
 		return Craft::$app->runAction('events/events/save');
-		
+
     }
 
 }

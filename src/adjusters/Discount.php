@@ -4,14 +4,14 @@
  *
  * Adds payment currency prices to products
  *
- * @link      https://kurious.agency
- * @copyright Copyright (c) 2018 Kurious Agency
+ * @link      https://webdna.co.uk/
+ * @copyright Copyright (c) 2018 webdna
  */
 
-namespace kuriousagency\commerce\currencyprices\adjusters;
+namespace webdna\commerce\currencyprices\adjusters;
 
-use kuriousagency\commerce\currencyprices\CurrencyPrices;
-use kuriousagency\commerce\currencyprices\models\ShippingRule;
+use webdna\commerce\currencyprices\CurrencyPrices;
+use webdna\commerce\currencyprices\models\ShippingRule;
 
 use craft\base\Component;
 use craft\commerce\base\AdjusterInterface;

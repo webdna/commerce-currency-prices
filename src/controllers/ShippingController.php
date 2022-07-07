@@ -4,13 +4,13 @@
  *
  * Adds payment currency prices to products
  *
- * @link      https://kurious.agency
- * @copyright Copyright (c) 2018 Kurious Agency
+ * @link      https://webdna.co.uk/
+ * @copyright Copyright (c) 2018 webdna
  */
 
-namespace kuriousagency\commerce\currencyprices\controllers;
+namespace webdna\commerce\currencyprices\controllers;
 
-use kuriousagency\commerce\currencyprices\CurrencyPrices;
+use webdna\commerce\currencyprices\CurrencyPrices;
 
 use Craft;
 use craft\web\Controller;
@@ -22,7 +22,7 @@ use yii\web\HttpException;
 use yii\web\Response;
 
 /**
- * @author    Kurious Agency
+ * @author    webdna
  * @package   CurrencyPrices
  * @since     1.0.0
  */
@@ -69,7 +69,7 @@ class ShippingController extends Controller
 		$categories = Craft::$app->getRequest()->getRequiredParam('ruleCategories');
 
 		$values = [];
-		
+
 
 		foreach ($categories as $key => $category)
 		{
@@ -103,7 +103,7 @@ class ShippingController extends Controller
 		if ($id) {
 			$prices = CurrencyPrices::$plugin->shipping->getPricesByShippingRuleId($id);
 		}
-		
+
 		foreach (Commerce::getInstance()->getPaymentCurrencies()->getAllPaymentCurrencies() as $currency)
 		{
 			$val = null;
@@ -130,7 +130,7 @@ class ShippingController extends Controller
 		if ($id) {
 			$prices = CurrencyPrices::$plugin->shipping->getPricesByShippingRuleCategoryId($id, $catId);
 		}
-		
+
 		foreach (Commerce::getInstance()->getPaymentCurrencies()->getAllPaymentCurrencies() as $currency)
 		{
 			$val = null;
@@ -172,7 +172,7 @@ class ShippingController extends Controller
 
         // Shared attributes
         /*$fields = [
-            'id', 'name', 'description', 'shippingZoneId', 'methodId', 'enabled', 'minQty', 'maxQty', 
+            'id', 'name', 'description', 'shippingZoneId', 'methodId', 'enabled', 'minQty', 'maxQty',
             'minWeight', 'maxWeight',
         ];
         foreach ($fields as $field) {
@@ -181,7 +181,7 @@ class ShippingController extends Controller
 		if ($shippingRule->enabled == '') {
 			$shippingRule->enabled = false;
 		}*/
-		
+
 		//'minTotal', 'maxTotal',
 		$currencyPrices = [];
 		$currencyFields = ['minTotal', 'maxTotal', 'baseRate', 'perItemRate', 'weightRate', 'percentageRate', 'minRate', 'maxRate'];
@@ -192,7 +192,7 @@ class ShippingController extends Controller
 			$values = $request->getBodyParam($field);
 
 			// Craft::dd($values);
-			
+
 			// replace empty values with 0
 			if(is_array($values)) {
 				$values = array_map(function($value) {
@@ -225,7 +225,7 @@ class ShippingController extends Controller
         }
 
 		$shippingRule->setShippingRuleCategories($ruleCategories);
-		
+
 		//validate
 
 		//Craft::dd($shippingRule);

@@ -1,8 +1,8 @@
 {
-  "name": "kuriousagency/commerce-currency-prices",
+  "name": "webdna/commerce-currency-prices",
   "description": "Adds payment currency prices to products",
   "type": "craft-plugin",
-  "version": "2.7.4",
+  "version": "2.7.5",
   "keywords": [
     "craft",
     "cms",
@@ -17,7 +17,7 @@
   "license": "proprietary",
   "authors": [
     {
-      "name": "WebDNA",
+      "name": "webdna",
       "homepage": "https://webdna.co.uk"
     }
   ],
@@ -27,7 +27,7 @@
   },
   "autoload": {
     "psr-4": {
-      "kuriousagency\\commerce\\currencyprices\\": "src/"
+      "webdna\\commerce\\currencyprices\\": "src/"
     }
   },
   "extra": {
@@ -37,8 +37,8 @@
     "hasCpSection": false,
     "changelogUrl": "https://raw.githubusercontent.com/webdna/commerce-currency-prices/currency-prices/master/CHANGELOG.md",
     "components": {
-      "currencyPricesService": "kuriousagency\\commerce\\currencyprices\\services\\CurrencyPricesService"
+      "currencyPricesService": "webdna\\commerce\\currencyprices\\services\\CurrencyPricesService"
     },
-    "class": "kuriousagency\\commerce\\currencyprices\\CurrencyPrices"
+    "class": "webdna\\commerce\\currencyprices\\CurrencyPrices"
   }
 }

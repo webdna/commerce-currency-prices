@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 2.7.5 - 2022-06-10
+### Changed
+- Changed namespaces
+- New Icon
+
 ## 2.7.4 - 2022-06-10
 ### Changed
 - Change of ownership
@@ -12,7 +17,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ### Fixed
 
-- error when applying a Commerce discount ([#21](https://github.com/KuriousAgency/commerce-currency-prices/issues/21))
+- error when applying a Commerce discount ([#21](https://github.com/webdna/commerce-currency-prices/issues/21))
 
 ## 2.7.2 - 2021-07-20
 

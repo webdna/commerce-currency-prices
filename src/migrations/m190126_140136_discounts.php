@@ -1,6 +1,6 @@
 <?php
 
-namespace kuriousagency\commerce\currencyprices\migrations;
+namespace webdna\commerce\currencyprices\migrations;
 
 use Craft;
 use craft\db\Migration;

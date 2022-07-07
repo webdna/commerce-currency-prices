@@ -4,23 +4,23 @@
  *
  * Adds payment currency prices to products
  *
- * @link      https://kurious.agency
- * @copyright Copyright (c) 2018 Kurious Agency
+ * @link      https://webdna.co.uk/
+ * @copyright Copyright (c) 2018 webdna
  */
 
-namespace kuriousagency\commerce\currencyprices;
+namespace webdna\commerce\currencyprices;
 
-use kuriousagency\commerce\currencyprices\services\CurrencyPricesService;
-use kuriousagency\commerce\currencyprices\services\ShippingService;
-use kuriousagency\commerce\currencyprices\services\DiscountsService;
-use kuriousagency\commerce\currencyprices\services\AddonsService;
-use kuriousagency\commerce\currencyprices\controllers\PaymentCurrenciesController;
-use kuriousagency\commerce\currencyprices\adjusters\Shipping;
-use kuriousagency\commerce\currencyprices\adjusters\Discount;
-use kuriousagency\commerce\currencyprices\twigextensions\CurrencyPricesTwigExtension;
-use kuriousagency\commerce\currencyprices\assetbundles\currencyprices\CurrencyPricesAsset;
-use kuriousagency\commerce\currencyprices\fields\CurrencyField;
-use kuriousagency\commerce\currencyprices\models\ShippingMethod as CurrencyPriceShippingMethod;
+use webdna\commerce\currencyprices\services\CurrencyPricesService;
+use webdna\commerce\currencyprices\services\ShippingService;
+use webdna\commerce\currencyprices\services\DiscountsService;
+use webdna\commerce\currencyprices\services\AddonsService;
+use webdna\commerce\currencyprices\controllers\PaymentCurrenciesController;
+use webdna\commerce\currencyprices\adjusters\Shipping;
+use webdna\commerce\currencyprices\adjusters\Discount;
+use webdna\commerce\currencyprices\twigextensions\CurrencyPricesTwigExtension;
+use webdna\commerce\currencyprices\assetbundles\currencyprices\CurrencyPricesAsset;
+use webdna\commerce\currencyprices\fields\CurrencyField;
+use webdna\commerce\currencyprices\models\ShippingMethod as CurrencyPriceShippingMethod;
 
 use Craft;
 use craft\base\Plugin;
@@ -53,7 +53,7 @@ use yii\db\AfterSaveEvent;
 /**
  * Class CurrencyPrices
  *
- * @author    Kurious Agency
+ * @author    webdna
  * @package   CurrencyPrices
  * @since     1.0.0
  *
@@ -76,7 +76,7 @@ class CurrencyPrices extends Plugin
      * @var string
      */
 	public $schemaVersion = '1.2.0';
-	
+
 
     // Public Methods
     // =========================================================================
@@ -88,7 +88,7 @@ class CurrencyPrices extends Plugin
     {
         parent::init();
 		self::$plugin = $this;
-		
+
 		$this->setComponents([
 			'service' => CurrencyPricesService::class,
 			'shipping' => ShippingService::class,
@@ -97,7 +97,7 @@ class CurrencyPrices extends Plugin
 		]);
 
 		Craft::$app->view->registerTwigExtension(new CurrencyPricesTwigExtension());
-		
+
 		if (Craft::$app->getRequest()->getIsCpRequest()) {
             Event::on(
                 View::class,
@@ -131,7 +131,7 @@ class CurrencyPrices extends Plugin
 				$event->rules['commerce-currency-prices/payment-currencies/all'] = 'commerce-currency-prices/payment-currencies/all';
             }
 		);
-		
+
 		Event::on(
             Fields::class,
             Fields::EVENT_REGISTER_FIELD_TYPES,
@@ -202,8 +202,8 @@ class CurrencyPrices extends Plugin
 						}
 					}
 				}
-				
-				if ($event->sender instanceof \kuriousagency\commerce\bundles\elements\Bundle) {
+
+				if ($event->sender instanceof \webdna\commerce\bundles\elements\Bundle) {
 					$prices = Craft::$app->getRequest()->getBodyParam('prices');
 
 					if ($prices) {
@@ -219,7 +219,7 @@ class CurrencyPrices extends Plugin
 
 				if ($event->sender instanceof \craft\digitalproducts\elements\Product) {
 					$prices = Craft::$app->getRequest()->getBodyParam('prices');
-					
+
 					if ($prices) {
 						foreach ($prices as $iso => $value)
 						{
@@ -241,7 +241,7 @@ class CurrencyPrices extends Plugin
 				if ($event->sender instanceof \craft\commerce\elements\Product) {
 					$prices = Craft::$app->getRequest()->getBodyParam('prices');
 					$count = 0;
-					
+
 					if ($prices && $event->sender->variants) {
 						foreach ($prices as $key => $price)
 						{
@@ -266,14 +266,14 @@ class CurrencyPrices extends Plugin
 						}
 					}
 				}
-				
-				if ($event->sender instanceof \kuriousagency\commerce\bundles\elements\Bundle) {
+
+				if ($event->sender instanceof \webdna\commerce\bundles\elements\Bundle) {
 					$prices = Craft::$app->getRequest()->getBodyParam('prices');
 					if ($prices) {
 						$this->service->savePrices($event->sender, $prices);
 					}
 				}
-				
+
 				if ($event->sender instanceof \craft\digitalproducts\elements\Product) {
 					$prices = Craft::$app->getRequest()->getBodyParam('prices');
 					if ($prices) {
@@ -288,25 +288,25 @@ class CurrencyPrices extends Plugin
 		Event::on(Element::class, Element::EVENT_AFTER_DELETE, function(Event $event) {
 			//Craft::dd($event);
 			if ($event->sender instanceof \craft\commerce\elements\Variant) {
-				
+
 				$this->service->deletePrices($event->sender->id);
 			}
 			if ($event->sender instanceof \verbb\events\elements\Ticket) {
-				
+
 				$this->service->deletePrices($event->sender->id);
 			}
-			if ($event->sender instanceof \kuriousagency\commerce\bundles\elements\Bundle) {
-				
+			if ($event->sender instanceof \webdna\commerce\bundles\elements\Bundle) {
+
 				$this->service->deletePrices($event->sender->id);
 			}
 			if ($event->sender instanceof \craft\digitalproducts\elements\Product) {
-				
+
 				$this->service->deletePrices($event->sender->id);
 			}
 		});
 
 		Event::on(ActiveRecord::class, ActiveRecord::EVENT_AFTER_INSERT, function(AfterSaveEvent $event) {
-			if ($event->sender instanceof \kuriousagency\commerce\addons\records\Discount) {
+			if ($event->sender instanceof \webdna\commerce\addons\records\Discount) {
 				$this->addons->saveAddon($event->sender->id, $this->addons->getPrices());
 			}
 			if ($event->sender instanceof \craft\commerce\records\Discount) {
@@ -317,7 +317,7 @@ class CurrencyPrices extends Plugin
 			}
 		});
 		Event::on(ActiveRecord::class, ActiveRecord::EVENT_AFTER_UPDATE, function(AfterSaveEvent $event) {
-			if ($event->sender instanceof \kuriousagency\commerce\addons\records\Discount) {
+			if ($event->sender instanceof \webdna\commerce\addons\records\Discount) {
 				$this->addons->saveAddon($event->sender->id, $this->addons->getPrices());
 			}
 			if ($event->sender instanceof \craft\commerce\records\Discount) {
@@ -376,10 +376,10 @@ class CurrencyPrices extends Plugin
 				if (get_class($method) === ShippingMethod::class) {
 					unset($e->shippingMethods[$key]);
 				}
-				
+
 				$newMethod = new CurrencyPriceShippingMethod($method);
 				$newMethod->order = $order;
-				$e->shippingMethods[] = $newMethod; 
+				$e->shippingMethods[] = $newMethod;
 
 			}
 
@@ -395,20 +395,20 @@ class CurrencyPrices extends Plugin
 						if (in_array($item->id, $matchingLineIds, false)) {
 							$adjustment = $this->_createOrderAdjustment($this->_discount);
 							$adjustment->setLineItem($item);
-			
+
 							$amountPerItem = Currency::round($this->_discount->perItemDiscount * $item->qty);
-			
+
 							//Default is percentage off already discounted price
 							$existingLineItemDiscount = $item->getAdjustmentsTotalByType('discount');
 							$existingLineItemPrice = ($item->getSubtotal() + $existingLineItemDiscount);
 							$amountPercentage = Currency::round($this->_discount->percentDiscount * $existingLineItemPrice);
-			
+
 							if ($this->_discount->percentageOffSubject == DiscountRecord::TYPE_ORIGINAL_SALEPRICE) {
 								$amountPercentage = Currency::round($this->_discount->percentDiscount * $item->getSubtotal());
 							}
-			
+
 							$adjustment->amount = $amountPerItem + $amountPercentage;
-			
+
 							if ($adjustment->amount != 0) {
 								$adjustments[] = $adjustment;
 							}
@@ -419,7 +419,7 @@ class CurrencyPrices extends Plugin
 						$baseDiscountAdjustment->amount = $discount->baseDiscount;
 						$adjustments[] = $baseDiscountAdjustment;
 					}
-					$e->adjustments[$key]['amount'] = 
+					$e->adjustments[$key]['amount'] =
 				}
 			}
 		});*/

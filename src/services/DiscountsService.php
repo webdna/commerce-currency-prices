@@ -4,14 +4,14 @@
  *
  * Adds payment currency prices to products
  *
- * @link      https://kurious.agency
- * @copyright Copyright (c) 2018 Kurious Agency
+ * @link      https://webdna.co.uk/
+ * @copyright Copyright (c) 2018 webdna
  */
 
-namespace kuriousagency\commerce\currencyprices\services;
+namespace webdna\commerce\currencyprices\services;
 
-use kuriousagency\commerce\currencyprices\CurrencyPrices;
-use kuriousagency\commerce\currencyprices\records\DiscountsPricesRecord;
+use webdna\commerce\currencyprices\CurrencyPrices;
+use webdna\commerce\currencyprices\records\DiscountsPricesRecord;
 
 use craft\commerce\Plugin as Commerce;
 
@@ -21,7 +21,7 @@ use craft\db\Query;
 use craft\helpers\Localization;
 
 /**
- * @author    Kurious Agency
+ * @author    webdna
  * @package   CurrencyPrices
  * @since     1.0.0
  */
@@ -74,7 +74,7 @@ class DiscountsService extends Component
 		foreach ($this->_fields as $field)
 		{
 			$values = $request->getBodyParam($field.'CP');
-			
+
 			if($values) {
 				// replace empty values with 0
 				if(is_array($values)) {
@@ -84,7 +84,7 @@ class DiscountsService extends Component
 				}
 
 				$fields[$field] = (float)$values[$iso];
-				
+
 				foreach ($values as $key => $price)
 				{
 					if (!array_key_exists($key, $currencyPrices)) {
@@ -103,7 +103,7 @@ class DiscountsService extends Component
 		foreach ($prices as $key => $value)
 		{
 			$record = DiscountsPricesRecord::findOne(['discountId'=>$id, 'paymentCurrencyIso'=>$key]);
-			
+
 			if (!$record) {
 				$record = new DiscountsPricesRecord();
 			}

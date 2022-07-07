@@ -4,13 +4,13 @@
  *
  * Adds payment currency prices to products
  *
- * @link      https://kurious.agency
- * @copyright Copyright (c) 2018 Kurious Agency
+ * @link      https://webdna.co.uk/
+ * @copyright Copyright (c) 2018 webdna
  */
 
-namespace kuriousagency\commerce\currencyprices\controllers;
+namespace webdna\commerce\currencyprices\controllers;
 
-use kuriousagency\commerce\currencyprices\CurrencyPrices;
+use webdna\commerce\currencyprices\CurrencyPrices;
 
 use Craft;
 use craft\web\Controller;
@@ -29,7 +29,7 @@ use yii\web\HttpException;
 use yii\web\Response;
 
 /**
- * @author    Kurious Agency
+ * @author    webdna
  * @package   CurrencyPrices
  * @since     1.0.0
  */
@@ -78,7 +78,7 @@ class DiscountsController extends Controller
 		if ($id) {
 			$prices = CurrencyPrices::$plugin->discounts->getPricesByDiscountId($id);
 		}
-		
+
 		foreach (Commerce::getInstance()->getPaymentCurrencies()->getAllPaymentCurrencies() as $currency)
 		{
 			$val = null;
@@ -88,7 +88,7 @@ class DiscountsController extends Controller
 					$val = $price;
 				}
 			}
-			
+
 			if ($val) {
 				$price = $val[$prop] != 0 ? $val[$prop] * -1 : 0;
 				$values[$currency->iso] = ['iso'=>$currency->iso, 'price'=>$price];
@@ -110,7 +110,7 @@ class DiscountsController extends Controller
 
 		$fields = CurrencyPrices::$plugin->discounts->getPrices(false);
 		$request->setBodyParams(array_merge($request->getBodyParams(), $fields));
-		
+
 		return Craft::$app->runAction('commerce/discounts/save');
     }
 

@@ -44,74 +44,74 @@ class DiscountsController extends Controller
      *         The actions must be in 'kebab-case'
      * @access protected
      */
-    protected $allowAnonymous = [];
+    protected array|bool|int $allowAnonymous = [];
 
     // Public Methods
-	// =========================================================================
+    // =========================================================================
 
-	public function actionGetInputs()
-	{
-		$this->requireAcceptsJson();
-		$id = Craft::$app->getRequest()->getParam('id');
-		$name = Craft::$app->getRequest()->getRequiredParam('name');
+    public function actionGetInputs(): Response
+    {
+        $this->requireAcceptsJson();
+        $id = Craft::$app->getRequest()->getParam('id');
+        $name = Craft::$app->getRequest()->getRequiredParam('name');
 
-		$variables = [
-			"name" => $name,
-			"id" => $name,
-			"values" => $this->_getValues($id, str_replace('CP','',$name)),
-			"errors" => [],
-			"label" => Craft::$app->getRequest()->getParam('label'),
-			"instructions" => Craft::$app->getRequest()->getParam('instructions'),
-		];
-		//Craft::dump($name);
-		//Craft::dd($variables['values']);
+        $variables = [
+            "name" => $name,
+            "id" => $name,
+            "values" => $this->_getValues($id, str_replace('CP','',$name)),
+            "errors" => [],
+            "label" => Craft::$app->getRequest()->getParam('label'),
+            "instructions" => Craft::$app->getRequest()->getParam('instructions'),
+        ];
+        //Craft::dump($name);
+        //Craft::dd($variables['values']);
 
-		return $this->asJson([
-			'html' => $this->getView()->renderTemplate('commerce-currency-prices/field', $variables)
-		]);
-	}
+        return $this->asJson([
+            'html' => $this->getView()->renderTemplate('commerce-currency-prices/field', $variables)
+        ]);
+    }
 
-	private function _getValues($id, $prop)
-	{
-		$values = [];
-		$prices = [];
-		if ($id) {
-			$prices = CurrencyPrices::$plugin->discounts->getPricesByDiscountId($id);
-		}
-
-		foreach (Commerce::getInstance()->getPaymentCurrencies()->getAllPaymentCurrencies() as $currency)
-		{
-			$val = null;
-			foreach ($prices as $price)
-			{
-				if ($currency->iso == $price['paymentCurrencyIso']) {
-					$val = $price;
-				}
-			}
-
-			if ($val) {
-				$price = $val[$prop] != 0 ? $val[$prop] * -1 : 0;
-				$values[$currency->iso] = ['iso'=>$currency->iso, 'price'=>$price];
-			} else {
-				$values[$currency->iso] = ['iso'=>$currency->iso, 'price'=>0];
-			}
-		}
-
-		return $values;
-	}
-
-	/**
+    /**
      * @throws HttpException
      */
-    public function actionSave()
+    public function actionSave(): Response
     {
-		$this->requirePostRequest();
-		$request = Craft::$app->getRequest();
+        $this->requirePostRequest();
+        $request = Craft::$app->getRequest();
 
-		$fields = CurrencyPrices::$plugin->discounts->getPrices(false);
-		$request->setBodyParams(array_merge($request->getBodyParams(), $fields));
+        $fields = CurrencyPrices::$plugin->discounts->getPrices(false);
+        $request->setBodyParams(array_merge($request->getBodyParams(), $fields));
 
-		return Craft::$app->runAction('commerce/discounts/save');
+        return Craft::$app->runAction('commerce/discounts/save');
+    }
+
+    private function _getValues($id, $prop): array
+    {
+        $values = [];
+        $prices = [];
+        if ($id) {
+            $prices = CurrencyPrices::$plugin->discounts->getPricesByDiscountId($id);
+        }
+
+        foreach (Commerce::getInstance()->getPaymentCurrencies()->getAllPaymentCurrencies() as $currency)
+        {
+            $val = null;
+            foreach ($prices as $price)
+            {
+                if ($currency->iso == $price['paymentCurrencyIso']) {
+                    $val = $price;
+                }
+            }
+
+            if ($val) {
+                $price = $val[$prop] != 0 ? $val[$prop] * -1 : 0;
+                $values[$currency->iso] = ['iso'=>$currency->iso, 'price'=>$price];
+            } else {
+                $values[$currency->iso] = ['iso'=>$currency->iso, 'price'=>0];
+            }
+        }
+
+        return $values;
     }
 
 }

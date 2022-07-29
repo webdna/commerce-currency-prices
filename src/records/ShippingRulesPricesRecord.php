@@ -28,7 +28,7 @@ class ShippingRulesPricesRecord extends ActiveRecord
     /**
      * @inheritdoc
      */
-    public static function tableName()
+    public static function tableName(): string
     {
         return '{{%commerce_shippingrules_currencyprices}}';
     }

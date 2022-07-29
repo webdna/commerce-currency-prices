@@ -35,15 +35,15 @@ class PaymentCurrenciesController extends Controller
      *         The actions must be in 'kebab-case'
      * @access protected
      */
-    protected $allowAnonymous = [];
+    protected array|bool|int $allowAnonymous = [];
 
     // Public Methods
-	// =========================================================================
+    // =========================================================================
 
-	/**
+    /**
      * @throws HttpException
      */
-    public function actionSave()
+    public function actionSave(): Response
     {
         $this->requirePostRequest();
 
@@ -53,22 +53,22 @@ class PaymentCurrenciesController extends Controller
         $currency->id = Craft::$app->getRequest()->getBodyParam('currencyId');
         $currency->iso = Craft::$app->getRequest()->getBodyParam('iso');
         $currency->rate = Craft::$app->getRequest()->getBodyParam('rate');
-		$currency->primary = (bool)Craft::$app->getRequest()->getBodyParam('primary');
+        $currency->primary = (bool)Craft::$app->getRequest()->getBodyParam('primary');
 
-		$id = $currency->id;
+        $id = $currency->id;
 
-		if ($id) {
-			$oldCurrency = Commerce::getInstance()->getPaymentCurrencies()->getPaymentCurrencyById($currency->id);
-			//Craft::dd($oldCurrency);
-		}
+        if ($id) {
+            $oldCurrency = Commerce::getInstance()->getPaymentCurrencies()->getPaymentCurrencyById($currency->id);
+            //Craft::dd($oldCurrency);
+        }
 
         // Save it
         if (Commerce::getInstance()->getPaymentCurrencies()->savePaymentCurrency($currency)) {
-			if ($id) {
-				CurrencyPrices::$plugin->service->renameCurrency($oldCurrency->iso, $currency->iso);
-			} else {
-				CurrencyPrices::$plugin->service->addCurrency($currency->iso);
-			}
+            if ($id) {
+                CurrencyPrices::$plugin->service->renameCurrency($oldCurrency->iso, $currency->iso);
+            } else {
+                CurrencyPrices::$plugin->service->addCurrency($currency->iso);
+            }
             Craft::$app->getSession()->setNotice(Craft::t('commerce', 'Currency saved.'));
             $this->redirectToPostedUrl($currency);
         } else {
@@ -91,8 +91,8 @@ class PaymentCurrenciesController extends Controller
         $currency = Commerce::getInstance()->getPaymentCurrencies()->getPaymentCurrencyById($id);
 
         if ($currency && !$currency->primary) {
-			Commerce::getInstance()->getPaymentCurrencies()->deletePaymentCurrencyById($id);
-			CurrencyPrices::$plugin->service->removeCurrency($currency->iso);
+            Commerce::getInstance()->getPaymentCurrencies()->deletePaymentCurrencyById($id);
+            CurrencyPrices::$plugin->service->removeCurrency($currency->iso);
             return $this->asJson(['success' => true]);
         }
 

@@ -28,10 +28,10 @@ class ShippingRulesPricesModel extends Model
     /**
      * @var string
      */
-	public $shippingRuleId;
-	public $paymentCurrencyId;
-	public $minTotal;
-	public $maxTotal;
+    public $shippingRuleId;
+    public $paymentCurrencyId;
+    public $minTotal;
+    public $maxTotal;
 
     // Public Methods
     // =========================================================================
@@ -39,7 +39,7 @@ class ShippingRulesPricesModel extends Model
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             ['someAttribute', 'string'],

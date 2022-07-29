@@ -15,7 +15,9 @@ use webdna\commerce\currencyprices\models\CurrencyPricesModel;
 use webdna\commerce\currencyprices\records\CurrencyPricesRecord;
 
 use craft\commerce\Plugin as Commerce;
+use craft\commerce\base\PurchasableInterface;
 use craft\commerce\records\Sale as SaleRecord;
+
 
 use Craft;
 use craft\base\Component;
@@ -31,12 +33,10 @@ use craft\db\Query;
  */
 class CurrencyPricesService extends Component
 {
-    private $_migration;
-
     // Public Methods
     // =========================================================================
 
-    public function getPricesByPurchasableId($id)
+    public function getPricesByPurchasableId(int $id): mixed
     {
         $result = (new Query())
             ->select(['*'])
@@ -51,7 +51,7 @@ class CurrencyPricesService extends Component
         return $result;
     }
 
-    public function savePrices($purchasable, $prices)
+    public function savePrices(PurchasableInterface $purchasable, array $prices): void
     {
         $record = CurrencyPricesRecord::findOne([
             'purchasableId' => $purchasable->id,
@@ -76,7 +76,7 @@ class CurrencyPricesService extends Component
         $record->save();
     }
 
-    public function deletePrices($purchasableId)
+    public function deletePrices(int $purchasableId): void
     {
         $record = CurrencyPricesRecord::findOne([
             'purchasableId' => $purchasableId,
@@ -87,7 +87,7 @@ class CurrencyPricesService extends Component
         }
     }
 
-    public function getSalePrice($purchasable, $currency)
+    public function getSalePrice(PurchasableInterface $purchasable, string $currency): float
     {
         $sales = Commerce::getInstance()
             ->getSales()
@@ -155,7 +155,7 @@ class CurrencyPricesService extends Component
         return $salePrice;
     }
 
-    public function renameCurrency($old, $new)
+    public function renameCurrency(string $old, string $new): void
     {
         Craft::$app
             ->getDb()
@@ -164,7 +164,7 @@ class CurrencyPricesService extends Component
             ->execute();
     }
 
-    public function addCurrency($column)
+    public function addCurrency(string $column):void
     {
         Craft::$app
             ->getDb()
@@ -177,7 +177,7 @@ class CurrencyPricesService extends Component
             ->execute();
     }
 
-    public function removeCurrency($column)
+    public function removeCurrency(string $column):void
     {
         Craft::$app
             ->getDb()

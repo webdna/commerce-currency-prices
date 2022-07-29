@@ -37,102 +37,102 @@ class ShippingRule extends Model implements ShippingRuleInterface
     /**
      * @var int ID
      */
-    public $id;
+    public int $id;
 
     /**
      * @var string Name
      */
-    public $name;
+    public string $name;
 
     /**
      * @var string Description
      */
-    public $description;
+    public string $description;
 
     /**
      * @var int Shipping zone ID
      */
-    public $shippingZoneId;
+    public int $shippingZoneId;
 
     /**
      * @var int Shipping method ID
      */
-    public $methodId;
+    public int $methodId;
 
     /**
      * @var int Priority
      */
-    public $priority = 0;
+    public int $priority = 0;
 
     /**
      * @var bool Enabled
      */
-    public $enabled = true;
+    public bool $enabled = true;
 
     /**
      * @var int Minimum Quantity
      */
-    public $minQty = 0;
+    public int $minQty = 0;
 
     /**
      * @var int Maximum Quantity
      */
-    public $maxQty = 0;
+    public int $maxQty = 0;
 
     /**
      * @var float Minimum total
      */
-    public $minTotal = 0;
+    public float $minTotal = 0;
 
     /**
      * @var float Maximum total
      */
-    public $maxTotal = 0;
+    public float $maxTotal = 0;
 
     /**
      * @var float Minimum Weight
      */
-    public $minWeight = 0;
+    public float $minWeight = 0;
 
     /**
      * @var float Maximum Weight
      */
-    public $maxWeight = 0;
+    public float $maxWeight = 0;
 
     /**
      * @var float Base rate
      */
-    public $baseRate = 0;
+    public float $baseRate = 0;
 
     /**
      * @var float Per item rate
      */
-    public $perItemRate = 0;
+    public float $perItemRate = 0;
 
     /**
      * @var float Percentage rate
      */
-    public $percentageRate = 0;
+    public float $percentageRate = 0;
 
     /**
      * @var float Weight rate
      */
-    public $weightRate = 0;
+    public float $weightRate = 0;
 
     /**
      * @var float Minimum Rate
      */
-    public $minRate = 0;
+    public float $minRate = 0;
 
     /**
      * @var float Maximum rate
      */
-    public $maxRate = 0;
+    public float $maxRate = 0;
 
     /**
      * @var bool Is lite shipping rule
      */
-    public $isLite = 0;
+    public bool $isLite = 0;
 
     /**
      * @param Order $order
@@ -171,7 +171,7 @@ class ShippingRule extends Model implements ShippingRuleInterface
     /**
      * @var ShippingCategory[]
      */
-    private $_shippingRuleCategories;
+    private array $_shippingRuleCategories;
 
     // Public Methods
     // =========================================================================
@@ -179,7 +179,7 @@ class ShippingRule extends Model implements ShippingRuleInterface
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [
@@ -302,7 +302,7 @@ class ShippingRule extends Model implements ShippingRuleInterface
     /**
      * @param ShippingRuleCategory[] $models
      */
-    public function setShippingRuleCategories(array $models)
+    public function setShippingRuleCategories(array $models): void
     {
         $this->_shippingRuleCategories = $models;
     }
@@ -310,7 +310,7 @@ class ShippingRule extends Model implements ShippingRuleInterface
     /**
      * @return mixed
      */
-    public function getShippingZone()
+    public function getShippingZone(): ?ShippingAddressZone
     {
         return Plugin::getInstance()->getShippingZones()->getShippingZoneById($this->shippingZoneId);
     }
@@ -386,7 +386,7 @@ class ShippingRule extends Model implements ShippingRuleInterface
      * @param $shippingCategoryId
      * @return mixed
      */
-    private function _getRate($attribute, $shippingCategoryId = null)
+    private function _getRate($attribute, $shippingCategoryId = null): mixed
     {
         if (!$shippingCategoryId) {
             return $this->$attribute;

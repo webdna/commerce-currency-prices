@@ -33,15 +33,15 @@ class Shipping extends Component implements AdjusterInterface
     // Constants
     // =========================================================================
 
-    const ADJUSTMENT_TYPE = 'shipping';
+    const string ADJUSTMENT_TYPE = 'shipping';
 
     // Properties
     // =========================================================================
 
     /**
-     * @var
+     * @var Order
      */
-    private $_order;
+    private Order $_order;
 
     // Public Methods
     // =========================================================================
@@ -53,62 +53,62 @@ class Shipping extends Component implements AdjusterInterface
     {
         $this->_order = $order;
 
-		// $shippingMethod = $order->getShippingMethod();
-		$shippingMethods = Plugin::getInstance()->getShippingMethods()->getAllShippingMethods();
-		//raft::dd($shippingMethod);
+        // $shippingMethod = $order->getShippingMethod();
+        $shippingMethods = Plugin::getInstance()->getShippingMethods()->getAllShippingMethods();
+        //raft::dd($shippingMethod);
 
         if ($shippingMethods === null) {
             return [];
-		}
+        }
 
-		if (count($order->lineItems) == 0) {
-			return [];
-		}
+        if (count($order->lineItems) == 0) {
+            return [];
+        }
 
-		$adjustments = [];
+        $adjustments = [];
 
         /** @var ShippingRule $rule */
-		//$rule = $shippingMethod->getMatchingShippingRule($this->_order);
-		$rule = null;
+        //$rule = $shippingMethod->getMatchingShippingRule($this->_order);
+        $rule = null;
 
-		foreach($shippingMethods as $method) {
-			foreach ($method->getShippingRules() as $ru) {
-				$ru = new ShippingRule($ru);
-				$price = CurrencyPrices::$plugin->shipping->getPricesByShippingRuleIdAndCurrency($ru->id, $order->paymentCurrency);
-				if ($price) {
-					$price = (Object) $price;
-					$ru->minTotal = $price->minTotal;
-					$ru->maxTotal = $price->maxTotal;
-					$ru->baseRate = $price->baseRate;
-					$ru->perItemRate = $price->perItemRate;
-					$ru->weightRate = $price->weightRate;
-					$ru->percentageRate = $price->percentageRate;
-					$ru->minRate = $price->minRate;
-					$ru->maxRate = $price->maxRate;
+        foreach($shippingMethods as $method) {
+            foreach ($method->getShippingRules() as $ru) {
+                $ru = new ShippingRule($ru);
+                $price = CurrencyPrices::$plugin->shipping->getPricesByShippingRuleIdAndCurrency($ru->id, $order->paymentCurrency);
+                if ($price) {
+                    $price = (Object) $price;
+                    $ru->minTotal = $price->minTotal;
+                    $ru->maxTotal = $price->maxTotal;
+                    $ru->baseRate = $price->baseRate;
+                    $ru->perItemRate = $price->perItemRate;
+                    $ru->weightRate = $price->weightRate;
+                    $ru->percentageRate = $price->percentageRate;
+                    $ru->minRate = $price->minRate;
+                    $ru->maxRate = $price->maxRate;
 
-					/* TODO: rule categories prices */
-					$cats = $ru->getShippingRuleCategories();
+                    /* TODO: rule categories prices */
+                    $cats = $ru->getShippingRuleCategories();
 
-					foreach ($cats as $key => $cat)
-					{
-						$price = (Object) CurrencyPrices::$plugin->shipping->getPricesByShippingRuleCategoryIdAndCurrency($cat->shippingRuleId, $cat->shippingCategoryId, $order->paymentCurrency);
-						$cats[$key]->perItemRate = $price->perItemRate;
-						$cats[$key]->weightRate = $price->weightRate;
-						$cats[$key]->percentageRate = $price->percentageRate;
-					}
-					$ru->setShippingRuleCategories($cats);
-				}
-	//Craft::dump($ru->enabled ? 'yes' : 'no');
-				if ($ru->matchOrder($order)) {
-					$rule = $ru;
-					$shippingMethod = $method;
-					continue;
-				}
-			}
-		}
+                    foreach ($cats as $key => $cat)
+                    {
+                        $price = (Object) CurrencyPrices::$plugin->shipping->getPricesByShippingRuleCategoryIdAndCurrency($cat->shippingRuleId, $cat->shippingCategoryId, $order->paymentCurrency);
+                        $cats[$key]->perItemRate = $price->perItemRate;
+                        $cats[$key]->weightRate = $price->weightRate;
+                        $cats[$key]->percentageRate = $price->percentageRate;
+                    }
+                    $ru->setShippingRuleCategories($cats);
+                }
+    //Craft::dump($ru->enabled ? 'yes' : 'no');
+                if ($ru->matchOrder($order)) {
+                    $rule = $ru;
+                    $shippingMethod = $method;
+                    continue;
+                }
+            }
+        }
 
 
-		// Craft::dd($rule);
+        // Craft::dd($rule);
 
         if ($rule) {
             $itemTotalAmount = 0;
@@ -178,22 +178,22 @@ class Shipping extends Component implements AdjusterInterface
         $adjustment->type = self::ADJUSTMENT_TYPE;
         $adjustment->orderId = $this->_order->id;
         $adjustment->name = $shippingMethod->getName();
-		$adjustment->sourceSnapshot = $rule->getOptions();
-		$adjustment->description = $rule->getDescription();
+        $adjustment->sourceSnapshot = $rule->getOptions();
+        $adjustment->description = $rule->getDescription();
 
-		preg_match('/{(\w+)}/', $rule->getDescription(), $matches);
-		if (count($matches) > 1) {
-			$prop = $matches[1];
+        preg_match('/{(\w+)}/', $rule->getDescription(), $matches);
+        if (count($matches) > 1) {
+            $prop = $matches[1];
 
-			if(property_exists($rule,$prop)) {
-				$currency = Plugin::getInstance()->getCurrencies()->getCurrencyByIso($this->_order->paymentCurrency);
-				$price = Craft::$app->getFormatter()->asCurrency($rule->$prop, $currency, [], [], false);
-				$adjustment->description = str_replace("{".$prop."}", $price, $rule->getDescription());
-			}
+            if(property_exists($rule,$prop)) {
+                $currency = Plugin::getInstance()->getCurrencies()->getCurrencyByIso($this->_order->paymentCurrency);
+                $price = Craft::$app->getFormatter()->asCurrency($rule->$prop, $currency, [], [], false);
+                $adjustment->description = str_replace("{".$prop."}", $price, $rule->getDescription());
+            }
 
-		}
+        }
 
         return $adjustment;
-	}
+    }
 
 }

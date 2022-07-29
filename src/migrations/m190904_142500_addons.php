@@ -13,31 +13,31 @@ class m190904_142500_addons extends Migration
     /**
      * @inheritdoc
      */
-    public function safeUp()
+    public function safeUp(): bool
     {
         $this->createTable('{{%addons_discounts_currencyprices}}', [
-			'id' => $this->primaryKey(),
-			'discountId' => $this->integer(),
-			'paymentCurrencyIso' => $this->string()->notNull(),
-			'perItemDiscount' => $this->decimal(14, 4),
-			'dateCreated' => $this->dateTime()->notNull(),
-			'dateUpdated' => $this->dateTime()->notNull(),
-			'uid' => $this->uid(),
-		]);
+            'id' => $this->primaryKey(),
+            'discountId' => $this->integer(),
+            'paymentCurrencyIso' => $this->string()->notNull(),
+            'perItemDiscount' => $this->decimal(14, 4),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
 
-		$this->createIndex(null, '{{%addons_discounts_currencyprices}}', 'discountId', false);
-		$this->createIndex(null, '{{%addons_discounts_currencyprices}}', 'paymentCurrencyIso', false);
+        $this->createIndex(null, '{{%addons_discounts_currencyprices}}', 'discountId', false);
+        $this->createIndex(null, '{{%addons_discounts_currencyprices}}', 'paymentCurrencyIso', false);
 
-		// $this->addForeignKey(null, '{{%addons_discounts_currencyprices}}', ['discountId'], '{{%addons_discounts}}', ['id'], 'CASCADE');
-		// $this->addForeignKey(null, '{{%addons_discounts_currencyprices}}', ['paymentCurrencyIso'], '{{%commerce_paymentcurrencies}}', ['iso'], 'CASCADE');
+        // $this->addForeignKey(null, '{{%addons_discounts_currencyprices}}', ['discountId'], '{{%addons_discounts}}', ['id'], 'CASCADE');
+        // $this->addForeignKey(null, '{{%addons_discounts_currencyprices}}', ['paymentCurrencyIso'], '{{%commerce_paymentcurrencies}}', ['iso'], 'CASCADE');
 
-		return true;
+        return true;
     }
 
     /**
      * @inheritdoc
      */
-    public function safeDown()
+    public function safeDown():bool
     {
         $this->dropTableIfExists('{{%addons_discounts_currencyprices}}');
         return true;

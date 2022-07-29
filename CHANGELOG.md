@@ -4,7 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 2.7.5 - 2022-06-10
+## 3.0.0 - 2022-07-07
+
+### Added
+
+- Craft 4 compatibility.
+- Commerce 4 compatibility.
+
+### Changed
+
+- Now requires Craft 4+.
+- Now requires Craft Commerce 4+.
+
+## 2.7.5 - 2022-07-07
 ### Changed
 - Changed namespaces
 - New Icon

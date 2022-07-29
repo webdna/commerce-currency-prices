@@ -22,45 +22,45 @@ use craft\helpers\Json;
 
 class CurrencyField extends Field
 {
-	public static function displayName(): string
-	{
-		return Craft::t('commerce', 'Currencies');
-	}
+    public static function displayName(): string
+    {
+        return Craft::t('commerce', 'Currencies');
+    }
 
-	public function rules()
-	{
-		$rules = parent::rules();
-		return $rules;
-	}
+    public function rules(): array
+    {
+        $rules = parent::rules();
+        return $rules;
+    }
 
-	public function getContentColumnType(): string
-	{
-		return Schema::TYPE_STRING;
-	}
+    public function getContentColumnType(): string
+    {
+        return Schema::TYPE_STRING;
+    }
 
-	public function normalizeValue($value, ElementInterface $element = null)
-	{
-		return parent::normalizeValue($value, $element);
-	}
+    public function normalizeValue($value, ElementInterface $element = null): mixed
+    {
+        return parent::normalizeValue($value, $element);
+    }
 
-	public function serializeValue($value, ElementInterface $element = null)
-	{
-		return parent::serializeValue($value, $element);
-	}
+    public function serializeValue($value, ElementInterface $element = null): mixed
+    {
+        return parent::serializeValue($value, $element);
+    }
 
-	public function getInputHtml($value, ElementInterface $element = null): string
-	{
-		$id = Craft::$app->getView()->formatInputId($this->handle);
-		$namespacedId = Craft::$app->getView()->namespaceInputId($id);
+    public function getInputHtml($value, ElementInterface $element = null): string
+    {
+        $id = Craft::$app->getView()->formatInputId($this->handle);
+        $namespacedId = Craft::$app->getView()->namespaceInputId($id);
 
-		$currencies = Plugin::getInstance()->getPaymentCurrencies()->getAllPaymentCurrencies();
-		$options = [];
-		foreach ($currencies as $currency)
-		{
-			$options[$currency->iso] = $currency->currency;
-		}
+        $currencies = Plugin::getInstance()->getPaymentCurrencies()->getAllPaymentCurrencies();
+        $options = [];
+        foreach ($currencies as $currency)
+        {
+            $options[$currency->iso] = $currency->currency;
+        }
 
-		return Craft::$app->getView()->renderTemplate(
+        return Craft::$app->getView()->renderTemplate(
             'commerce-currency-prices/fields/CurrencyField_input',
             [
                 'name' => $this->handle,
@@ -71,5 +71,5 @@ class CurrencyField extends Field
                 'namespacedId' => $namespacedId,
             ]
         );
-	}
+    }
 }

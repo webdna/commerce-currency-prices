@@ -27,22 +27,22 @@ class CurrencyPricesAsset extends AssetBundle
     /**
      * @inheritdoc
      */
-    public function init()
+    public function init(): void
     {
-		//$this->sourcePath = "@webdna/currency-prices/assetbundles/paymentcurrencies/dist";
-		$this->sourcePath = __DIR__.'/dist';
+        //$this->sourcePath = "@webdna/currency-prices/assetbundles/paymentcurrencies/dist";
+        $this->sourcePath = __DIR__.'/dist';
 
         $this->depends = [
             CpAsset::class,
         ];
 
         $this->js = [
-			'js/addons.js',
-			'js/discounts.js',
-			'js/products.js',
-			'js/shipping.js',
-			'js/purchasable.js',
-			'js/tickets.js',
+            'js/addons.js',
+            'js/discounts.js',
+            'js/products.js',
+            'js/shipping.js',
+            'js/purchasable.js',
+            'js/tickets.js',
         ];
 
         $this->css = [

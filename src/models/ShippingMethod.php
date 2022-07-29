@@ -34,10 +34,10 @@ use craft\validators\UniqueValidator;
 class ShippingMethod extends BaseShippingMethod
 {
 
-	private $_order;
+    private Order $_order;
 
 
-	// Public Methods
+    // Public Methods
     // =========================================================================
 
     /**
@@ -51,12 +51,12 @@ class ShippingMethod extends BaseShippingMethod
     /**
      * @inheritdoc
      */
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
-	}
+    }
 
-	public function setOrder($value)
+    public function setOrder($value): void
     {
         $this->_order = $value;
     }
@@ -74,8 +74,8 @@ class ShippingMethod extends BaseShippingMethod
      */
     public function getHandle(): string
     {
-		return (string)$this->handle;
-	}
+        return (string)$this->handle;
+    }
 
     /**
      * @inheritdoc
@@ -83,62 +83,62 @@ class ShippingMethod extends BaseShippingMethod
     public function getShippingRules(): array
     {
 
-		$shippingRules = [];
-		// $order = Plugin::getInstance()->getCarts()->getCart();
-		$rules = Plugin::getInstance()->getShippingRules()->getAllShippingRulesByShippingMethodId($this->id);
+        $shippingRules = [];
+        // $order = Plugin::getInstance()->getCarts()->getCart();
+        $rules = Plugin::getInstance()->getShippingRules()->getAllShippingRulesByShippingMethodId($this->id);
 
-		foreach($rules as $ru) {
+        foreach($rules as $ru) {
 
-			$price = CurrencyPrices::$plugin->shipping->getPricesByShippingRuleIdAndCurrency($ru->id, $this->_order->paymentCurrency);
+            $price = CurrencyPrices::$plugin->shipping->getPricesByShippingRuleIdAndCurrency($ru->id, $this->_order->paymentCurrency);
 
-			$ru = new ShippingRule($ru);
-			if ($price) {
-				$price = (Object) $price;
-				$ru->minTotal = $price->minTotal;
-				$ru->maxTotal = $price->maxTotal;
-				$ru->baseRate = $price->baseRate;
-				$ru->perItemRate = $price->perItemRate;
-				$ru->weightRate = $price->weightRate;
-				$ru->percentageRate = $price->percentageRate;
-				$ru->minRate = $price->minRate;
-				$ru->maxRate = $price->maxRate;
+            $ru = new ShippingRule($ru);
+            if ($price) {
+                $price = (Object) $price;
+                $ru->minTotal = $price->minTotal;
+                $ru->maxTotal = $price->maxTotal;
+                $ru->baseRate = $price->baseRate;
+                $ru->perItemRate = $price->perItemRate;
+                $ru->weightRate = $price->weightRate;
+                $ru->percentageRate = $price->percentageRate;
+                $ru->minRate = $price->minRate;
+                $ru->maxRate = $price->maxRate;
 
-				preg_match('/{(\w+)}/', $ru->getDescription(), $matches);
-				if (count($matches) > 1) {
-					$prop = $matches[1];
-					if(property_exists($ru,$prop)) {
-						$currency = Plugin::getInstance()->getCurrencies()->getCurrencyByIso($this->_order->paymentCurrency);
-						$price = Craft::$app->getFormatter()->asCurrency($ru->$prop, $currency, [], [], false);
-						$ru->description = str_replace("{".$prop."}", $price, $ru->getDescription());
-					}
-				}
+                preg_match('/{(\w+)}/', $ru->getDescription(), $matches);
+                if (count($matches) > 1) {
+                    $prop = $matches[1];
+                    if(property_exists($ru,$prop)) {
+                        $currency = Plugin::getInstance()->getCurrencies()->getCurrencyByIso($this->_order->paymentCurrency);
+                        $price = Craft::$app->getFormatter()->asCurrency($ru->$prop, $currency, [], [], false);
+                        $ru->description = str_replace("{".$prop."}", $price, $ru->getDescription());
+                    }
+                }
 
-				$cats = $ru->getShippingRuleCategories();
+                $cats = $ru->getShippingRuleCategories();
 
-				foreach ($cats as $key => $cat)
-				{
-					$price = (Object) CurrencyPrices::$plugin->shipping->getPricesByShippingRuleCategoryIdAndCurrency($cat->shippingRuleId, $cat->shippingCategoryId, $this->_order->paymentCurrency);
-					$cats[$key]->perItemRate = $price->perItemRate;
-					$cats[$key]->weightRate = $price->weightRate;
-					$cats[$key]->percentageRate = $price->percentageRate;
-				}
-				$ru->setShippingRuleCategories($cats);
-			}
+                foreach ($cats as $key => $cat)
+                {
+                    $price = (Object) CurrencyPrices::$plugin->shipping->getPricesByShippingRuleCategoryIdAndCurrency($cat->shippingRuleId, $cat->shippingCategoryId, $this->_order->paymentCurrency);
+                    $cats[$key]->perItemRate = $price->perItemRate;
+                    $cats[$key]->weightRate = $price->weightRate;
+                    $cats[$key]->percentageRate = $price->percentageRate;
+                }
+                $ru->setShippingRuleCategories($cats);
+            }
 
-			$shippingRules[] = $ru;
-		}
+            $shippingRules[] = $ru;
+        }
 
-		return $shippingRules;
-	}
+        return $shippingRules;
+    }
 
-	// /**
+    // /**
     //  * @inheritdoc
     //  */
     // public function matchOrder(Order $order): bool
     // {
-	// 	$this->_order = $order;
+    // 	$this->_order = $order;
 
-	// 	/** @var ShippingRuleInterface $rule */
+    // 	/** @var ShippingRuleInterface $rule */
     //     foreach ($this->getShippingRules() as $rule) {
     //         if ($rule->matchOrder($order)) {
     //             return true;
@@ -153,9 +153,9 @@ class ShippingMethod extends BaseShippingMethod
     //  */
     // public function getMatchingShippingRule(Order $order)
     // {
-	// 	$this->_order = $order;
+    // 	$this->_order = $order;
 
-	// 	foreach ($this->getShippingRules() as $rule) {
+    // 	foreach ($this->getShippingRules() as $rule) {
     //         /** @var ShippingRuleInterface $rule */
     //         if ($rule->matchOrder($order)) {
     //             return $rule;
@@ -184,7 +184,7 @@ class ShippingMethod extends BaseShippingMethod
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['name', 'handle'], 'required'],

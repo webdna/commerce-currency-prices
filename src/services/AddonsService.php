@@ -26,91 +26,91 @@ use craft\db\Query;
  */
 class AddonsService extends Component
 {
-	private $_fields = ['perItemDiscount'];
+    private array $_fields = ['perItemDiscount'];
 
     // Public Methods
-	// =========================================================================
+    // =========================================================================
 
-	public function getPricesByAddonId($id)
-	{
-		$results = (new Query())
-			->select(['*'])
-			->from(['{{%addons_discounts_currencyprices}}'])
-			->where(['discountId' => $id])
-			->all();
+    public function getPricesByAddonId(int $id): mixed
+    {
+        $results = (new Query())
+            ->select(['*'])
+            ->from(['{{%addons_discounts_currencyprices}}'])
+            ->where(['discountId' => $id])
+            ->all();
 
-		if (!$results) {
-			return [];
-		}
+        if (!$results) {
+            return [];
+        }
 
-		return $results;
-	}
+        return $results;
+    }
 
-	public function getPricesByAddonIdAndCurrency($id, $iso)
-	{
-		$result = (new Query())
-			->select(['*'])
-			->from(['{{%addons_discounts_currencyprices}}'])
-			->where(['discountId' => $id, 'paymentCurrencyIso' => $iso])
-			->one();
+    public function getPricesByAddonIdAndCurrency(int $id, string $iso): mixed
+    {
+        $result = (new Query())
+            ->select(['*'])
+            ->from(['{{%addons_discounts_currencyprices}}'])
+            ->where(['discountId' => $id, 'paymentCurrencyIso' => $iso])
+            ->one();
 
-		if (!$result) {
-			return null;
-		}
+        if (!$result) {
+            return null;
+        }
 
-		return $result;
-	}
+        return $result;
+    }
 
-	public function getPrices($getCurrentPrices = true)
-	{
-		$request = Craft::$app->getRequest();
+    public function getPrices(bool $getCurrentPrices = true): array
+    {
+        $request = Craft::$app->getRequest();
 
-		$iso = Commerce::getInstance()->getPaymentCurrencies()->getPrimaryPaymentCurrencyIso();
+        $iso = Commerce::getInstance()->getPaymentCurrencies()->getPrimaryPaymentCurrencyIso();
 
-		$currencyPrices = [];
-		$fields = [];
+        $currencyPrices = [];
+        $fields = [];
 
-		foreach ($this->_fields as $field)
-		{
-			$values = $request->getBodyParam($field.'CP');
+        foreach ($this->_fields as $field)
+        {
+            $values = $request->getBodyParam($field.'CP');
 
-			// replace empty values with 0
-			if(is_array($values)) {
-				$values = array_map(function($value) {
-					return $value === "" ? 0 : $value;
-				}, $values);
-			}
+            // replace empty values with 0
+            if(is_array($values)) {
+                $values = array_map(function($value) {
+                    return $value === "" ? 0 : $value;
+                }, $values);
+            }
 
-			$fields[$field] = (float)$values[$iso];
+            $fields[$field] = (float)$values[$iso];
 
-			foreach ($values as $key => $price)
-			{
-				if (!array_key_exists($key, $currencyPrices)) {
-					$currencyPrices[$key] = [];
-				}
-				$currencyPrices[$key][$field] = isset($price) ? $price : 0;
-			}
-		}
+            foreach ($values as $key => $price)
+            {
+                if (!array_key_exists($key, $currencyPrices)) {
+                    $currencyPrices[$key] = [];
+                }
+                $currencyPrices[$key][$field] = isset($price) ? $price : 0;
+            }
+        }
 
-		return $getCurrentPrices ? $currencyPrices : $fields;
-	}
+        return $getCurrentPrices ? $currencyPrices : $fields;
+    }
 
-	public function saveAddon($id, $prices)
-	{
-		foreach ($prices as $key => $value)
-		{
-			$record = AddonsPricesRecord::findOne(['discountId'=>$id, 'paymentCurrencyIso'=>$key]);
+    public function saveAddon(int $id, array $prices): void
+    {
+        foreach ($prices as $key => $value)
+        {
+            $record = AddonsPricesRecord::findOne(['discountId'=>$id, 'paymentCurrencyIso'=>$key]);
 
-			if (!$record) {
-				$record = new AddonsPricesRecord();
-			}
+            if (!$record) {
+                $record = new AddonsPricesRecord();
+            }
 
-			$record->discountId = $id;
-			$record->paymentCurrencyIso = $key;
-			foreach ($this->_fields as $field) {
-				$record->$field = $value[$field] * -1;
-			}
-			$record->save();
-		}
-	}
+            $record->discountId = $id;
+            $record->paymentCurrencyIso = $key;
+            foreach ($this->_fields as $field) {
+                $record->$field = $value[$field] * -1;
+            }
+            $record->save();
+        }
+    }
 }

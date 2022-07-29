@@ -15,6 +15,7 @@ use webdna\commerce\currencyprices\CurrencyPrices;
 use Craft;
 use craft\web\Controller;
 use craft\commerce\Plugin as Commerce;
+use yii\web\Response;
 
 /**
  * @author    webdna
@@ -32,12 +33,12 @@ class PricesController extends Controller
      *         The actions must be in 'kebab-case'
      * @access protected
      */
-    protected $allowAnonymous = [];
+    protected array|bool|int $allowAnonymous = [];
 
     // Public Methods
     // =========================================================================
 
-	public function actionGetPurchasablePrices()
+	public function actionGetPurchasablePrices(): Response
 	{
 		$this->requireAcceptsJson();
 		$id = Craft::$app->getRequest()->getRequiredParam('id');

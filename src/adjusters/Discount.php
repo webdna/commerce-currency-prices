@@ -39,7 +39,7 @@ class Discount extends Component implements AdjusterInterface
     /**
      * The discount adjustment type.
      */
-    const ADJUSTMENT_TYPE = 'discount';
+    const string ADJUSTMENT_TYPE = 'discount';
 
     /**
      * @event DiscountAdjustmentsEvent The event that is raised after a discount has matched the order and before it returns it's adjustments.
@@ -55,7 +55,7 @@ class Discount extends Component implements AdjusterInterface
      * });
      * ```
      */
-    const EVENT_AFTER_DISCOUNT_ADJUSTMENTS_CREATED = 'afterDiscountAdjustmentsCreated';
+    const string EVENT_AFTER_DISCOUNT_ADJUSTMENTS_CREATED = 'afterDiscountAdjustmentsCreated';
 
 
     // Properties
@@ -64,34 +64,34 @@ class Discount extends Component implements AdjusterInterface
     /**
      * @var Order
      */
-    private $_order;
+    private Order $_order;
 
     /**
-     * @var
+     * @var DiscountModel
      */
-    private $_discount;
+    private DiscountModel $_discount;
 
     /**
      * @var array
      */
-    private $_appliedDiscounts = [];
+    private array $_appliedDiscounts = [];
 
     /**
      * @var float
      */
-    private $_discountTotal = 0;
+    private float $_discountTotal = 0;
 
     /**
      * Temporary feature flag for testing
      *
      * @var bool
      */
-    private $_spreadBaseOrderDiscountsToLineItems = true;
+    private bool $_spreadBaseOrderDiscountsToLineItems = true;
 
     /**
      * @var array
      */
-    private $_discountUnitPricesByLineItem = [];
+    private array $_discountUnitPricesByLineItem = [];
 
     // Public Methods
     // =========================================================================
@@ -254,7 +254,7 @@ class Discount extends Component implements AdjusterInterface
      * @param DiscountModel $discount
      * @return OrderAdjustment[]|false
      */
-    private function _getAdjustments(DiscountModel $discount)
+    private function _getAdjustments(DiscountModel $discount): array|bool
     {
         $adjustments = [];
 
@@ -270,7 +270,7 @@ class Discount extends Component implements AdjusterInterface
         }
 
         $price = CurrencyPrices::$plugin->discounts->getPricesByDiscountIdAndCurrency($this->_discount->id, $this->_order->paymentCurrency);
-		if ($price) $price = (object) $price;
+        if ($price) $price = (object) $price;
 
         foreach ($this->_order->getLineItems() as $item) {
             $lineItemHashId = spl_object_hash($item);
@@ -316,7 +316,7 @@ class Discount extends Component implements AdjusterInterface
 
         if ($discount->baseDiscount !== null && $discount->baseDiscount != 0) {
             $baseDiscountAdjustment = $this->_createOrderAdjustment($discount);
-            $baseDiscountAdjustment->amount = $this->_getBaseDiscountAmount($discount,$price);
+            $baseDiscountAdjustment->amount = $this->_getBaseDiscountAmount($discount, $price);
             $adjustments[] = $baseDiscountAdjustment;
         }
 
@@ -341,7 +341,7 @@ class Discount extends Component implements AdjusterInterface
         return $event->adjustments;
     }
 
-    private function _getBaseDiscountAmount(DiscountModel $discount,$price)
+    private function _getBaseDiscountAmount(DiscountModel $discount, $price): mixed
     {
         if ($discount->baseDiscountType == DiscountRecord::BASE_DISCOUNT_TYPE_VALUE) {
             // return $discount->baseDiscount;

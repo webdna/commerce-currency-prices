@@ -16,13 +16,15 @@ use craft\commerce\Plugin as Commerce;
 use craft\helpers\Localization;
 
 use Craft;
+use Twig\Extension\AbstractExtension;
+use Twig\TwigFilter;
 
 /**
  * @author    webdna
  * @package   CurrencyPrices
  * @since     1.0.0
  */
-class CurrencyPricesTwigExtension extends \Twig_Extension
+class CurrencyPricesTwigExtension extends AbstractExtension
 {
     // Public Methods
     // =========================================================================
@@ -30,7 +32,7 @@ class CurrencyPricesTwigExtension extends \Twig_Extension
     /**
      * @inheritdoc
      */
-    public function getName()
+    public function getName(): string
     {
         return 'CurrencyPrices';
     }
@@ -38,14 +40,14 @@ class CurrencyPricesTwigExtension extends \Twig_Extension
     /**
      * @inheritdoc
      */
-    public function getFilters()
+    public function getFilters(): array
     {
         return [
-			new \Twig_SimpleFilter('currencyPrice', [$this, 'currencyPrice']),
-			new \Twig_SimpleFilter('currencySalePrice', [$this, 'currencySalePrice']),
-			new \Twig_SimpleFilter('currencyAddonDiscountPrice', [$this, 'currencyAddonDiscountPrice']),
-			new \Twig_SimpleFilter('currencyAddonDiscountPrices', [$this, 'currencyAddonDiscountPrices']),
-			new \Twig_SimpleFilter('localizationNormalizeNumber', [$this, 'localizationNormalizeNumber']),
+			new TwigFilter('currencyPrice', [$this, 'currencyPrice']),
+			new TwigFilter('currencySalePrice', [$this, 'currencySalePrice']),
+			new TwigFilter('currencyAddonDiscountPrice', [$this, 'currencyAddonDiscountPrice']),
+			new TwigFilter('currencyAddonDiscountPrices', [$this, 'currencyAddonDiscountPrices']),
+			new TwigFilter('localizationNormalizeNumber', [$this, 'localizationNormalizeNumber']),
         ];
     }
 
@@ -121,7 +123,7 @@ class CurrencyPricesTwigExtension extends \Twig_Extension
         return $discount;
 	}
 
-	public function currencyAddonDiscountPrices($discountId)
+	public function currencyAddonDiscountPrices($discountId): array
 	{
 		$discounts = CurrencyPrices::$plugin->addons->getPricesByAddonId($discountId);
 
@@ -134,7 +136,7 @@ class CurrencyPricesTwigExtension extends \Twig_Extension
 		return $prices;
     }
 
-    public function localizationNormalizeNumber($number)
+    public function localizationNormalizeNumber($number): mixed
     {
         return Localization::normalizeNumber($number);
     }
@@ -147,7 +149,7 @@ class CurrencyPricesTwigExtension extends \Twig_Extension
      * @param $currency
      * @throws \Twig_Error
      */
-    private function _validatePaymentCurrency($currency)
+    private function _validatePaymentCurrency($currency): void
     {
         try {
             $currency = Commerce::getInstance()->getPaymentCurrencies()->getPaymentCurrencyByIso($currency);

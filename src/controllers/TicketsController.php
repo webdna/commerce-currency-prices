@@ -72,7 +72,7 @@ class TicketsController extends Controller
     /**
      * @throws HttpException
      */
-    public function actionSave(): Response
+    public function actionSave(): void
     {
         $this->requirePostRequest();
         $request = Craft::$app->getRequest();
@@ -80,7 +80,7 @@ class TicketsController extends Controller
         $fields = CurrencyPrices::$plugin->tickets->getPrices(false);
         $request->setBodyParams(array_merge($request->getBodyParams(), $fields));
 
-        return Craft::$app->runAction('events/events/save');
+        Craft::$app->runAction('events/events/save');
 
     }
 

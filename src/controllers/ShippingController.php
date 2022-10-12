@@ -99,7 +99,7 @@ class ShippingController extends Controller
     /**
      * @throws HttpException
      */
-    public function actionSave(): Response
+    public function actionSave(): void
     {
         $this->requirePostRequest();
         $request = Craft::$app->getRequest();
@@ -108,86 +108,8 @@ class ShippingController extends Controller
         $request->setBodyParams(array_merge($request->getBodyParams(), $fields));
         //Craft::dd($request->getBodyParams());
 
-        return Craft::$app->runAction('commerce/shipping-rules/save');
+        Craft::$app->runAction('commerce/shipping-rules/save');
 
-        // Craft::dd($request);
-
-        $iso = Commerce::getInstance()->getPaymentCurrencies()->getPrimaryPaymentCurrencyIso();
-
-        $shippingRule = new ShippingRule();
-
-        // Shared attributes
-        /*$fields = [
-            'id', 'name', 'description', 'shippingZoneId', 'methodId', 'enabled', 'minQty', 'maxQty',
-            'minWeight', 'maxWeight',
-        ];
-        foreach ($fields as $field) {
-            $shippingRule->$field = $request->getBodyParam($field);
-        }
-        if ($shippingRule->enabled == '') {
-            $shippingRule->enabled = false;
-        }*/
-
-        //'minTotal', 'maxTotal',
-        $currencyPrices = [];
-        $currencyFields = ['minTotal', 'maxTotal', 'baseRate', 'perItemRate', 'weightRate', 'percentageRate', 'minRate', 'maxRate'];
-        //Craft::dd($request->getBodyParam('minTotal'));
-        foreach ($currencyFields as $field)
-        {
-            //Craft::dd($request->getBodyParam($field));
-            $values = $request->getBodyParam($field);
-
-            // Craft::dd($values);
-
-            // replace empty values with 0
-            if(is_array($values)) {
-                $values = array_map(function($value) {
-                    return $value === "" ? 0 : $value;
-                }, $values);
-            }
-
-            $shippingRule->$field = $values[$iso];
-            foreach ($values as $key => $price)
-            {
-                if (!array_key_exists($key, $currencyPrices)) {
-                    $currencyPrices[$key] = [];
-                }
-                $currencyPrices[$key][$field] = isset($price) ? $price : 0;
-            }
-        }
-        //CurrencyPrices::$plugin->service->saveShipping($shippingRule->id, $currencyPrices);
-        //Craft::dd($currencyPrices);
-
-        $ruleCategories = [];
-        $allRulesCategories = Craft::$app->getRequest()->getBodyParam('ruleCategories');
-        //Craft::dd($allRulesCategories);
-        foreach ($allRulesCategories as $key => $ruleCategory) {
-            foreach ($ruleCategory as $k => $v)
-            {
-                $ruleCategory[$k] = is_array($v) ? $v[$iso] : $v;
-            }
-            $ruleCategories[$key] = new ShippingRuleCategory($ruleCategory);
-            $ruleCategories[$key]->shippingCategoryId = $key;
-        }
-
-        $shippingRule->setShippingRuleCategories($ruleCategories);
-
-        //validate
-
-        //Craft::dd($shippingRule);
-        // Save it
-        if (Commerce::getInstance()->getShippingRules()->saveShippingRule($shippingRule)) {
-            //save currency prices
-            CurrencyPrices::$plugin->service->saveShipping($shippingRule->id, $currencyPrices, $allRulesCategories);
-
-            Craft::$app->getSession()->setNotice(Craft::t('commerce', 'Shipping rule saved.'));
-            $this->redirectToPostedUrl($shippingRule);
-        } else {
-            Craft::$app->getSession()->setError(Craft::t('commerce', 'Couldn’t save shipping rule.'));
-        }
-
-        // Send the model back to the template
-        Craft::$app->getUrlManager()->setRouteParams(['shippingRule' => $shippingRule]);
     }
 
     private function _getValues($id, $prop): array

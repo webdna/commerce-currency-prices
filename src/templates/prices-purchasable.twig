@@ -22,7 +22,6 @@
 			value: (price == '0' ? '0'|number : (price ? price|number ?: '')),
 			placeholder: 'Enter price'|t('commerce'),
 			required: true,
-			unit: currency.iso | upper,
 			errors: purchasable.getErrors('prices-'~currency.iso)
 		}) }}
 	{% endfor %}
@@ -36,7 +35,6 @@
 			value: '',
 			placeholder: 'Enter price'|t('commerce'),
 			required: true,
-			unit: currency.iso | upper,
 		}) }}
 	{% endfor %}
 {% endif %}

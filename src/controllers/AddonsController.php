@@ -72,7 +72,7 @@ class AddonsController extends Controller
     /**
      * @throws HttpException
      */
-    public function actionSave(): Response
+    public function actionSave(): void
     {
         $this->requirePostRequest();
         $request = Craft::$app->getRequest();
@@ -80,7 +80,7 @@ class AddonsController extends Controller
         $fields = CurrencyPrices::$plugin->addons->getPrices(false);
         $request->setBodyParams(array_merge($request->getBodyParams(), $fields));
 
-        return Craft::$app->runAction('commerce-addons/default/save');
+        Craft::$app->runAction('commerce-addons/default/save');
     }
 
     private function _getValues($id, $prop): array

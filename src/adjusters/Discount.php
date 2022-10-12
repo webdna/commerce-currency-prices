@@ -11,8 +11,8 @@
 namespace webdna\commerce\currencyprices\adjusters;
 
 use webdna\commerce\currencyprices\CurrencyPrices;
-use webdna\commerce\currencyprices\models\ShippingRule;
 
+use Craft;
 use craft\base\Component;
 use craft\commerce\base\AdjusterInterface;
 use craft\commerce\elements\Order;
@@ -39,7 +39,7 @@ class Discount extends Component implements AdjusterInterface
     /**
      * The discount adjustment type.
      */
-    const string ADJUSTMENT_TYPE = 'discount';
+    public const ADJUSTMENT_TYPE = 'discount';
 
     /**
      * @event DiscountAdjustmentsEvent The event that is raised after a discount has matched the order and before it returns it's adjustments.
@@ -55,7 +55,7 @@ class Discount extends Component implements AdjusterInterface
      * });
      * ```
      */
-    const string EVENT_AFTER_DISCOUNT_ADJUSTMENTS_CREATED = 'afterDiscountAdjustmentsCreated';
+    public const EVENT_AFTER_DISCOUNT_ADJUSTMENTS_CREATED = 'afterDiscountAdjustmentsCreated';
 
 
     // Properties
@@ -65,29 +65,19 @@ class Discount extends Component implements AdjusterInterface
      * @var Order
      */
     private Order $_order;
-
-    /**
-     * @var DiscountModel
-     */
-    private DiscountModel $_discount;
-
-    /**
-     * @var array
-     */
-    private array $_appliedDiscounts = [];
-
+    
     /**
      * @var float
      */
     private float $_discountTotal = 0;
-
+    
     /**
      * Temporary feature flag for testing
      *
      * @var bool
      */
     private bool $_spreadBaseOrderDiscountsToLineItems = true;
-
+    
     /**
      * @var array
      */
@@ -254,35 +244,33 @@ class Discount extends Component implements AdjusterInterface
      * @param DiscountModel $discount
      * @return OrderAdjustment[]|false
      */
-    private function _getAdjustments(DiscountModel $discount): array|bool
+    private function _getAdjustments(DiscountModel $discount): array|false
     {
         $adjustments = [];
-
-        $this->_discount = $discount;
 
         $matchingLineIds = [];
         foreach ($this->_order->getLineItems() as $item) {
             $lineItemHashId = spl_object_hash($item);
             // Order is already a match to this discount, or we wouldn't get here.
-            if (Plugin::getInstance()->getDiscounts()->matchLineItem($item, $this->_discount, false)) {
+            if (Plugin::getInstance()->getDiscounts()->matchLineItem($item, $discount, false)) {
                 $matchingLineIds[] = $lineItemHashId;
             }
         }
 
-        $price = CurrencyPrices::$plugin->discounts->getPricesByDiscountIdAndCurrency($this->_discount->id, $this->_order->paymentCurrency);
+        $price = CurrencyPrices::$plugin->discounts->getPricesByDiscountIdAndCurrency($discount->id, $this->_order->paymentCurrency);
         if ($price) $price = (object) $price;
 
         foreach ($this->_order->getLineItems() as $item) {
             $lineItemHashId = spl_object_hash($item);
             if ($matchingLineIds && in_array($lineItemHashId, $matchingLineIds, false)) {
-                $adjustment = $this->_createOrderAdjustment($this->_discount);
+                $adjustment = $this->_createOrderAdjustment($discount);
                 $adjustment->setLineItem($item);
                 $discountAmountPerItemPreDiscounts = 0;
                 // $amountPerItem = Currency::round($this->_discount->perItemDiscount);
-                $amountPerItem = Currency::round(($price ? $price->perItemDiscount : $this->_discount->perItemDiscount));
+                $amountPerItem = Currency::round(($price ? $price->perItemDiscount : $discount->perItemDiscount));
 
-                if ($this->_discount->percentageOffSubject == DiscountRecord::TYPE_ORIGINAL_SALEPRICE) {
-                    $discountAmountPerItemPreDiscounts = ($this->_discount->percentDiscount * $item->salePrice);
+                if ($discount->percentageOffSubject == DiscountRecord::TYPE_ORIGINAL_SALEPRICE) {
+                    $discountAmountPerItemPreDiscounts = ($discount->percentDiscount * $item->salePrice);
                 }
 
                 $unitPrice = $this->_discountUnitPricesByLineItem[$lineItemHashId] ?? $item->salePrice;
@@ -292,10 +280,10 @@ class Discount extends Component implements AdjusterInterface
                 $unitPrice = max($unitPrice + $amountPerItem, 0);
 
                 if ($unitPrice > 0) {
-                    if ($this->_discount->percentageOffSubject == DiscountRecord::TYPE_ORIGINAL_SALEPRICE) {
+                    if ($discount->percentageOffSubject == DiscountRecord::TYPE_ORIGINAL_SALEPRICE) {
                         $discountedUnitPrice = $unitPrice + $discountAmountPerItemPreDiscounts;
                     } else {
-                        $discountedUnitPrice = $unitPrice + ($this->_discount->percentDiscount * $unitPrice);
+                        $discountedUnitPrice = $unitPrice + ($discount->percentDiscount * $unitPrice);
                     }
 
                     $discountedSubtotal = Currency::round($discountedUnitPrice * $item->qty);

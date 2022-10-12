@@ -10,14 +10,15 @@ namespace webdna\commerce\currencyprices\models;
 use webdna\commerce\currencyprices\CurrencyPrices;
 
 use Craft;
-use craft\commerce\base\ShippingMethod as BaseShippingMethod;
-use craft\commerce\Plugin;
 use craft\commerce\elements\Order;
-use craft\commerce\records\ShippingMethod as ShippingMethodRecord;
 use craft\commerce\models\ShippingRule;
-
+use craft\commerce\base\ShippingMethod as BaseShippingMethod;
+use craft\commerce\base\ShippingRuleInterface;
+use craft\commerce\Plugin;
+use craft\commerce\records\ShippingMethod as ShippingMethodRecord;
 use craft\helpers\UrlHelper;
 use craft\validators\UniqueValidator;
+use yii\behaviors\AttributeTypecastBehavior;
 
 /**
  * Shipping method model.
@@ -35,6 +36,27 @@ class ShippingMethod extends BaseShippingMethod
 {
 
     private Order $_order;
+    
+    
+    
+    
+    public function behaviors(): array
+    {
+        $behaviors = parent::behaviors();
+    
+        $behaviors['typecast'] = [
+            'class' => AttributeTypecastBehavior::class,
+            'attributeTypes' => [
+                'id' => AttributeTypecastBehavior::TYPE_INTEGER,
+                'name' => AttributeTypecastBehavior::TYPE_STRING,
+                'handle' => AttributeTypecastBehavior::TYPE_STRING,
+                'enabled' => AttributeTypecastBehavior::TYPE_BOOLEAN,
+                'isLite' => AttributeTypecastBehavior::TYPE_BOOLEAN,
+            ],
+        ];
+    
+        return $behaviors;
+    }
 
 
     // Public Methods
@@ -55,6 +77,7 @@ class ShippingMethod extends BaseShippingMethod
     {
         return $this->id;
     }
+
 
     public function setOrder($value): void
     {
@@ -87,90 +110,34 @@ class ShippingMethod extends BaseShippingMethod
         // $order = Plugin::getInstance()->getCarts()->getCart();
         $rules = Plugin::getInstance()->getShippingRules()->getAllShippingRulesByShippingMethodId($this->id);
 
-        foreach($rules as $ru) {
-
-            $price = CurrencyPrices::$plugin->shipping->getPricesByShippingRuleIdAndCurrency($ru->id, $this->_order->paymentCurrency);
-
-            $ru = new ShippingRule($ru);
-            if ($price) {
-                $price = (Object) $price;
-                $ru->minTotal = $price->minTotal;
-                $ru->maxTotal = $price->maxTotal;
-                $ru->baseRate = $price->baseRate;
-                $ru->perItemRate = $price->perItemRate;
-                $ru->weightRate = $price->weightRate;
-                $ru->percentageRate = $price->percentageRate;
-                $ru->minRate = $price->minRate;
-                $ru->maxRate = $price->maxRate;
-
-                preg_match('/{(\w+)}/', $ru->getDescription(), $matches);
-                if (count($matches) > 1) {
-                    $prop = $matches[1];
-                    if(property_exists($ru,$prop)) {
-                        $currency = Plugin::getInstance()->getCurrencies()->getCurrencyByIso($this->_order->paymentCurrency);
-                        $price = Craft::$app->getFormatter()->asCurrency($ru->$prop, $currency, [], [], false);
-                        $ru->description = str_replace("{".$prop."}", $price, $ru->getDescription());
-                    }
-                }
-
-                $cats = $ru->getShippingRuleCategories();
-
-                foreach ($cats as $key => $cat)
-                {
-                    $price = (Object) CurrencyPrices::$plugin->shipping->getPricesByShippingRuleCategoryIdAndCurrency($cat->shippingRuleId, $cat->shippingCategoryId, $this->_order->paymentCurrency);
-                    $cats[$key]->perItemRate = $price->perItemRate;
-                    $cats[$key]->weightRate = $price->weightRate;
-                    $cats[$key]->percentageRate = $price->percentageRate;
-                }
-                $ru->setShippingRuleCategories($cats);
-            }
-
-            $shippingRules[] = $ru;
+        foreach($rules as $rule) {
+            $rule = $this->updateRule($rule);
+            $shippingRules[] = $rule;
         }
 
         return $shippingRules;
     }
-
-    // /**
-    //  * @inheritdoc
-    //  */
-    // public function matchOrder(Order $order): bool
-    // {
-    // 	$this->_order = $order;
-
-    // 	/** @var ShippingRuleInterface $rule */
-    //     foreach ($this->getShippingRules() as $rule) {
-    //         if ($rule->matchOrder($order)) {
-    //             return true;
-    //         }
-    //     }
-
-    //     return false;
-    // }
-
-    // /**
-    //  * @inheritdoc
-    //  */
-    // public function getMatchingShippingRule(Order $order)
-    // {
-    // 	$this->_order = $order;
-
-    // 	foreach ($this->getShippingRules() as $rule) {
-    //         /** @var ShippingRuleInterface $rule */
-    //         if ($rule->matchOrder($order)) {
-    //             return $rule;
-    //         }
-    //     }
-
-    //     return null;
-    // }
+    
+    public function getMatchingShippingRule(Order $order): ?ShippingRuleInterface
+    {
+        $this->setOrder($order);
+        
+        foreach ($this->getShippingRules() as $rule) {
+            /** @var ShippingRuleInterface $rule */
+            if ($rule->matchOrder($order)) {
+                return $rule;
+            }
+        }
+    
+        return null;
+    }
 
     /**
      * @inheritdoc
      */
     public function getIsEnabled(): bool
     {
-        return (bool)$this->enabled;
+        return $this->enabled;
     }
 
     /**
@@ -191,5 +158,49 @@ class ShippingMethod extends BaseShippingMethod
             [['name'], UniqueValidator::class, 'targetClass' => ShippingMethodRecord::class],
             [['handle'], UniqueValidator::class, 'targetClass' => ShippingMethodRecord::class]
         ];
+    }
+    
+    
+    private function updateRule(ShippingRule $rule): ShippingRuleInterface
+    {
+        $price = CurrencyPrices::$plugin->shipping->getPricesByShippingRuleIdAndCurrency($rule->id, $this->_order->paymentCurrency);
+        
+        if ($price) {
+            $rule = new ShippingRule($rule->getAttributes());
+            $price = (Object) $price;
+            $rule->minTotal = $price->minTotal;
+            $rule->maxTotal = $price->maxTotal;
+            $rule->baseRate = $price->baseRate;
+            $rule->perItemRate = $price->perItemRate;
+            $rule->weightRate = $price->weightRate;
+            $rule->percentageRate = $price->percentageRate;
+            $rule->minRate = $price->minRate;
+            $rule->maxRate = $price->maxRate;
+        
+            preg_match('/{(\w+)}/', $rule->getDescription(), $matches);
+            if (count($matches) > 1) {
+                $prop = $matches[1];
+                if(property_exists($rule,$prop)) {
+                    $currency = Plugin::getInstance()->getCurrencies()->getCurrencyByIso($this->_order->paymentCurrency);
+                    $price = Craft::$app->getFormatter()->asCurrency($rule->$prop, $currency, [], [], false);
+                    $rule->description = str_replace("{".$prop."}", $price, $rule->getDescription());
+                }
+            }
+        
+            $cats = $rule->getShippingRuleCategories();
+        
+            foreach ($cats as $key => $cat)
+            {
+                $price = (Object) CurrencyPrices::$plugin->shipping->getPricesByShippingRuleCategoryIdAndCurrency($cat->shippingRuleId, $cat->shippingCategoryId, $this->_order->paymentCurrency);
+                $cats[$key]->perItemRate = $price->perItemRate;
+                $cats[$key]->weightRate = $price->weightRate;
+                $cats[$key]->percentageRate = $price->percentageRate;
+            }
+            $rule->setShippingRuleCategories($cats);
+        }
+        
+        //Craft::dd($rule);
+        
+        return $rule;
     }
 }

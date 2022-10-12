@@ -35,6 +35,7 @@ use craft\base\Element;
 use craft\commerce\Plugin as Commerce;
 use craft\commerce\elements\Order;
 use craft\events\RegisterComponentTypesEvent;
+use craft\events\DefineBehaviorsEvent;
 use craft\services\Fields;
 
 use craft\commerce\events\LineItemEvent;
@@ -44,6 +45,7 @@ use craft\commerce\services\Payments;
 use craft\commerce\services\OrderAdjustments;
 use craft\commerce\services\ShippingMethods;
 use craft\commerce\models\ShippingMethod;
+use craft\commerce\models\ShippingRule;
 use craft\commerce\events\RegisterAvailableShippingMethodsEvent;
 
 use yii\base\Event;
@@ -75,7 +77,11 @@ class CurrencyPrices extends Plugin
     /**
      * @var string
      */
-	public $schemaVersion = '1.2.0';
+	public string $schemaVersion = '1.2.0';
+	
+	public bool $hasCpSettings = false;
+	
+	public bool $hasCpSection = false;
 
 
     // Public Methods
@@ -357,9 +363,9 @@ class CurrencyPrices extends Plugin
 		Event::on(OrderAdjustments::class, OrderAdjustments::EVENT_REGISTER_ORDER_ADJUSTERS, function(RegisterComponentTypesEvent $e) {
 			foreach ($e->types as $key => $type)
 			{
-				// if ($type == 'craft\\commerce\\adjusters\\Shipping') {
-				// 	$e->types[$key] = Shipping::class;
-				// }
+				if ($type == 'craft\\commerce\\adjusters\\Shipping') {
+					$e->types[$key] = Shipping::class;
+				}
 				if ($type == 'craft\\commerce\\adjusters\\Discount') {
 					$e->types[$key] = Discount::class;
 				}
@@ -367,7 +373,7 @@ class CurrencyPrices extends Plugin
 			//Craft::dd($e->types);
 		});
 
-		Event::on(ShippingMethods::class, ShippingMethods::EVENT_REGISTER_AVAILABLE_SHIPPING_METHODS, function(RegisterAvailableShippingMethodsEvent $e) {
+		/*Event::on(ShippingMethods::class, ShippingMethods::EVENT_REGISTER_AVAILABLE_SHIPPING_METHODS, function(RegisterAvailableShippingMethodsEvent $e) {
 
 			$order = $e->order;
 
@@ -376,14 +382,17 @@ class CurrencyPrices extends Plugin
 				if (get_class($method) === ShippingMethod::class) {
 					unset($e->shippingMethods[$key]);
 				}
+				
+				//Craft::dd($method->getAttributes());
 
-				$newMethod = new CurrencyPriceShippingMethod($method);
+				$newMethod = new CurrencyPriceShippingMethod($method->getAttributes());
 				$newMethod->order = $order;
 				$e->shippingMethods[] = $newMethod;
 
 			}
 
-		});
+		});*/
+		
 
 		/*Event::on(Discount::class, Discount::EVENT_AFTER_DISCOUNT_ADJUSTMENTS_CREATED, function(DiscountAdjustmentsEvent $e) {
 			Craft::dd($e->adjustments);

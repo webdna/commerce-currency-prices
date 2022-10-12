@@ -43,7 +43,7 @@ class PaymentCurrenciesController extends Controller
     /**
      * @throws HttpException
      */
-    public function actionSave(): Response
+    public function actionSave(): void
     {
         $this->requirePostRequest();
 

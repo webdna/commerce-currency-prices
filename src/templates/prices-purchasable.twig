@@ -16,7 +16,7 @@
 
 		{{ forms.textField({
 			id: 'price-'~currency.iso,
-			label: 'Price'|t('commerce'),
+			label: 'Price'|t('commerce')~' ('~currency.iso|upper~')',
 			name: 'prices['~currency.iso~']',
 			class: 'currency-price',
 			value: (price == '0' ? '0'|number : (price ? price|number ?: '')),
@@ -29,7 +29,7 @@
 	{% for currency in craft.commerce.paymentCurrencies.allPaymentCurrencies|filter(c => c.primary == false) %}
 		{{ forms.textField({
 			id: 'price-'~currency.iso,
-			label: 'Price'|t('commerce'),
+			label: 'Price'|t('commerce')~' ('~currency.iso|upper~')',
 			name: 'prices['~currency.iso~']',
 			class: 'currency-price',
 			value: '',

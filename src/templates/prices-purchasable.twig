@@ -4,7 +4,7 @@
 <div class="hidden">
 <div id="prices">
 {% if purchasable.id %}
-	{% for currency in craft.commerce.paymentCurrencies.allPaymentCurrencies if currency.primary == false %}
+	{% for currency in craft.commerce.paymentCurrencies.allPaymentCurrencies|filter(c => c.primary == false) %}
 		{% set price = purchasable|currencyPrice(currency.iso, false) %}
 		{% set prices = craft.app.request.getBodyParam('prices') %}
 		{% if prices and prices[currency.iso] %}
@@ -26,7 +26,7 @@
 		}) }}
 	{% endfor %}
 {% else %}
-	{% for currency in craft.commerce.paymentCurrencies.allPaymentCurrencies if currency.primary == false %}
+	{% for currency in craft.commerce.paymentCurrencies.allPaymentCurrencies|filter(c => c.primary == false) %}
 		{{ forms.textField({
 			id: 'price-'~currency.iso,
 			label: 'Price'|t('commerce'),

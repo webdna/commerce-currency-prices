@@ -114,7 +114,7 @@ class Install extends Migration
                     'id' => $this->primaryKey(),
                     'shippingRuleId' => $this->integer(),
                     'shippingCategoryId' => $this->integer(),
-                    'paymentCurrencyIso' => $this->string()->notNull(),
+                    'paymentCurrencyIso' => $this->string(3)->notNull(),
                     'perItemRate' => $this->decimal(14, 4),
                     'weightRate' => $this->decimal(14, 4),
                     'percentageRate' => $this->decimal(14, 4),
@@ -127,7 +127,7 @@ class Install extends Migration
             $this->createTable('{{%commerce_shippingrules_currencyprices}}', [
                 'id' => $this->primaryKey(),
                 'shippingRuleId' => $this->integer(),
-                'paymentCurrencyIso' => $this->string()->notNull(),
+                'paymentCurrencyIso' => $this->string(3)->notNull(),
                 'minTotal' => $this->decimal(14, 4)
                     ->notNull()
                     ->defaultValue(0),
@@ -166,7 +166,7 @@ class Install extends Migration
             $this->createTable('{{%commerce_discounts_currencyprices}}', [
                 'id' => $this->primaryKey(),
                 'discountId' => $this->integer(),
-                'paymentCurrencyIso' => $this->string()->notNull(),
+                'paymentCurrencyIso' => $this->string(3)->notNull(),
                 'purchaseTotal' => $this->decimal(14, 4),
                 'baseDiscount' => $this->decimal(14, 4),
                 'perItemDiscount' => $this->decimal(14, 4),
@@ -178,7 +178,7 @@ class Install extends Migration
             $this->createTable('{{%addons_discounts_currencyprices}}', [
                 'id' => $this->primaryKey(),
                 'discountId' => $this->integer(),
-                'paymentCurrencyIso' => $this->string()->notNull(),
+                'paymentCurrencyIso' => $this->string(3)->notNull(),
                 'perItemDiscount' => $this->decimal(14, 4),
                 'dateCreated' => $this->dateTime()->notNull(),
                 'dateUpdated' => $this->dateTime()->notNull(),

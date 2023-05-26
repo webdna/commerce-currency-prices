@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 3.0.0-beta.5 - unreleased
+### Changed
+- paymentCurrencyIso column type
+
 ## 3.0.0-beta.4 - 2022-10-13
 
 ### Changed

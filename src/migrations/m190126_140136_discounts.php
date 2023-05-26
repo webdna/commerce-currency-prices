@@ -18,7 +18,7 @@ class m190126_140136_discounts extends Migration
         $this->createTable('{{%commerce_discounts_currencyprices}}', [
             'id' => $this->primaryKey(),
             'discountId' => $this->integer(),
-            'paymentCurrencyIso' => $this->string()->notNull(),
+            'paymentCurrencyIso' => $this->string(3)->notNull(),
             'purchaseTotal' => $this->decimal(14, 4),
             'baseDiscount' => $this->decimal(14, 4),
             'perItemDiscount' => $this->decimal(14, 4),

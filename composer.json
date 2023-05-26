@@ -2,7 +2,7 @@
   "name": "webdna/commerce-currency-prices",
   "description": "Adds payment currency prices to products",
   "type": "craft-plugin",
-  "version": "3.0.0-beta.4",
+  "version": "3.0.0-beta.5",
   "keywords": [
     "craft",
     "cms",

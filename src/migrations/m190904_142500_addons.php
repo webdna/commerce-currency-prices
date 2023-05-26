@@ -18,7 +18,7 @@ class m190904_142500_addons extends Migration
         $this->createTable('{{%addons_discounts_currencyprices}}', [
             'id' => $this->primaryKey(),
             'discountId' => $this->integer(),
-            'paymentCurrencyIso' => $this->string()->notNull(),
+            'paymentCurrencyIso' => $this->string(3)->notNull(),
             'perItemDiscount' => $this->decimal(14, 4),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),

@@ -36,8 +36,12 @@ class CurrencyPricesService extends Component
     // Public Methods
     // =========================================================================
 
-    public function getPricesByPurchasableId(int $id): mixed
+    public function getPricesByPurchasableId(?int $id): mixed
     {
+        if ($id === null) {
+            return null;
+        }
+
         $result = (new Query())
             ->select(['*'])
             ->from(['{{%commerce_currencyprices}}'])

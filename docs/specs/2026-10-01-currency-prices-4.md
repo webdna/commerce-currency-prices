@@ -251,8 +251,8 @@ when he reviews the spec.
 
 | Data | State |
 |---|---|
-| craft5 primary store with USD and EUR payment currencies added (GBP store) | **Must be made** — changes craft5's store config (Appendix A) |
-| Digital Products 4.1 and Events 3.1 installed in craft5 | **Must be made** (Appendix A) |
+| craft5 primary store with USD and EUR payment currencies added (GBP store) | **Made by task 1.2** — Sam approved the craft5 change (1 Oct 2026). Snapshot craft5 first; never commit there |
+| Digital Products 4.1 and Events 3.1 installed in craft5 | **Made by task 1.2**, same approval |
 | Commerce Bundles 3 at least through its phase 1 | **Not built yet** — AC-7's bundle leg waits for it (Appendix A) |
 | A Commerce 4 site with 3.x installed and currency prices on variants, discounts and shipping | **Must be made** in `~/Projects/craftcms/craft4-commerce` (Appendix A) |
 | A customer user group and a catalog pricing rule limited to it ("trade") | Made by TS-4 |
@@ -430,7 +430,7 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
       Rules: BR-17, BR-23 · Verify: B5 #3, #4
 - [ ] **1.1 Price storage** — `migrations/Install.php` (new table only), `records/PriceRecord.php`,
       `services/Prices.php` (read per item, batch read per order, write, copy). Rules: BR-1, BR-14 · Verify: unit tests, TN-2, TN-6, TN-14
-- [ ] **1.2 Layout element and saving** — `fieldlayoutelements/CurrencyPricesField.php`, its template,
+- [ ] **1.2 Layout element and saving** — first set up craft5 (snapshot, USD + EUR payment currencies, Digital Products 4.1, Events 3.1). `fieldlayoutelements/CurrencyPricesField.php`, its template,
       save, validate, duplicate, draft and revision handling, adding it to variant layouts on install.
       Rules: BR-2–BR-6, BR-22 · Verify: TS-1, TS-7, TN-1, TN-3, TN-12
 - [ ] **1.3 Line pricing, order currency, availability, event** — `events/DefineCurrencyPriceEvent.php`,
@@ -460,7 +460,6 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
 |---|---|---|---|
 | 1 | Do 3.x's foreign keys on `commerce_paymentcurrencies.iso` actually stop Commerce's `m230920_051125` upgrade? Read from source, not yet run | Build (3.1) | **Open — blocking build of 3.1** |
 | 2 | A Commerce 4 fixture with 3.x and currency prices on variants, discounts and shipping, in `~/Projects/craftcms/craft4-commerce` | Build (3.1) | **Open — blocking build of 3.1** |
-| 3 | Add USD and EUR payment currencies to craft5's store, and install Digital Products 4.1 and Events 3.1 there (changes craft5's config and composer files) | Sam | **Open — blocking build of 1.2** |
 | 4 | Bundles 3 phase 1 must exist for 2.1 | Bundles 3 build | **Open — blocking build of 2.1** |
 | 5 | Plugin Store price for 4.0, and the upgrade price from 3.x licences | Sam | **Open — blocking release** |
 | 6 | Do Events 3 tickets use a field layout that accepts a native layout element? | Build (2.2) | **Open — blocking build of 2.2** |
@@ -562,3 +561,4 @@ curl -s -b jar -c jar https://craft5.ddev.site/admin/commerce/products/<type>/<i
 | Date | Version | Change | By |
 |---|---|---|---|
 | 2026-10-01 | 0.1 | First draft from the interview with Sam | Claude |
+| 2026-10-01 | 0.1 | Sam approved changing craft5 for task 1.2. Appendix A #3 is closed and moved into the test data | Claude |

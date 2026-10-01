@@ -10,6 +10,7 @@ use craft\base\Plugin;
 use craft\events\RegisterComponentTypesEvent;
 use craft\services\Fields;
 use webdna\commerce\currencyprices\fields\CurrencyField;
+use webdna\commerce\currencyprices\services\Prices;
 use yii\base\Event;
 
 /**
@@ -19,6 +20,7 @@ use yii\base\Event;
  * DOM, the payment-currency screen that added a column per currency, the request-param price saves, and
  * the forked Shipping and Discount adjusters. Phase 1 of the 4.0 spec adds the Commerce 5 replacements.
  *
+ * @property-read Prices $prices
  * @author webdna
  * @since 1.0.0
  */
@@ -33,11 +35,26 @@ class CurrencyPrices extends Plugin
 
     public bool $hasCpSection = false;
 
+    public static function config(): array
+    {
+        return [
+            'components' => [
+                'prices' => ['class' => Prices::class],
+            ],
+        ];
+    }
+
     public function init(): void
     {
         parent::init();
 
         $this->registerFieldTypes();
+    }
+
+    public function getPrices(): Prices
+    {
+        /** @var Prices */
+        return $this->get('prices');
     }
 
     /**

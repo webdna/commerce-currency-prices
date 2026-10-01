@@ -434,8 +434,13 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
       calling the Addons service or 3.x sales; 1.1 and 1.5 write them new). The plugin class only registers
       `CurrencyField`, which is ported to Craft 5 signatures. `Install.php` is empty until 1.1, and the 3.x install
       is at `734fa63`. The three 3.x upgrade migrations stay. `PluginTest` proves the plugin installs after Commerce.
-- [ ] **1.1 Price storage** — `migrations/Install.php` (new table only), `records/PriceRecord.php`,
+- [x] **1.1 Price storage** — `migrations/Install.php` (new table only), `records/PriceRecord.php`,
       `services/Prices.php` (read per item, batch read per order, write, copy). Rules: BR-1, BR-14 · Verify: unit tests, TN-2, TN-6, TN-14
+      — built: `CurrencyPrices::getInstance()->getPrices()`. `savePrices()` takes ISO ⇒ price, null or blank deletes,
+      currencies not given are untouched, and it throws for an ineligible currency or a negative price (1.2 turns
+      those into BR-3's validation error). Each write is one upsert on the unique key (TN-14). Deletion is the
+      `elements.id` cascade, so a soft-deleted item keeps its rows until it is hard-deleted, and a restore keeps
+      its prices. `copyPrices()` replaces the target's rows in every store, for BR-5. `tests/integration/PricesTest.php`.
 - [ ] **1.2 Layout element and saving** — first set up craft5 (snapshot, USD + EUR payment currencies, Digital Products 4.1, Events 3.1). `fieldlayoutelements/CurrencyPricesField.php`, its template,
       save, validate, duplicate, draft and revision handling, adding it to variant layouts on install.
       Rules: BR-2–BR-6, BR-22 · Verify: TS-1, TS-7, TN-1, TN-3, TN-12

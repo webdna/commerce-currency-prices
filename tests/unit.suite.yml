@@ -1,0 +1,7 @@
+# Unit tier: Craft booted, nothing but the plugin's own logic under test.
+actor: UnitTester
+suite_namespace: webdna\commerce\currencyprices\tests\unit
+modules:
+  enabled:
+    - Asserts
+    - \craft\test\Craft

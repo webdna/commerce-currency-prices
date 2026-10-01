@@ -22,17 +22,59 @@
     }
   ],
   "require": {
-    "craftcms/cms": "^4.0",
-    "craftcms/commerce": "^4.0"
+    "php": "^8.2",
+    "craftcms/cms": "^5.0",
+    "craftcms/commerce": "^5.3"
+  },
+  "require-dev": {
+    "codeception/codeception": "^5.2",
+    "codeception/module-asserts": "^3.0",
+    "codeception/module-yii2": "^1.1",
+    "craftcms/ecs": "dev-main",
+    "craftcms/phpstan": "dev-main",
+    "phpstan/phpstan": "^2.1",
+    "vlucas/phpdotenv": "^5.4"
   },
   "autoload": {
     "psr-4": {
       "webdna\\commerce\\currencyprices\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "webdna\\commerce\\currencyprices\\tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "check": [
+      "@cs",
+      "@analyse",
+      "@test"
+    ],
+    "cs": "ecs check --ansi",
+    "cs-fix": "ecs check --ansi --fix",
+    "analyse": [
+      "codecept build --quiet",
+      "phpstan analyse --memory-limit=1G --no-progress"
+    ],
+    "test": "codecept run"
+  },
   "extra": {
     "name": "Commerce Currency Prices",
     "handle": "commerce-currency-prices",
     "class": "webdna\\commerce\\currencyprices\\CurrencyPrices"
-  }
+  },
+  "config": {
+    "sort-packages": true,
+    "platform": {
+      "php": "8.2"
+    },
+    "allow-plugins": {
+      "craftcms/plugin-installer": true,
+      "php-http/discovery": false,
+      "yiisoft/yii2-composer": true
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }

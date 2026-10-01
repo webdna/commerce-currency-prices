@@ -422,8 +422,10 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
 
 ### Tasks
 
-- [ ] **0.1 Harness** — `docker-compose.yml`, `docker/`, `codeception.yml`, `tests/`, `phpstan.neon`,
+- [x] **0.1 Harness** — `docker-compose.yml`, `docker/`, `codeception.yml`, `tests/`, `phpstan.neon`,
       `ecs.php`, composer scripts, mirroring `~/Projects/plugins/auditor`. Rules: — · Verify: B5 #1 (empty suite green)
+      — built: ECS and PHPStan cover `tests/` only and the Craft module installs Commerce only, so 0.2 adds
+      `src/` to both and the plugin to `codeception.yml`. `HarnessTest` proves Craft 5 + Commerce 5 install.
 - [ ] **0.2 Craft 5 skeleton** — `composer.json` (BR-24 constraints, no `version`), `src/CurrencyPrices.php`
       rewritten for Craft 5. Delete `controllers/`, `adjusters/`, `models/`, `assetbundles/`,
       `services/{Shipping,Discounts,Addons}Service.php`, `records/` except what 1.1 needs, and the 3.x templates.

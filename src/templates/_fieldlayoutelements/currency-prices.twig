@@ -1,0 +1,32 @@
+{# The Currency prices layout element (BR-2): one money input per eligible payment currency. #}
+{% import '_includes/forms' as forms %}
+
+{% if currencies is empty %}
+    <p class="light" data-currency-prices-none>
+        {{ 'This store only accepts {currency}. Add payment currencies in Commerce → Store Settings → Payment Currencies to price items in other currencies.'|t('commerce-currency-prices', {
+            currency: storeCurrency,
+        }) }}
+    </p>
+{% else %}
+    <div class="flex flex-wrap">
+        {% for currency in currencies %}
+            {{ forms.moneyField({
+                id: "currency-price-#{currency.iso|lower}",
+                label: currency.iso,
+                name: "currencyPrices[#{currency.iso}]",
+                value: currency.value,
+                currency: currency.iso,
+                currencyLabel: currency.iso,
+                decimals: currency.decimals,
+                size: 12,
+                disabled: static,
+                inputAttributes: {
+                    'data-currency-price': currency.iso,
+                },
+                tip: not currency.priced ? 'No price — not for sale in {currency}'|t('commerce-currency-prices', {
+                    currency: currency.iso,
+                }) : null,
+            }) }}
+        {% endfor %}
+    </div>
+{% endif %}

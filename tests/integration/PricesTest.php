@@ -5,19 +5,15 @@ namespace webdna\commerce\currencyprices\tests\integration;
 use Codeception\Test\Unit;
 use Craft;
 use craft\commerce\elements\Order;
-use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
 use craft\commerce\models\LineItem;
-use craft\commerce\models\PaymentCurrency;
-use craft\commerce\models\ProductType;
-use craft\commerce\models\ProductTypeSite;
 use craft\commerce\models\Store;
 use craft\commerce\Plugin as Commerce;
-use craft\commerce\services\PaymentCurrencies;
 use craft\db\Query;
 use webdna\commerce\currencyprices\CurrencyPrices;
 use webdna\commerce\currencyprices\records\PriceRecord;
 use webdna\commerce\currencyprices\services\Prices;
+use webdna\commerce\currencyprices\tests\Support\CommerceFixtures;
 use webdna\commerce\currencyprices\tests\Support\CountingCommand;
 use yii\base\InvalidArgumentException;
 use yii\db\IntegrityException;
@@ -31,19 +27,14 @@ use yii\db\IntegrityException;
  */
 class PricesTest extends Unit
 {
-    private Prices $prices;
+    use CommerceFixtures;
 
-    private Store $store;
+    private Prices $prices;
 
     protected function _before(): void
     {
         $this->prices = CurrencyPrices::getInstance()->getPrices();
-
-        $this->store = Commerce::getInstance()->getStores()->getPrimaryStore();
-        $this->store->setCurrency('GBP');
-        $this->assertTrue(Commerce::getInstance()->getStores()->saveStore($this->store));
-
-        $this->addPaymentCurrencies($this->store->id, ['USD', 'EUR']);
+        $this->setUpGbpStore();
     }
 
     public function testOnlyTheStoresOtherPaymentCurrenciesArePriceable(): void
@@ -233,63 +224,6 @@ class PricesTest extends Unit
         $this->assertSame(['USD' => 10.0], $this->prices->getPrices($target->id, $this->store->id));
         $this->assertSame(['USD' => 20.0], $this->prices->getPrices($target->id, $storeB->id));
         $this->assertSame(['USD' => 10.0], $this->prices->getPrices($source->id, $this->store->id), 'The source is untouched');
-    }
-
-    /**
-     * @param string[] $isos
-     */
-    private function addPaymentCurrencies(int $storeId, array $isos): void
-    {
-        $paymentCurrencies = Commerce::getInstance()->getPaymentCurrencies();
-
-        foreach ($isos as $iso) {
-            if ($paymentCurrencies->getPaymentCurrencyByIso($iso, $storeId) !== null) {
-                continue;
-            }
-
-            $paymentCurrency = new PaymentCurrency(['storeId' => $storeId, 'iso' => $iso, 'rate' => 1]);
-            $this->assertTrue($paymentCurrencies->savePaymentCurrency($paymentCurrency), implode(', ', $paymentCurrency->getFirstErrors()));
-        }
-
-        // Commerce's save doesn't clear the service's per-request list of a store's currencies.
-        Commerce::getInstance()->set('paymentCurrencies', ['class' => PaymentCurrencies::class]);
-    }
-
-    private function createVariant(): Variant
-    {
-        static $count = 0;
-        $count++;
-
-        $productTypes = Commerce::getInstance()->getProductTypes();
-        $productType = $productTypes->getProductTypeByHandle('clothing');
-
-        if ($productType === null) {
-            $productType = new ProductType([
-                'name' => 'Clothing',
-                'handle' => 'clothing',
-                'skuFormat' => null,
-            ]);
-
-            $siteSettings = [];
-            foreach (Craft::$app->getSites()->getAllSites() as $site) {
-                $siteSetting = new ProductTypeSite(['siteId' => $site->id, 'hasUrls' => false]);
-                $siteSetting->setProductType($productType);
-                $siteSettings[$site->id] = $siteSetting;
-            }
-            $productType->setSiteSettings($siteSettings);
-
-            $this->assertTrue($productTypes->saveProductType($productType), implode(', ', $productType->getFirstErrors()));
-        }
-
-        $product = new Product(['typeId' => $productType->id, 'title' => 'Shirt ' . $count]);
-        $this->assertTrue(Craft::$app->getElements()->saveElement($product), implode(', ', $product->getFirstErrors()));
-
-        $variant = new Variant(['title' => 'Shirt ' . $count, 'sku' => 'CP-' . $count . '-' . uniqid(), 'basePrice' => 10]);
-        $variant->setPrimaryOwner($product);
-        $variant->setOwner($product);
-        $this->assertTrue(Craft::$app->getElements()->saveElement($variant), implode(', ', $variant->getFirstErrors()));
-
-        return $variant;
     }
 
     private function countRows(int $purchasableId): int

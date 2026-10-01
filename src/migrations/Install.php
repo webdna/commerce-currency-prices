@@ -6,16 +6,19 @@
 
 namespace webdna\commerce\currencyprices\migrations;
 
+use Craft;
 use craft\commerce\db\Table as CommerceTable;
 use craft\db\Migration;
 use craft\db\Table;
+use webdna\commerce\currencyprices\CurrencyPrices;
 use webdna\commerce\currencyprices\records\PriceRecord;
 
 /**
  * Fresh install: the price table, one row per purchasable × store × payment currency (spec §4).
  *
  * Deleting a purchasable or a store removes its rows through the foreign keys. Commerce's own tables
- * are never altered (B3).
+ * are never altered (B3). The Currency prices element is added below the price on every variant layout
+ * (BR-2), and taken out again on uninstall.
  *
  * The 3.x install (a column per currency, foreign keys on `commerce_paymentcurrencies.iso`) is at
  * `734fa63:src/migrations/Install.php`, for the upgrade tasks 3.1 and 3.2.
@@ -27,8 +30,31 @@ class Install extends Migration
 {
     public function safeUp(): bool
     {
+        $this->createPriceTable();
+
+        // When the install arrives in project config, the layouts it changed arrive with it.
+        if (!Craft::$app->getProjectConfig()->getIsApplyingExternalChanges()) {
+            CurrencyPrices::getInstance()?->getPurchasables()->addToVariantLayouts();
+        }
+
+        return true;
+    }
+
+    public function safeDown(): bool
+    {
+        if (!Craft::$app->getProjectConfig()->getIsApplyingExternalChanges()) {
+            CurrencyPrices::getInstance()?->getPurchasables()->removeFromVariantLayouts();
+        }
+
+        $this->dropTableIfExists(PriceRecord::tableName());
+
+        return true;
+    }
+
+    private function createPriceTable(): void
+    {
         if ($this->db->tableExists(PriceRecord::tableName())) {
-            return true;
+            return;
         }
 
         $this->createTable(PriceRecord::tableName(), [
@@ -48,14 +74,5 @@ class Install extends Migration
 
         $this->addForeignKey(null, PriceRecord::tableName(), ['purchasableId'], Table::ELEMENTS, ['id'], 'CASCADE');
         $this->addForeignKey(null, PriceRecord::tableName(), ['storeId'], CommerceTable::STORES, ['id'], 'CASCADE');
-
-        return true;
-    }
-
-    public function safeDown(): bool
-    {
-        $this->dropTableIfExists(PriceRecord::tableName());
-
-        return true;
     }
 }

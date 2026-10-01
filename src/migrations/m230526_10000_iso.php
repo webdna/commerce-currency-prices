@@ -2,7 +2,6 @@
 
 namespace webdna\commerce\currencyprices\migrations;
 
-use Craft;
 use craft\db\Migration;
 
 /**
@@ -26,7 +25,7 @@ class m230526_10000_iso extends Migration
     /**
      * @inheritdoc
      */
-    public function safeDown():bool
+    public function safeDown(): bool
     {
         return true;
     }

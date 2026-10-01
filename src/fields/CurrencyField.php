@@ -1,25 +1,25 @@
 <?php
 /**
- * Currency Prices plugin for Craft CMS 3.x
- *
- * Adds payment currency prices to products
- *
- * @link      https://webdna.co.uk/
- * @copyright Copyright (c) 2018 webdna
+ * @link https://webdna.co.uk/
+ * @copyright Copyright (c) webdna
  */
 
 namespace webdna\commerce\currencyprices\fields;
 
-use webdna\commerce\currencyprices\CurrencyPrices;
-
 use Craft;
-use craft\commerce\Plugin;
 use craft\base\ElementInterface;
 use craft\base\Field;
-use craft\helpers\Db;
+use craft\commerce\Plugin as Commerce;
 use yii\db\Schema;
-use craft\helpers\Json;
 
+/**
+ * Currencies field: a dropdown of the payment currencies, storing the ISO code.
+ *
+ * Ported to Craft 5's field signatures only; task 1.5 owns its behaviour.
+ *
+ * @author webdna
+ * @since 1.0.0
+ */
 class CurrencyField extends Field
 {
     public static function displayName(): string
@@ -27,49 +27,27 @@ class CurrencyField extends Field
         return Craft::t('commerce', 'Currencies');
     }
 
-    public function rules(): array
-    {
-        $rules = parent::rules();
-        return $rules;
-    }
-
-    public function getContentColumnType(): string
+    public static function dbType(): string
     {
         return Schema::TYPE_STRING;
     }
 
-    public function normalizeValue($value, ElementInterface $element = null): mixed
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
-        return parent::normalizeValue($value, $element);
-    }
-
-    public function serializeValue($value, ElementInterface $element = null): mixed
-    {
-        return parent::serializeValue($value, $element);
-    }
-
-    public function getInputHtml($value, ElementInterface $element = null): string
-    {
-        $id = Craft::$app->getView()->formatInputId($this->handle);
-        $namespacedId = Craft::$app->getView()->namespaceInputId($id);
-
-        $currencies = Plugin::getInstance()->getPaymentCurrencies()->getAllPaymentCurrencies();
         $options = [];
-        foreach ($currencies as $currency)
-        {
-            $options[$currency->iso] = $currency->currency;
+        foreach (Commerce::getInstance()->getPaymentCurrencies()->getAllPaymentCurrencies() as $currency) {
+            $options[$currency->iso] = $currency->getName() ?? $currency->iso;
         }
 
-        return Craft::$app->getView()->renderTemplate(
-            'commerce-currency-prices/fields/CurrencyField_input',
-            [
-                'name' => $this->handle,
-                'value' => $value,
-                'field' => $this,
-                'id' => $id,
-                'options' => $options,
-                'namespacedId' => $namespacedId,
-            ]
-        );
+        $id = $this->getInputId();
+
+        return Craft::$app->getView()->renderTemplate('commerce-currency-prices/fields/CurrencyField_input', [
+            'name' => $this->handle,
+            'value' => $value,
+            'field' => $this,
+            'id' => $id,
+            'options' => $options,
+            'namespacedId' => Craft::$app->getView()->namespaceInputId($id),
+        ]);
     }
 }

@@ -23,12 +23,14 @@ modules:
       entryUrl: 'https://test.craftcms.test/index.php'
       projectConfig: {}
       migrations: []
-      # Commerce only until task 0.2: the 3.x plugin class is Craft 4 code and cannot install on
-      # Craft 5. 0.2 adds commerce-currency-prices here, after commerce.
+      # The plugin installs after Commerce: its install migration reads Commerce's tables.
       plugins:
         commerce:
           class: '\craft\commerce\Plugin'
           handle: commerce
+        commerce-currency-prices:
+          class: '\webdna\commerce\currencyprices\CurrencyPrices'
+          handle: commerce-currency-prices
       cleanup: true
       transaction: true
       dbSetup: {clean: true, setupCraft: true}

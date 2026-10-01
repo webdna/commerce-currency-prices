@@ -6,8 +6,8 @@ use craft\ecs\SetList;
 use Symplify\EasyCodingStandard\Config\ECSConfig;
 
 return static function(ECSConfig $ecsConfig): void {
-    // src/ joins in task 0.2, when the 3.x Craft 4 code is replaced.
     $ecsConfig->paths([
+        __DIR__ . '/src',
         __DIR__ . '/tests',
         __FILE__,
     ]);

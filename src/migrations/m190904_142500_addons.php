@@ -2,7 +2,6 @@
 
 namespace webdna\commerce\currencyprices\migrations;
 
-use Craft;
 use craft\db\Migration;
 
 /**
@@ -37,7 +36,7 @@ class m190904_142500_addons extends Migration
     /**
      * @inheritdoc
      */
-    public function safeDown():bool
+    public function safeDown(): bool
     {
         $this->dropTableIfExists('{{%addons_discounts_currencyprices}}');
         return true;

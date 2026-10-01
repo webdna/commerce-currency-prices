@@ -3,9 +3,8 @@ includes:
 
 parameters:
     level: 5
-    # src/ joins in task 0.2: until then it is the 3.x Craft 4 code, which cannot analyse against
-    # Craft 5 and is being deleted rather than fixed.
     paths:
+        - src
         - tests
     excludePaths:
         - tests/_craft/storage

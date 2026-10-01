@@ -426,10 +426,14 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
       `ecs.php`, composer scripts, mirroring `~/Projects/plugins/auditor`. Rules: — · Verify: B5 #1 (empty suite green)
       — built: ECS and PHPStan cover `tests/` only and the Craft module installs Commerce only, so 0.2 adds
       `src/` to both and the plugin to `codeception.yml`. `HarnessTest` proves Craft 5 + Commerce 5 install.
-- [ ] **0.2 Craft 5 skeleton** — `composer.json` (BR-24 constraints, no `version`), `src/CurrencyPrices.php`
+- [x] **0.2 Craft 5 skeleton** — `composer.json` (BR-24 constraints, no `version`), `src/CurrencyPrices.php`
       rewritten for Craft 5. Delete `controllers/`, `adjusters/`, `models/`, `assetbundles/`,
       `services/{Shipping,Discounts,Addons}Service.php`, `records/` except what 1.1 needs, and the 3.x templates.
       Rules: BR-17, BR-23 · Verify: B5 #3, #4
+      — built: all of `services/` and `records/` went too, along with `twigextensions/` (each was Craft 4 code
+      calling the Addons service or 3.x sales; 1.1 and 1.5 write them new). The plugin class only registers
+      `CurrencyField`, which is ported to Craft 5 signatures. `Install.php` is empty until 1.1, and the 3.x install
+      is at `734fa63`. The three 3.x upgrade migrations stay. `PluginTest` proves the plugin installs after Commerce.
 - [ ] **1.1 Price storage** — `migrations/Install.php` (new table only), `records/PriceRecord.php`,
       `services/Prices.php` (read per item, batch read per order, write, copy). Rules: BR-1, BR-14 · Verify: unit tests, TN-2, TN-6, TN-14
 - [ ] **1.2 Layout element and saving** — first set up craft5 (snapshot, USD + EUR payment currencies, Digital Products 4.1, Events 3.1). `fieldlayoutelements/CurrencyPricesField.php`, its template,
@@ -490,8 +494,8 @@ changing its store.
 
 ## B2. Context to load
 
-1. `src/CurrencyPrices.php` — 3.x's event wiring: what it hooked and why each hook goes (L113-L452)
-2. `src/migrations/Install.php` — the 3.x tables and the `iso` foreign keys (L73-L358), for 3.1 and 3.2
+1. `git show 734fa63:src/CurrencyPrices.php` — 3.x's event wiring: what it hooked and why each hook goes (L113-L452)
+2. `git show 734fa63:src/migrations/Install.php` — the 3.x tables and the `iso` foreign keys (L73-L358), for 3.1 and 3.2
 3. `~/projects/craft5/vendor/craftcms/commerce/src/models/LineItem.php` L894-L975 — population order
 4. `…/commerce/src/base/Purchasable.php` L462-L660 — availability, base, price, promotional price
 5. `…/commerce/src/elements/Order.php` L1300-L1315, L2699-L2735 — currency defaults and payment amount
@@ -564,3 +568,4 @@ curl -s -b jar -c jar https://craft5.ddev.site/admin/commerce/products/<type>/<i
 |---|---|---|---|
 | 2026-10-01 | 0.1 | First draft from the interview with Sam | Claude |
 | 2026-10-01 | 0.1 | Sam approved changing craft5 for task 1.2. Appendix A #3 is closed and moved into the test data | Claude |
+| 2026-10-01 | 0.1 | Task 0.2 built. B2 #1 and #2 now point at the 3.x source in `734fa63`, since 0.2 replaced both files | Claude |

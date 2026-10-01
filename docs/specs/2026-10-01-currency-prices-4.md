@@ -441,9 +441,19 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
       those into BR-3's validation error). Each write is one upsert on the unique key (TN-14). Deletion is the
       `elements.id` cascade, so a soft-deleted item keeps its rows until it is hard-deleted, and a restore keeps
       its prices. `copyPrices()` replaces the target's rows in every store, for BR-5. `tests/integration/PricesTest.php`.
-- [ ] **1.2 Layout element and saving** — first set up craft5 (snapshot, USD + EUR payment currencies, Digital Products 4.1, Events 3.1). `fieldlayoutelements/CurrencyPricesField.php`, its template,
+- [x] **1.2 Layout element and saving** — first set up craft5 (snapshot, USD + EUR payment currencies, Digital Products 4.1, Events 3.1). `fieldlayoutelements/CurrencyPricesField.php`, its template,
       save, validate, duplicate, draft and revision handling, adding it to variant layouts on install.
       Rules: BR-2–BR-6, BR-22 · Verify: TS-1, TS-7, TN-1, TN-3, TN-12
+      — built: the inputs post `currencyPrices[<ISO>]` onto `behaviors/CurrencyPricesBehavior` (null = not posted,
+      BR-4). `services/Purchasables` (`getPurchasables()`) holds the handlers, all registered on Commerce's base
+      `Purchasable`: validation, the after-save write for the saved site's store, and the copy. It also holds
+      `addToVariantLayouts()` / `removeFromVariantLayouts()`, which the install and uninstall call unless project
+      config is being applied. Every duplicate, new draft, applied draft, revision and revert is saved with
+      `duplicateOf` set, so one rule copies rows (BR-5). A posted currency the store no longer accepts is ignored
+      (TN-3). A product draft shares its variants until one is edited. `tests/integration/CurrencyPricesFieldTest.php`
+      replays the CP's copy-on-write and `changedattributes` row. craft5's store is **USD**, not GBP, so it has
+      EUR + GBP as its extra currencies. B5 #3 and #5 pass. B5 #6 (the CP render over curl) was not run because
+      Docker hung. It is the first step of 1.3.
 - [ ] **1.3 Line pricing, order currency, availability, event** — `events/DefineCurrencyPriceEvent.php`,
       handlers in `CurrencyPrices.php` or `services/Pricing.php`. Rules: BR-7–BR-11 · Verify: TS-2, TS-3, TS-4, TN-4, TN-5, TN-7, TN-8, TN-13
 - [ ] **1.4 Payment currency condition** — `elements/conditions/PaymentCurrencyConditionRule.php`.
@@ -574,3 +584,4 @@ curl -s -b jar -c jar https://craft5.ddev.site/admin/commerce/products/<type>/<i
 | 2026-10-01 | 0.1 | First draft from the interview with Sam | Claude |
 | 2026-10-01 | 0.1 | Sam approved changing craft5 for task 1.2. Appendix A #3 is closed and moved into the test data | Claude |
 | 2026-10-01 | 0.1 | Task 0.2 built. B2 #1 and #2 now point at the 3.x source in `734fa63`, since 0.2 replaced both files | Claude |
+| 2026-10-01 | 0.1 | Task 1.2 built. craft5's store turned out to be in USD, so EUR and GBP were added as its extra currencies instead of USD and EUR | Claude |

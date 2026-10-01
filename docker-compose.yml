@@ -1,0 +1,48 @@
+# Test containers. Nothing here is a real site: the suites write only to this MySQL, which lives in
+# memory and is gone when the container stops.
+#
+#   docker compose up -d mysql
+#   docker compose run --rm php composer install
+#   docker compose run --rm php composer check
+#   PHP_VERSION=8.4 docker compose run --rm php composer check
+
+services:
+  php:
+    build:
+      context: docker/php
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.2}
+    image: currency-prices-php:${PHP_VERSION:-8.2}
+    working_dir: /app
+    volumes:
+      - .:/app
+      - composer-cache:/root/.composer/cache
+    environment:
+      DB_DRIVER: mysql
+      DB_SERVER: mysql
+      DB_PORT: "3306"
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_DATABASE: craft_test
+      DB_SCHEMA: ""
+      DB_TABLE_PREFIX: craft_
+      CRAFT_SECURITY_KEY: currency-prices-test-security-key
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: craft_test
+    tmpfs:
+      - /var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-proot"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  composer-cache:

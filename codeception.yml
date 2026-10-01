@@ -1,0 +1,35 @@
+namespace: webdna\commerce\currencyprices\tests
+support_namespace: Support
+actor_suffix: Tester
+paths:
+  tests: tests
+  output: tests/_output
+  data: tests/_data
+  support: tests/Support
+  envs: tests/_envs
+# Top level, not under `settings:` — Codeception 5 ignores it there and Craft's constants are
+# never defined.
+bootstrap: _bootstrap.php
+settings:
+  shuffle: false
+  colors: true
+# Connection details come from the environment (docker-compose.yml), never a checked-in file.
+params:
+  - env
+modules:
+  config:
+    \craft\test\Craft:
+      configFile: 'tests/_craft/config/test.php'
+      entryUrl: 'https://test.craftcms.test/index.php'
+      projectConfig: {}
+      migrations: []
+      # Commerce only until task 0.2: the 3.x plugin class is Craft 4 code and cannot install on
+      # Craft 5. 0.2 adds commerce-currency-prices here, after commerce.
+      plugins:
+        commerce:
+          class: '\craft\commerce\Plugin'
+          handle: commerce
+      cleanup: true
+      transaction: true
+      dbSetup: {clean: true, setupCraft: true}
+      fullMock: false

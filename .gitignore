@@ -5,6 +5,12 @@
 
 # COMPOSER
 /vendor
+/composer.lock
+
+# TESTS
+/tests/Support/_generated
+/tests/_output
+/cpresources
 
 # BUILD FILES
 /bower_components/*

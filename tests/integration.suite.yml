@@ -1,0 +1,7 @@
+# Integration tier: Craft and Commerce booted against the MySQL container, real saves and real tables.
+actor: IntegrationTester
+suite_namespace: webdna\commerce\currencyprices\tests\integration
+modules:
+  enabled:
+    - Asserts
+    - \craft\test\Craft

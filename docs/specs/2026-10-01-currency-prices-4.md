@@ -155,7 +155,7 @@ items in other currencies."
 | Column | Type | Notes |
 |---|---|---|
 | `id` | pk | |
-| `purchasableId` | int, FK `elements.id` ON DELETE CASCADE | Variant, bundle, digital product or ticket. Drafts and revisions have their own rows |
+| `purchasableId` | int, FK `elements.id` ON DELETE CASCADE | Variant, bundle, digital product or Events ticket type (its tickets are priced from it). Drafts and revisions have their own rows |
 | `storeId` | int, FK `commerce_stores.id` ON DELETE CASCADE | The store whose payment currency this is |
 | `currency` | char(3) | ISO code. Never the store's own currency |
 | `price` | decimal(14,4) not null | The typed price. An absent row means "no price" |
@@ -183,7 +183,7 @@ report (BR-20) reads them, and uninstalling drops them.
 | ID | Rule |
 |---|---|
 | BR-1 | A currency price exists per purchasable, store and payment currency. Only the payment currencies of the element's store, other than the store currency, can be priced. |
-| BR-2 | A **Currency prices** field-layout element is available on the field layout of every purchasable type: variants, Bundles 3 bundle types, Digital Products product types, Events ticket layouts. It shows one money input per eligible currency (BR-1), labelled with the ISO code and formatted to that currency. It shows the store-only notice from §3 when there are none. It is never added to a layout automatically. Each layout gets it in its own way: on install, the plugin adds it below the price element of each existing **variant** layout. Other types' layouts are left for an admin. |
+| BR-2 | A **Currency prices** field-layout element is available on the field layout of every purchasable type: variants, Bundles 3 bundle types, Digital Products product types, and Events ticket-type layouts. Events generates a ticket per session and ticket type, and a ticket has no layout of its own, so the ticket type holds the prices for all its tickets. It shows one money input per eligible currency (BR-1), labelled with the ISO code and formatted to that currency. It shows the store-only notice from §3 when there are none. It is never added to a layout automatically. Each layout gets it in its own way: on install, the plugin adds it below the price element of each existing **variant** layout. Other types' layouts are left for an admin. |
 | BR-3 | A blank input means no price and deletes the row. 0 is a valid price. A negative or non-numeric value fails validation on the element, with "Enter a price of 0 or more for {currency}." |
 | BR-4 | Currency prices are written in the element's own save, after Commerce writes its store values. Programmatic saves, resaves and the CP all go through the same path. A save whose request does not post the element's currency-price inputs leaves its rows untouched. |
 | BR-5 | Duplicating an element copies its rows. A draft gets its own rows, copied from the canonical element when the draft is created. Applying a draft replaces the canonical element's rows with the draft's. A revision keeps a copy of the rows as they were. |
@@ -315,7 +315,7 @@ when he reviews the spec.
 **TS-6 — Other purchasables** · Type: integration + manual (CP, front end) · AC-7 · BR-2, BR-17
 | # | Step | Expect |
 |---|---|---|
-| 1 | Add the layout element to a bundle type, a digital product type and an event's ticket layout | Inputs appear on each |
+| 1 | Add the layout element to a bundle type, a digital product type and an event type's ticket-type layout | Inputs appear on each |
 | 2 | Price each in USD and add each to a USD basket | Each line is at its USD price |
 | 3 | Uninstall Digital Products and Events, then load the CP and a basket | No error. Variants and bundles still price |
 
@@ -499,7 +499,20 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
       handle unique.
 - [ ] **2.1 Bundles 3** — test the layout element and the basket with Bundles 3 installed. Rules: BR-2, BR-17
       · Verify: TS-6 (bundle leg)
-- [ ] **2.2 Digital Products and Events** — the same for both, and the uninstalled case. Rules: BR-2, BR-17 · Verify: TS-6
+- [x] **2.2 Digital Products and Events** — the same for both, and the uninstalled case. Rules: BR-2, BR-17 · Verify: TS-6
+      — built before 2.1, because Bundles 3 is not built yet (Sam, 2 Oct 2026). A digital product is an ordinary
+      purchasable and needed no code. An Events ticket did (A#6): Events 3.1 generates one per session and
+      ticket type, its `defineFieldLayouts()` is empty, and its price is `TicketType->price`, a plain element
+      edited on the event type's ticket-type layout. So the ticket type holds the rows, and
+      `Purchasables::getPriceOwnerId()` prices every ticket from its `typeId`, for lines, availability, the
+      one-query refresh and the Twig filters. The element, rules and save handlers are registered on
+      `Purchasable` and, while Events is enabled, on `TicketType`. Events' classes are named only as string
+      constants and matched by name, never by `instanceof`, so PHPStan passes with Events absent. Digital
+      Products 4.1 and Events 3.1 are dev dependencies. A new `integrations` Codeception suite installs both
+      (`tests/integrations/`: DigitalProductsTest, EventsTest, 14 tests). The `integration` suite installs
+      neither, which is the uninstalled case (`WithoutIntegrationsTest`, TS-6 #3). With both removed from
+      vendor, PHPStan on `src` and the `integration` suite both passed. A mutation (tickets priced by their
+      own id) failed 5 Events tests. TS-6's CP and front-end walk in craft5 (AC-7) is Sam's.
 - [ ] **3.1 3.0.x foreign-key patch** — on a new `3.x` branch from `734fa63`: a migration dropping the three `iso`
       foreign keys, the CHANGELOG and the README upgrade note. First prove on the fixture that the keys break
       Commerce's upgrade. Rules: BR-19 · Verify: TS-8 steps 1–2
@@ -520,7 +533,7 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
 | 2 | A Commerce 4 fixture with 3.x and currency prices on variants, discounts and shipping, in `~/Projects/craftcms/craft4-commerce` | Build (3.1) | **Open — blocking build of 3.1** |
 | 4 | Bundles 3 phase 1 must exist for 2.1 | Bundles 3 build | **Open — blocking build of 2.1** |
 | 5 | Plugin Store price for 4.0, and the upgrade price from 3.x licences | Sam | **Open — blocking release** |
-| 6 | Do Events 3 tickets use a field layout that accepts a native layout element? | Build (2.2) | **Open — blocking build of 2.2** |
+| 6 | Do Events 3 tickets use a field layout that accepts a native layout element? | Build (2.2) | **Closed 2 Oct 2026.** No. A ticket has no layout of its own. The ticket-type layout (`TicketType`, an element) does, and it holds the prices (BR-2, §8 2.2) |
 | 7 | Sam to approve the copy quoted in §3 and §5 | Sam | **Open — blocking sign-off** |
 
 **Assumptions**
@@ -626,3 +639,4 @@ curl -s -b jar -c jar -H 'Accept: application/json' -H 'X-Requested-With: XMLHtt
 | 2026-10-01 | 0.1 | Task 1.2 built. craft5's store turned out to be in USD, so EUR and GBP were added as its extra currencies instead of USD and EUR | Claude |
 | 2026-10-02 | 0.1 | B5 #6 run. It found the install bug noted under 1.2. The command now fetches the variant slideout, since a variant has no edit page of its own | Claude |
 | 2026-10-02 | 0.1 | Task 1.3 built. Added `OrderCurrencyBehavior`, because Commerce formats amounts in the store currency whatever the order's currency is | Claude |
+| 2026-10-02 | 0.1 | Task 2.2 built ahead of 2.1. A#6 closed: Events tickets are priced from their ticket type. BR-2, the §4 `purchasableId` row and TS-6 #1 now say so | Claude |

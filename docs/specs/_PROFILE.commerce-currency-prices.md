@@ -138,8 +138,8 @@ grep -rnE 'getPrimaryPaymentCurrency|->salePrice\b|getSalesForPurchasable|record
   `commerce_shippingrules_currencyprices` and `commerce_shippingrule_categories_currencyprices`
   (`src/migrations/Install.php:274-334`). Commerce's `m230920_051125_move_primary_currency_to_store_settings`
   **drops the unique `iso` index** and recreates it non-unique. MySQL refuses to drop an index a foreign key
-  needs, so a 3.x site's Commerce upgrade is expected to fail there. **Unverified (1 Oct 2026)** — prove it on
-  the Commerce 4 fixture before building around it.
+  needs, so a 3.x site's Commerce upgrade fails there. **Proven 2 Oct 2026** on the Commerce 4 fixture
+  (MariaDB 10.11, error 1553). 3.0.0-beta.6 (`3.x` branch) drops the keys, and the upgrade then passes.
 - **Commerce's upgrade puts every existing record in the first store**; ids of variants, discounts and
   shipping rules survive. The order `craft up` runs Commerce's and this plugin's migrations in is not
   verified — make the 4.0 migration refuse, with a message, if `commerce_stores` does not exist yet.

@@ -513,9 +513,23 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
       neither, which is the uninstalled case (`WithoutIntegrationsTest`, TS-6 #3). With both removed from
       vendor, PHPStan on `src` and the `integration` suite both passed. A mutation (tickets priced by their
       own id) failed 5 Events tests. TS-6's CP and front-end walk in craft5 (AC-7) is Sam's.
-- [ ] **3.1 3.0.x foreign-key patch** — on a new `3.x` branch from `734fa63`: a migration dropping the three `iso`
+- [x] **3.1 3.0.x foreign-key patch** — on a new `3.x` branch from `734fa63`: a migration dropping the three `iso`
       foreign keys, the CHANGELOG and the README upgrade note. First prove on the fixture that the keys break
       Commerce's upgrade. Rules: BR-19 · Verify: TS-8 steps 1–2
+      — built 2 Oct 2026 as **3.0.0-beta.6** (`3.x` branch, 617a9ff), keeping 3.x's beta line; the version is Sam's to
+      change. The fixture (A#2) is craft4-commerce on Craft 4.18.9, Commerce 4.12.4 and MariaDB 10.11, with GBP and EUR
+      payment currencies. 3.0.0-beta.5 is installed from Packagist (it is 734fa63). Variants 4, 6 and 8 have GBP/EUR
+      prices, discount 4 and shipping rule 1 (and its category 1) have GBP/EUR amounts. Snapshots `cp3-fixture-3.0.0-beta.5`
+      and `cp3-fixture-3.0.0-beta.6`, with composer files in `storage/cp3-fixture-composer` and `storage/cp3-patched-composer`.
+      A#1 proven: the Craft 5.11.4 / Commerce 5.7.5 upgrade stopped at m230920_051125 with 1553 "Cannot drop index …
+      needed in a foreign key constraint". On 3.0.0-beta.6, `m261002_000000_drop_iso_foreign_keys` dropped the three
+      keys, the site still served 200 on Craft 4, and the same upgrade then applied all 162 migrations with the 3.x rows
+      intact. Install.php no longer adds the keys (a fresh install has only the four `id` keys). With no CASCADE,
+      `removeCurrency()` deletes a removed currency's discount and shipping rows itself, and `renameCurrency()` moves
+      them to the new ISO. schemaVersion is 1.2.1, so **3.2 must set 4.0's above 1.2.1**, or Craft refuses the
+      downgrade. Two findings for 3.2 and 3.3: 3.x stores discount `purchaseTotal` negated, like the two discount
+      amounts; and the first `craft up` after a schema change exits 1 on stale project-config YAML (Craft's own
+      behaviour, also seen for Craft and Commerce), then passes when run again.
 - [ ] **3.2 Upgrade migration** — `migrations/m261001_000000_currency_prices_4.php`. Rules: BR-18, BR-19
       · Verify: TS-8 steps 3–4 and 6, TN-9
 - [ ] **3.3 Legacy report** — `console/controllers/LegacyController.php`. Rules: BR-20 · Verify: TS-8 step 5, TN-10
@@ -538,8 +552,8 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
 
 | # | Question | Owner | State |
 |---|---|---|---|
-| 1 | Do 3.x's foreign keys on `commerce_paymentcurrencies.iso` actually stop Commerce's `m230920_051125` upgrade? Read from source, not yet run | Build (3.1) | **Open — blocking build of 3.1** |
-| 2 | A Commerce 4 fixture with 3.x and currency prices on variants, discounts and shipping, in `~/Projects/craftcms/craft4-commerce` | Build (3.1) | **Open — blocking build of 3.1** |
+| 1 | Do 3.x's foreign keys on `commerce_paymentcurrencies.iso` actually stop Commerce's `m230920_051125` upgrade? Read from source, not yet run | Build (3.1) | **Closed 2 Oct 2026.** Yes: MariaDB 10.11 refused with 1553 and the upgrade stopped. Without the keys it passes (§8 3.1) |
+| 2 | A Commerce 4 fixture with 3.x and currency prices on variants, discounts and shipping, in `~/Projects/craftcms/craft4-commerce` | Build (3.1) | **Closed 2 Oct 2026.** Built. Snapshots `cp3-fixture-3.0.0-beta.5` and `cp3-fixture-3.0.0-beta.6` (§8 3.1) |
 | 4 | Bundles 3 phase 1 must exist for 2.1 | Bundles 3 build | **Open — blocking build of 2.1** |
 | 5 | Plugin Store price for 4.0, and the upgrade price from 3.x licences | Sam | **Open — blocking release** |
 | 6 | Do Events 3 tickets use a field layout that accepts a native layout element? | Build (2.2) | **Closed 2 Oct 2026.** No. A ticket has no layout of its own. The ticket-type layout (`TicketType`, an element) does, and it holds the prices (BR-2, §8 2.2) |
@@ -649,3 +663,4 @@ curl -s -b jar -c jar -H 'Accept: application/json' -H 'X-Requested-With: XMLHtt
 | 2026-10-02 | 0.1 | B5 #6 run. It found the install bug noted under 1.2. The command now fetches the variant slideout, since a variant has no edit page of its own | Claude |
 | 2026-10-02 | 0.1 | Task 1.3 built. Added `OrderCurrencyBehavior`, because Commerce formats amounts in the store currency whatever the order's currency is | Claude |
 | 2026-10-02 | 0.1 | Task 2.2 built ahead of 2.1. A#6 closed: Events tickets are priced from their ticket type. BR-2, the §4 `purchasableId` row and TS-6 #1 now say so | Claude |
+| 2026-10-02 | 0.1 | Task 3.1 built as 3.0.0-beta.6 on the `3.x` branch. A#1 and A#2 closed: the iso keys do stop Commerce 5's upgrade, and the fixture is in craft4-commerce | Claude |

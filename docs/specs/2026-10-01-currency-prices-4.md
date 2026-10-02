@@ -471,8 +471,19 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
       rather than over HTTP. It pays with the Dummy gateway at a USD rate of 1.25, so any conversion would show.
       Commerce memoises a purchasable by id whoever the customer is (`Purchasables::getPurchasableById()`), so
       the test resets that service between customers. In one real request there is one customer.
-- [ ] **1.4 Payment currency condition** — `elements/conditions/PaymentCurrencyConditionRule.php`.
+- [x] **1.4 Payment currency condition** — `elements/conditions/PaymentCurrencyConditionRule.php`.
       Rules: BR-12, BR-13 · Verify: TS-5
+      — built: a `BaseMultiSelectConditionRule` registered on `OrderCondition`'s register-rules event. The
+      discount, shipping method and shipping rule conditions extend it, so all three offer it. Its options
+      are the payment currencies of the condition's store (`HasStoreInterface`), the store currency first.
+      The order index's condition has no store, so it uses the current store. It matches
+      `Order::getPaymentCurrency()` and filters the order index on `commerce_orders.paymentCurrency`. BR-13's
+      text is a line under the rule's input. The README's copy waits for 5.1 (BR-24).
+      `tests/integration/PaymentCurrencyConditionTest.php` covers TS-5 #1–#5, *is not one of*, and the
+      order-index query. A shipping rule saved without `storeId` makes every cart save in that store return
+      false with no errors. Commerce's `getStore()` throws `InvalidConfigException`, and Craft's save swallows
+      that class. The CP always sets the store. TS-5 #1's manual CP check (rule offered, instructions shown) is
+      Sam's, in craft5.
 - [ ] **1.5 Templates and field** — `twigextensions/CurrencyPricesTwigExtension.php`, `fields/CurrencyField.php`
       on Craft 5. Rules: BR-15, BR-16 · Verify: TS-10, TN-15
 - [ ] **2.1 Bundles 3** — test the layout element and the basket with Bundles 3 installed. Rules: BR-2, BR-17

@@ -11,6 +11,10 @@ use craft\base\Element;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\commerce\base\Purchasable;
+use craft\commerce\elements\Order;
+use craft\commerce\models\LineItem;
+use craft\commerce\services\LineItems;
+use craft\commerce\services\Purchasables as CommercePurchasables;
 use craft\events\PluginEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\models\FieldLayout;
@@ -18,6 +22,7 @@ use craft\services\Fields;
 use craft\services\Plugins;
 use webdna\commerce\currencyprices\fields\CurrencyField;
 use webdna\commerce\currencyprices\services\Prices;
+use webdna\commerce\currencyprices\services\Pricing;
 use webdna\commerce\currencyprices\services\Purchasables;
 use yii\base\Event;
 
@@ -29,12 +34,20 @@ use yii\base\Event;
  * the forked Shipping and Discount adjusters. Phase 1 of the 4.0 spec adds the Commerce 5 replacements.
  *
  * @property-read Prices $prices
+ * @property-read Pricing $pricing
  * @property-read Purchasables $purchasables
  * @author webdna
  * @since 1.0.0
  */
 class CurrencyPrices extends Plugin
 {
+    /**
+     * @event DefineCurrencyPriceEvent Raised once an item's price in a payment currency is worked out, for a
+     * basket line and for the template helpers alike. A handler may change the price and promotional
+     * price (BR-8).
+     */
+    public const EVENT_DEFINE_CURRENCY_PRICE = 'defineCurrencyPrice';
+
     /**
      * 3.x's last schema version. The 4.0 upgrade migration (task 3.2) raises it.
      */
@@ -49,6 +62,7 @@ class CurrencyPrices extends Plugin
         return [
             'components' => [
                 'prices' => ['class' => Prices::class],
+                'pricing' => ['class' => Pricing::class],
                 'purchasables' => ['class' => Purchasables::class],
             ],
         ];
@@ -60,6 +74,7 @@ class CurrencyPrices extends Plugin
 
         $this->registerFieldTypes();
         $this->registerPurchasableEditing();
+        $this->registerPricing();
     }
 
     /**
@@ -93,6 +108,12 @@ class CurrencyPrices extends Plugin
         return $this->get('prices');
     }
 
+    public function getPricing(): Pricing
+    {
+        /** @var Pricing */
+        return $this->get('pricing');
+    }
+
     public function getPurchasables(): Purchasables
     {
         /** @var Purchasables */
@@ -111,6 +132,25 @@ class CurrencyPrices extends Plugin
         Event::on(Purchasable::class, Model::EVENT_DEFINE_BEHAVIORS, [$purchasables, 'defineBehaviors']);
         Event::on(Purchasable::class, Model::EVENT_DEFINE_RULES, [$purchasables, 'defineRules']);
         Event::on(Purchasable::class, Element::EVENT_AFTER_SAVE, [$purchasables, 'afterSave']);
+    }
+
+    /**
+     * Line pricing, order currency and availability for a basket in another currency (BR-7–BR-11).
+     */
+    private function registerPricing(): void
+    {
+        $pricing = $this->getPricing();
+
+        Event::on(LineItems::class, LineItems::EVENT_POPULATE_LINE_ITEM, [$pricing, 'populateLineItem']);
+        Event::on(CommercePurchasables::class, CommercePurchasables::EVENT_PURCHASABLE_AVAILABLE, [$pricing, 'purchasableAvailable']);
+        Event::on(Order::class, Element::EVENT_BEFORE_SAVE, [$pricing, 'beforeSaveOrder']);
+        Event::on(Order::class, Order::EVENT_BEFORE_LINE_ITEMS_REFRESHED, [$pricing, 'beforeLineItemsRefreshed']);
+        Event::on(Order::class, Order::EVENT_AFTER_LINE_ITEMS_REFRESHED, [$pricing, 'afterLineItemsRefreshed']);
+
+        foreach ([Order::class, LineItem::class] as $class) {
+            Event::on($class, Model::EVENT_DEFINE_BEHAVIORS, [$pricing, 'defineOrderBehaviors']);
+            Event::on($class, Model::EVENT_DEFINE_FIELDS, [$pricing, 'defineCurrencyFields']);
+        }
     }
 
     /**

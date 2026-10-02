@@ -291,14 +291,7 @@ class Install extends Migration
             ['id'],
             'CASCADE'
         );
-        $this->addForeignKey(
-            null,
-            '{{%commerce_shippingrule_categories_currencyprices}}',
-            ['paymentCurrencyIso'],
-            '{{%commerce_paymentcurrencies}}',
-            ['iso'],
-            'CASCADE'
-        );
+        // No foreign keys to commerce_paymentcurrencies.iso: they stop Commerce 5's upgrade (m261002_000000_drop_iso_foreign_keys).
         $this->addForeignKey(
             null,
             '{{%commerce_shippingrules_currencyprices}}',
@@ -309,26 +302,10 @@ class Install extends Migration
         );
         $this->addForeignKey(
             null,
-            '{{%commerce_shippingrules_currencyprices}}',
-            ['paymentCurrencyIso'],
-            '{{%commerce_paymentcurrencies}}',
-            ['iso'],
-            'CASCADE'
-        );
-        $this->addForeignKey(
-            null,
             '{{%commerce_discounts_currencyprices}}',
             ['discountId'],
             '{{%commerce_discounts}}',
             ['id'],
-            'CASCADE'
-        );
-        $this->addForeignKey(
-            null,
-            '{{%commerce_discounts_currencyprices}}',
-            ['paymentCurrencyIso'],
-            '{{%commerce_paymentcurrencies}}',
-            ['iso'],
             'CASCADE'
         );
         //$this->addForeignKey(null, '{{%addons_discounts_currencyprices}}', ['discountId'], '{{%addons_discounts}}', ['id'], 'CASCADE');

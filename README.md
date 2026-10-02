@@ -20,6 +20,12 @@ To install the plugin, follow these instructions.
 
 3. In the Control Panel, go to Settings → Plugins and click the “Install” button for Currency Prices.
 
+## Upgrading to Craft 5 and Commerce 5
+
+Update this plugin to 3.0.0-beta.6 or later and run `php craft up` on Craft 4 **before** you upgrade to Craft 5.
+
+Earlier versions add database foreign keys to the payment currencies table. Commerce 5's upgrade cannot change that table while they exist, so it stops with “Cannot drop index … needed in a foreign key constraint”. 3.0.0-beta.6 removes the keys and changes nothing else. Your prices, discounts and shipping amounts stay as they are.
+
 ## Currency Prices Overview
 
 Configure your payment currencies in Craft Commerce settings - foreach currency set the conversion rate to 1.

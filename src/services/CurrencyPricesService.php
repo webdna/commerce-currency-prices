@@ -33,6 +33,12 @@ use craft\db\Query;
  */
 class CurrencyPricesService extends Component
 {
+    private array $_isoTables = [
+        '{{%commerce_shippingrule_categories_currencyprices}}',
+        '{{%commerce_shippingrules_currencyprices}}',
+        '{{%commerce_discounts_currencyprices}}',
+    ];
+
     // Public Methods
     // =========================================================================
 
@@ -166,6 +172,12 @@ class CurrencyPricesService extends Component
             ->createCommand()
             ->renameColumn('{{%commerce_currencyprices}}', $old, $new)
             ->execute();
+
+        if ($old !== $new) {
+            foreach ($this->_isoTables as $table) {
+                Db::update($table, ['paymentCurrencyIso' => $new], ['paymentCurrencyIso' => $old]);
+            }
+        }
     }
 
     public function addCurrency(string $column):void
@@ -188,5 +200,10 @@ class CurrencyPricesService extends Component
             ->createCommand()
             ->dropColumn('{{%commerce_currencyprices}}', $column)
             ->execute();
+
+        // These rows were deleted by a foreign key on the payment currency's ISO until m261002_000000_drop_iso_foreign_keys.
+        foreach ($this->_isoTables as $table) {
+            Db::delete($table, ['paymentCurrencyIso' => $column]);
+        }
     }
 }

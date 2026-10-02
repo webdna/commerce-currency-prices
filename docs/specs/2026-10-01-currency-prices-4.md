@@ -484,8 +484,19 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
       false with no errors. Commerce's `getStore()` throws `InvalidConfigException`, and Craft's save swallows
       that class. The CP always sets the store. TS-5 #1's manual CP check (rule offered, instructions shown) is
       Sam's, in craft5.
-- [ ] **1.5 Templates and field** — `twigextensions/CurrencyPricesTwigExtension.php`, `fields/CurrencyField.php`
+- [x] **1.5 Templates and field** — `twigextensions/CurrencyPricesTwigExtension.php`, `fields/CurrencyField.php`
       on Craft 5. Rules: BR-15, BR-16 · Verify: TS-10, TN-15
+      — built: the extension is registered in `init()`. Its filters price an item through
+      `Pricing::definePrices()` with `Pricing::ratio()` (now public), for the purchasable's store. The current
+      customer comes from the logged-in identity when the element is queried. The 3.x `format` and `stripZeros`
+      arguments still work, but `format` now defaults to false, so `|currencyPrice('USD')` gives `120`, not
+      `$120.00`. **The 5.1 CHANGELOG must say so** (BR-24). The field offers the payment currencies of the
+      store for the element's site (else the current site). Commerce lists them alphabetically. A saved value
+      the store no longer accepts stays in the list, so a save does not drop it. The input renders only the
+      select, because Craft 5's layout element shows the label and instructions. `tests/integration/TemplatesTest.php`
+      covers TS-10 #1–#3, BR-14 per item, TN-15 and TN-16. PricingTest's recalculation test now has TS-10 #4's
+      20 lines. User groups live in project config, which outlasts a test, so `createUserInGroup()` makes each
+      handle unique.
 - [ ] **2.1 Bundles 3** — test the layout element and the basket with Bundles 3 installed. Rules: BR-2, BR-17
       · Verify: TS-6 (bundle leg)
 - [ ] **2.2 Digital Products and Events** — the same for both, and the uninstalled case. Rules: BR-2, BR-17 · Verify: TS-6

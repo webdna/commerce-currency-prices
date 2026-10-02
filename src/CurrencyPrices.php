@@ -7,19 +7,23 @@
 namespace webdna\commerce\currencyprices;
 
 use Craft;
+use craft\base\conditions\BaseCondition;
 use craft\base\Element;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\commerce\base\Purchasable;
+use craft\commerce\elements\conditions\orders\OrderCondition;
 use craft\commerce\elements\Order;
 use craft\commerce\models\LineItem;
 use craft\commerce\services\LineItems;
 use craft\commerce\services\Purchasables as CommercePurchasables;
 use craft\events\PluginEvent;
 use craft\events\RegisterComponentTypesEvent;
+use craft\events\RegisterConditionRulesEvent;
 use craft\models\FieldLayout;
 use craft\services\Fields;
 use craft\services\Plugins;
+use webdna\commerce\currencyprices\elements\conditions\PaymentCurrencyConditionRule;
 use webdna\commerce\currencyprices\fields\CurrencyField;
 use webdna\commerce\currencyprices\services\Prices;
 use webdna\commerce\currencyprices\services\Pricing;
@@ -75,6 +79,7 @@ class CurrencyPrices extends Plugin
         $this->registerFieldTypes();
         $this->registerPurchasableEditing();
         $this->registerPricing();
+        $this->registerConditionRules();
     }
 
     /**
@@ -151,6 +156,21 @@ class CurrencyPrices extends Plugin
             Event::on($class, Model::EVENT_DEFINE_BEHAVIORS, [$pricing, 'defineOrderBehaviors']);
             Event::on($class, Model::EVENT_DEFINE_FIELDS, [$pricing, 'defineCurrencyFields']);
         }
+    }
+
+    /**
+     * The Payment Currency rule on Commerce's order condition (BR-12). Its discount, shipping method and
+     * shipping rule conditions extend it, so they all offer the rule.
+     */
+    private function registerConditionRules(): void
+    {
+        Event::on(
+            OrderCondition::class,
+            BaseCondition::EVENT_REGISTER_CONDITION_RULES,
+            static function(RegisterConditionRulesEvent $event): void {
+                $event->conditionRules[] = PaymentCurrencyConditionRule::class;
+            }
+        );
     }
 
     /**

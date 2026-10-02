@@ -3,6 +3,7 @@
 namespace webdna\commerce\currencyprices\tests\Support;
 
 use Craft;
+use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
 use craft\commerce\models\PaymentCurrency;
@@ -11,6 +12,8 @@ use craft\commerce\models\ProductTypeSite;
 use craft\commerce\models\Store;
 use craft\commerce\Plugin as Commerce;
 use craft\commerce\services\PaymentCurrencies;
+use craft\elements\User;
+use webdna\commerce\currencyprices\CurrencyPrices;
 
 /**
  * The integration tests' Commerce data: a GBP primary store with USD and EUR payment currencies, as in
@@ -100,5 +103,43 @@ trait CommerceFixtures
         $this->assertTrue(Craft::$app->getElements()->saveElement($variant), implode(', ', $variant->getFirstErrors()));
 
         return $variant;
+    }
+
+    /**
+     * @param array<string, float|int> $prices
+     */
+    private function createPricedVariant(float $basePrice, array $prices): Variant
+    {
+        $variant = $this->createVariant();
+        $variant->basePrice = $basePrice;
+        $variant->promotable = true;
+        $this->assertTrue(Craft::$app->getElements()->saveElement($variant), implode(', ', $variant->getFirstErrors()));
+        CurrencyPrices::getInstance()->getPrices()->savePrices($variant->id, $this->store->id, $prices);
+
+        return $variant;
+    }
+
+    /**
+     * A saved cart with the payment currency set as `commerce/cart/update-cart` sets it.
+     */
+    private function createCart(string $paymentCurrency, ?User $customer = null): Order
+    {
+        $order = new Order(['storeId' => $this->store->id, 'number' => Commerce::getInstance()->getCarts()->generateCartNumber()]);
+        if ($customer !== null) {
+            $order->setCustomer($customer);
+        } else {
+            $order->setEmail('guest-' . uniqid() . '@example.com');
+        }
+        $order->paymentCurrency = $paymentCurrency;
+        $this->assertTrue(Craft::$app->getElements()->saveElement($order), implode(', ', $order->getFirstErrors()));
+
+        return $order;
+    }
+
+    private function addToCart(Order $order, Variant $variant, int $qty = 1): void
+    {
+        $lineItem = Commerce::getInstance()->getLineItems()->create($order, ['purchasableId' => $variant->id, 'qty' => $qty]);
+        $order->addLineItem($lineItem);
+        $this->assertTrue(Craft::$app->getElements()->saveElement($order), implode(', ', $order->getFirstErrors()));
     }
 }

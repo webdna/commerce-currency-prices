@@ -452,10 +452,25 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
       `duplicateOf` set, so one rule copies rows (BR-5). A posted currency the store no longer accepts is ignored
       (TN-3). A product draft shares its variants until one is edited. `tests/integration/CurrencyPricesFieldTest.php`
       replays the CP's copy-on-write and `changedattributes` row. craft5's store is **USD**, not GBP, so it has
-      EUR + GBP as its extra currencies. B5 #3 and #5 pass. B5 #6 (the CP render over curl) was not run because
-      Docker hung. It is the first step of 1.3.
-- [ ] **1.3 Line pricing, order currency, availability, event** — `events/DefineCurrencyPriceEvent.php`,
+      EUR + GBP as its extra currencies. B5 #3 and #5 pass. B5 #6 passed at the start of 1.3: 2 inputs, EUR and
+      GBP. It found that a real `plugin/install` added nothing to the layouts: Craft runs the install before it
+      enables the plugin, and a layout tab silently drops an element whose plugin is not enabled. The plugin's
+      `afterInstall()` now adds it on Craft's after-install event. Uninstall still removes it in the migration.
+- [x] **1.3 Line pricing, order currency, availability, event** — `events/DefineCurrencyPriceEvent.php`,
       handlers in `CurrencyPrices.php` or `services/Pricing.php`. Rules: BR-7–BR-11 · Verify: TS-2, TS-3, TS-4, TN-4, TN-5, TN-7, TN-8, TN-13
+      — built: `services/Pricing` (`getPricing()`) holds every handler. The ratio uses the line's own price and
+      promotional price after Commerce populates it, so a discount that ignores promotions also drops the
+      currency promotional price. `Pricing::definePrices()` raises the event and applies the clamp (TN-13) and
+      the promotional rule (TN-8); 1.5's filters reuse it. The order's currency is set on the order's
+      before-save and before its lines are refreshed. A payment currency the store lacks is reset to the
+      store currency first (TN-4), so its lines are not removed. Commerce formats every `…AsCurrency` amount in
+      the store currency, so `behaviors/OrderCurrencyBehavior` formats an order's and its lines' amounts, and
+      their `toArray()`, in the order's currency (TS-2 #2). The add-to-cart refusal is Commerce's line error
+      "The item is not enabled for sale." A recalculation reads the basket's prices in one query (BR-14).
+      `tests/integration/PricingTest.php` sets the payment currency the way `commerce/cart/update-cart` does
+      rather than over HTTP. It pays with the Dummy gateway at a USD rate of 1.25, so any conversion would show.
+      Commerce memoises a purchasable by id whoever the customer is (`Purchasables::getPurchasableById()`), so
+      the test resets that service between customers. In one real request there is one customer.
 - [ ] **1.4 Payment currency condition** — `elements/conditions/PaymentCurrencyConditionRule.php`.
       Rules: BR-12, BR-13 · Verify: TS-5
 - [ ] **1.5 Templates and field** — `twigextensions/CurrencyPricesTwigExtension.php`, `fields/CurrencyField.php`
@@ -556,8 +571,10 @@ ddev exec php craft plugin/install commerce-currency-prices && ddev exec php cra
 # expect: "*** installed …successfully", "*** uninstalled …successfully", "*** installed …successfully"
 
 # 6. Store-only notice and inputs render (craft5, impersonation cookie jar)
-curl -s -b jar -c jar https://craft5.ddev.site/admin/commerce/products/<type>/<id> | grep -c 'data-currency-price='
-# expect: the number of extra payment currencies (0 with the data-currency-prices-none notice instead)
+# A variant has no edit page of its own in Craft 5: its layout renders in a slideout, fetched like this
+curl -s -b jar -c jar -H 'Accept: application/json' -H 'X-Requested-With: XMLHttpRequest' -H 'X-Craft-Container-Id: slideout1' \
+  'https://craft5.ddev.site/admin/actions/elements/edit?elementId=<variant id>' | grep -o 'data-currency-price=\\"[A-Z]*' | sort -u
+# expect: one line per extra payment currency (none, and data-currency-prices-none in the page, when there are none)
 ```
 
 | AC | Checked by |
@@ -585,3 +602,5 @@ curl -s -b jar -c jar https://craft5.ddev.site/admin/commerce/products/<type>/<i
 | 2026-10-01 | 0.1 | Sam approved changing craft5 for task 1.2. Appendix A #3 is closed and moved into the test data | Claude |
 | 2026-10-01 | 0.1 | Task 0.2 built. B2 #1 and #2 now point at the 3.x source in `734fa63`, since 0.2 replaced both files | Claude |
 | 2026-10-01 | 0.1 | Task 1.2 built. craft5's store turned out to be in USD, so EUR and GBP were added as its extra currencies instead of USD and EUR | Claude |
+| 2026-10-02 | 0.1 | B5 #6 run. It found the install bug noted under 1.2. The command now fetches the variant slideout, since a variant has no edit page of its own | Claude |
+| 2026-10-02 | 0.1 | Task 1.3 built. Added `OrderCurrencyBehavior`, because Commerce formats amounts in the store currency whatever the order's currency is | Claude |

@@ -76,7 +76,7 @@ class Pricing extends Component
         }
 
         // Without a price the item is unavailable (BR-11): Commerce refuses or removes the line.
-        $currencyPrice = $this->getOrderPrice($order, (int)$purchasable->id, $currency);
+        $currencyPrice = $this->getOrderPrice($order, $purchasable, $currency);
         if ($currencyPrice === null) {
             return;
         }
@@ -152,7 +152,7 @@ class Pricing extends Component
         }
 
         $currency = $this->getOrderCurrency($event->order);
-        if ($currency !== null && $this->getOrderPrice($event->order, (int)$event->purchasable->id, $currency) === null) {
+        if ($currency !== null && $this->getOrderPrice($event->order, $event->purchasable, $currency) === null) {
             $event->isAvailable = false;
         }
     }
@@ -185,7 +185,16 @@ class Pricing extends Component
             return;
         }
 
-        $ids = array_values(array_filter(array_map(fn(LineItem $lineItem) => (int)$lineItem->purchasableId, $event->lineItems)));
+        $purchasables = CurrencyPrices::getInstance()->getPurchasables();
+        $ids = [];
+        foreach ($event->lineItems as $lineItem) {
+            $purchasable = $lineItem->getPurchasable();
+            if ($purchasable instanceof Purchasable) {
+                $ids[] = $purchasables->getPriceOwnerId($purchasable);
+            }
+        }
+        $ids = array_values(array_unique(array_filter($ids)));
+
         $this->_orderPrices[$this->_orderKey($order, $currency)] = [
             'ids' => $ids,
             'prices' => CurrencyPrices::getInstance()->getPrices()->getPricesForPurchasables($ids, (int)$order->storeId, $currency),
@@ -265,16 +274,19 @@ class Pricing extends Component
 
     /**
      * An item's price in the order's store and the given currency, from the order's one query while its
-     * lines are refreshed, or else from the item's own prices (read once per request).
+     * lines are refreshed, or else from the item's own prices (read once per request). An Events ticket
+     * is priced from its ticket type.
      */
-    private function getOrderPrice(Order $order, int $purchasableId, string $currency): ?float
+    private function getOrderPrice(Order $order, Purchasable $purchasable, string $currency): ?float
     {
+        $ownerId = CurrencyPrices::getInstance()->getPurchasables()->getPriceOwnerId($purchasable);
+
         $orderPrices = $this->_orderPrices[$this->_orderKey($order, $currency)] ?? null;
-        if ($orderPrices !== null && in_array($purchasableId, $orderPrices['ids'], true)) {
-            return $orderPrices['prices'][$purchasableId] ?? null;
+        if ($orderPrices !== null && in_array($ownerId, $orderPrices['ids'], true)) {
+            return $orderPrices['prices'][$ownerId] ?? null;
         }
 
-        return CurrencyPrices::getInstance()->getPrices()->getPrice($purchasableId, (int)$order->storeId, $currency);
+        return CurrencyPrices::getInstance()->getPrices()->getPrice($ownerId, (int)$order->storeId, $currency);
     }
 
     /**

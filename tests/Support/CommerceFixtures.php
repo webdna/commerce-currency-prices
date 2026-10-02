@@ -3,6 +3,7 @@
 namespace webdna\commerce\currencyprices\tests\Support;
 
 use Craft;
+use craft\commerce\base\Purchasable;
 use craft\commerce\elements\conditions\customers\CatalogPricingRuleCustomerCondition;
 use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
@@ -141,7 +142,7 @@ trait CommerceFixtures
         return $order;
     }
 
-    private function addToCart(Order $order, Variant $variant, int $qty = 1): void
+    private function addToCart(Order $order, Purchasable $variant, int $qty = 1): void
     {
         $lineItem = Commerce::getInstance()->getLineItems()->create($order, ['purchasableId' => $variant->id, 'qty' => $qty]);
         $order->addLineItem($lineItem);

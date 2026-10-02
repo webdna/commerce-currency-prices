@@ -1,0 +1,24 @@
+# The other purchasables (task 2.2): the integration tier with Digital Products and Events installed as
+# well. The `integration` suite runs without them, which is the uninstalled case (TS-6 #3, BR-17).
+actor: IntegrationTester
+suite_namespace: webdna\commerce\currencyprices\tests\integrations
+modules:
+  enabled:
+    - Asserts
+    - \craft\test\Craft
+  config:
+    \craft\test\Craft:
+      # Both install after Commerce: Events refuses to install without it.
+      plugins:
+        commerce:
+          class: '\craft\commerce\Plugin'
+          handle: commerce
+        commerce-currency-prices:
+          class: '\webdna\commerce\currencyprices\CurrencyPrices'
+          handle: commerce-currency-prices
+        digital-products:
+          class: '\craft\digitalproducts\Plugin'
+          handle: digital-products
+        events:
+          class: '\verbb\events\Events'
+          handle: events

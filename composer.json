@@ -29,9 +29,11 @@
     "codeception/codeception": "^5.2",
     "codeception/module-asserts": "^3.0",
     "codeception/module-yii2": "^1.1",
+    "craftcms/digital-products": "^4.1",
     "craftcms/ecs": "dev-main",
     "craftcms/phpstan": "dev-main",
     "phpstan/phpstan": "^2.1",
+    "verbb/events": "^3.1",
     "vlucas/phpdotenv": "^5.4"
   },
   "autoload": {

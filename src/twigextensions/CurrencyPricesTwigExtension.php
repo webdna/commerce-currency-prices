@@ -87,7 +87,7 @@ class CurrencyPricesTwigExtension extends AbstractExtension
         }
 
         $plugin = CurrencyPrices::getInstance();
-        $currencyPrice = $plugin->getPrices()->getPrice((int)$purchasable->id, $storeId, $currency);
+        $currencyPrice = $plugin->getPrices()->getPrice($plugin->getPurchasables()->getPriceOwnerId($purchasable), $storeId, $currency);
         if ($currencyPrice === null) {
             return null;
         }

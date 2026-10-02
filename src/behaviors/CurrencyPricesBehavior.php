@@ -6,7 +6,7 @@
 
 namespace webdna\commerce\currencyprices\behaviors;
 
-use craft\commerce\base\Purchasable;
+use craft\base\ElementInterface;
 use yii\base\Behavior;
 
 /**
@@ -16,7 +16,7 @@ use yii\base\Behavior;
  * ISO ⇒ price (a number, a blank, or the money input's `['value' => …, 'locale' => …]`) to write
  * those currencies; a blank deletes one (BR-3). Currencies left out are untouched.
  *
- * @property Purchasable $owner
+ * @property ElementInterface $owner A purchasable, or an Events ticket type
  * @author webdna
  * @since 4.0.0
  */

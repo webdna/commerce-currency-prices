@@ -376,7 +376,7 @@ when he reviews the spec.
 | TN-6 | Two stores, each with USD | Each store's USD price is separate. Editing in store A's site leaves store B's untouched | BR-1, BR-6 |
 | TN-7 | A store-currency basket | Behaves exactly as without the plugin, with no snapshot key | BR-7, BR-9 |
 | TN-8 | Promotional price above the price after the ratio | No promotional price (Commerce's rule) | BR-7 |
-| TN-9 | The migration runs before Commerce's store tables exist | Refuses with a message. Nothing is written | BR-18 |
+| TN-9 | The migration runs before Commerce's store tables exist | Writes no prices, says why, and runs again on the next `craft up` (within one `craft up`, it copies once Commerce has finished) | BR-18 |
 | TN-10 | The legacy report on a fresh 4.0 install | "No Craft 4 data found." | BR-20 |
 | TN-11 | An import where a field holds text | Counted as failed, with the item id, and the rest continue | BR-21 |
 | TN-12 | An editor without permission to edit the product | Cannot reach the inputs (Craft refuses the editor) | BR-22 |
@@ -530,8 +530,32 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
       downgrade. Two findings for 3.2 and 3.3: 3.x stores discount `purchaseTotal` negated, like the two discount
       amounts; and the first `craft up` after a schema change exits 1 on stale project-config YAML (Craft's own
       behaviour, also seen for Craft and Commerce), then passes when run again.
-- [ ] **3.2 Upgrade migration** — `migrations/m261001_000000_currency_prices_4.php`. Rules: BR-18, BR-19
+- [x] **3.2 Upgrade migration** — `migrations/m261001_000000_currency_prices_4.php`. Rules: BR-18, BR-19
       · Verify: TS-8 steps 3–4 and 6, TN-9
+      — built 2 Oct 2026; schemaVersion 4.0.0. **`craft up` runs this before Commerce's migrations**: Craft
+      held the fixture's plugins as blitz, commerce-currency-prices, commerce. So the migration drops any 3.x
+      `iso` foreign keys first (on 3.0.0-beta.5 that lets Commerce's m230920 pass in the same run, no 3.0.x step
+      needed), then copies once Commerce has finished. The copy runs from a project-config handler on
+      `plugins.commerce.schemaVersion`, which Craft writes after Commerce's track in the console and the CP updater.
+      Refusing outright was tried first: Craft restores its backup and the next `craft up` fails the same way.
+      **TN-9 as built:** run on its own before Commerce (`migrate/up --plugin=…`), it writes nothing and takes itself
+      out of the migration history at the end of the request, with a message, so `craft up` runs it again; it
+      returns false only if Commerce is up to date but has no `commerce_stores` table. Commerce 4 already has that
+      table, so the pending-Commerce check is what does the work. The copy skips the store-currency column (3.x kept
+      the base price there), currencies the primary store does not accept, deleted elements and rows already copied,
+      counts negatives as invalid, and prints copied / skipped (by reason) / invalid. `Install::createPriceTable()` is
+      shared, since a 3.x site never ran the install. The layout element is added where the upgrade is made (the
+      plugin's YAML schemaVersion is below 4.0.0 at the start), and other environments get it with the YAML.
+      `addToVariantLayouts()` now falls back to the end of the first tab, or a new Content tab: Commerce defines its
+      variant fields only for CP requests, so on the console the fixture's `clothing` type (no saved variant layout)
+      had an empty one. Fixture evidence (Craft 5.11.4, Commerce 5.7.5): from `cp3-fixture-3.0.0-beta.6`, 163
+      migrations, "copied: 6, skipped: 3 (USD), invalid: 0", element on 1 layout. The CP slideouts of variants 4/6/8
+      show EUR 20/21/22 and GBP 10/11/12 beside base prices 62.89/33.36/171.9 (TS-8 #4). The old tables are intact
+      (2/2/2 rows, 3 price rows) with 0 iso keys. A second `craft up` exits 0, "No new migrations found" (TS-8 #6), once
+      the YAML is written: the first run exits 1 on Craft's stale-YAML check. From `cp3-fixture-3.0.0-beta.5` (keys
+      present, YAML already upgraded, so it ran like a deploy): exit 0, keys dropped before m230920, same 6 prices,
+      layout from the YAML, then "No pending project config YAML changes". Logs: craft4-commerce `storage/cp4-*.log`.
+      Snapshot `cp4-upgraded-from-3.0.0-beta.6` (composer in `storage/cp4-upgraded-composer`) is the starting point for 3.3.
 - [ ] **3.3 Legacy report** — `console/controllers/LegacyController.php`. Rules: BR-20 · Verify: TS-8 step 5, TN-10
 - [x] **4.1 Import** — `console/controllers/ImportController.php`. Rules: BR-21 · Verify: TS-9, TN-11
       — built before 3.x, which is still blocked on A#1/#2 (2 Oct 2026). It walks every purchasable type

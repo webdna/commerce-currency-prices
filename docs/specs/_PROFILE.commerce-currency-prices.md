@@ -141,8 +141,17 @@ grep -rnE 'getPrimaryPaymentCurrency|->salePrice\b|getSalesForPurchasable|record
   needs, so a 3.x site's Commerce upgrade fails there. **Proven 2 Oct 2026** on the Commerce 4 fixture
   (MariaDB 10.11, error 1553). 3.0.0-beta.6 (`3.x` branch) drops the keys, and the upgrade then passes.
 - **Commerce's upgrade puts every existing record in the first store**; ids of variants, discounts and
-  shipping rules survive. The order `craft up` runs Commerce's and this plugin's migrations in is not
-  verified — make the 4.0 migration refuse, with a message, if `commerce_stores` does not exist yet.
+  shipping rules survive.
+- **`craft up` runs this plugin's migrations BEFORE Commerce's** (verified 2 Oct 2026 on the fixture: Craft
+  holds the plugins as blitz, commerce-currency-prices, commerce, despite the DB's handle order). Anything
+  that needs Commerce 5's schema must wait for Commerce: 4.0's migration copies from a project-config handler
+  on `plugins.commerce.schemaVersion`. A migration that returns false makes Craft restore its backup, so
+  refusing cannot help an upgrade. **Commerce 4 already has a `commerce_stores` table**, so test whether
+  Commerce has a pending update instead (`Plugins::isPluginUpdatePending()`).
+- **Commerce defines variant native fields (price, SKU…) only on CP requests.** On the console a product
+  type with no saved variant layout has an empty one, with no price element to anchor to.
+- **The first `craft up` after an upgrade exits 1 on stale project-config YAML.** Run
+  `craft project-config/write`, then `craft up` again.
 
 ### The 3.x code — defects to delete, not to port
 

@@ -305,44 +305,6 @@ class PricingTest extends Unit
         $this->assertEqualsCanonicalizing([120.0, 130.0, 140.0], array_map(fn(LineItem $lineItem) => $lineItem->getPrice(), $order->getLineItems()));
     }
 
-    /**
-     * @param array<string, float|int> $prices
-     */
-    private function createPricedVariant(float $basePrice, array $prices): Variant
-    {
-        $variant = $this->createVariant();
-        $variant->basePrice = $basePrice;
-        $variant->promotable = true;
-        $this->assertTrue(Craft::$app->getElements()->saveElement($variant), implode(', ', $variant->getFirstErrors()));
-        $this->prices->savePrices($variant->id, $this->store->id, $prices);
-
-        return $variant;
-    }
-
-    /**
-     * A saved cart with the payment currency set as `commerce/cart/update-cart` sets it.
-     */
-    private function createCart(string $paymentCurrency, ?User $customer = null): Order
-    {
-        $order = new Order(['storeId' => $this->store->id, 'number' => Commerce::getInstance()->getCarts()->generateCartNumber()]);
-        if ($customer !== null) {
-            $order->setCustomer($customer);
-        } else {
-            $order->setEmail('guest-' . uniqid() . '@example.com');
-        }
-        $order->paymentCurrency = $paymentCurrency;
-        $this->assertTrue(Craft::$app->getElements()->saveElement($order), implode(', ', $order->getFirstErrors()));
-
-        return $order;
-    }
-
-    private function addToCart(Order $order, Variant $variant): void
-    {
-        $lineItem = Commerce::getInstance()->getLineItems()->create($order, ['purchasableId' => $variant->id]);
-        $order->addLineItem($lineItem);
-        $this->assertTrue(Craft::$app->getElements()->saveElement($order), implode(', ', $order->getFirstErrors()));
-    }
-
     private function lineInCart(Variant $variant, string $paymentCurrency, ?User $customer): LineItem
     {
         // Commerce memoises a purchasable by id whoever the customer is.

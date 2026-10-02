@@ -28,6 +28,7 @@ use webdna\commerce\currencyprices\fields\CurrencyField;
 use webdna\commerce\currencyprices\services\Prices;
 use webdna\commerce\currencyprices\services\Pricing;
 use webdna\commerce\currencyprices\services\Purchasables;
+use webdna\commerce\currencyprices\twigextensions\CurrencyPricesTwigExtension;
 use yii\base\Event;
 
 /**
@@ -80,6 +81,8 @@ class CurrencyPrices extends Plugin
         $this->registerPurchasableEditing();
         $this->registerPricing();
         $this->registerConditionRules();
+
+        Craft::$app->getView()->registerTwigExtension(new CurrencyPricesTwigExtension());
     }
 
     /**

@@ -277,7 +277,10 @@ class Pricing extends Component
         return CurrencyPrices::getInstance()->getPrices()->getPrice($purchasableId, (int)$order->storeId, $currency);
     }
 
-    private function ratio(float $price, float $basePrice): float
+    /**
+     * The ratio Commerce's price bears to the base price, 1 when there is no base price (BR-7).
+     */
+    public function ratio(float $price, float $basePrice): float
     {
         return $basePrice > 0 ? $price / $basePrice : 1.0;
     }

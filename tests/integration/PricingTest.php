@@ -4,19 +4,14 @@ namespace webdna\commerce\currencyprices\tests\integration;
 
 use Codeception\Test\Unit;
 use Craft;
-use craft\commerce\elements\conditions\customers\CatalogPricingRuleCustomerCondition;
 use craft\commerce\elements\Order;
 use craft\commerce\elements\Variant;
 use craft\commerce\gateways\Dummy;
-use craft\commerce\models\CatalogPricingRule;
 use craft\commerce\models\LineItem;
 use craft\commerce\models\Sale;
 use craft\commerce\Plugin as Commerce;
-use craft\commerce\records\CatalogPricingRule as CatalogPricingRuleRecord;
 use craft\commerce\services\Purchasables as CommercePurchasables;
-use craft\elements\conditions\users\GroupConditionRule;
 use craft\elements\User;
-use craft\models\UserGroup;
 use webdna\commerce\currencyprices\CurrencyPrices;
 use webdna\commerce\currencyprices\events\DefineCurrencyPriceEvent;
 use webdna\commerce\currencyprices\services\Prices;
@@ -144,20 +139,7 @@ class PricingTest extends Unit
         $trade = $this->createUserInGroup('trade');
 
         // TS-4 #1–#2: 10% off for the trade group.
-        $rule = new CatalogPricingRule([
-            'name' => 'Trade 10%',
-            'storeId' => $this->store->id,
-            'apply' => CatalogPricingRuleRecord::APPLY_BY_PERCENT,
-            'applyAmount' => -0.1,
-            'applyPriceType' => CatalogPricingRuleRecord::APPLY_PRICE_TYPE_PRICE,
-        ]);
-        $condition = new CatalogPricingRuleCustomerCondition();
-        $groupRule = new GroupConditionRule();
-        $groupRule->setValues([$trade['group']->uid]);
-        $condition->addConditionRule($groupRule);
-        $rule->setCustomerCondition($condition);
-        $this->assertTrue(Commerce::getInstance()->getCatalogPricingRules()->saveCatalogPricingRule($rule), implode(', ', $rule->getFirstErrors()));
-        Commerce::getInstance()->getCatalogPricing()->generateCatalogPrices();
+        $this->createCatalogPricingRule(10, $trade['group']);
 
         $this->assertSame(108.0, $this->priceInCart($variant, 'USD', $trade['user']));
         $this->assertSame(90.0, $this->priceInCart($variant, 'GBP', $trade['user']));
@@ -291,18 +273,19 @@ class PricingTest extends Unit
 
     public function testARecalculationReadsTheBasketsPricesInOneQuery(): void
     {
-        // BR-14
+        // BR-14, TS-10 #4
         $order = $this->createCart('USD');
-        foreach ([120, 130, 140] as $price) {
+        $prices = array_map('floatval', range(101, 120));
+        foreach ($prices as $price) {
             $this->addToCart($order, $this->createPricedVariant(100, ['USD' => $price]));
         }
-        $this->assertCount(3, $order->getLineItems());
+        $this->assertCount(20, $order->getLineItems());
         CurrencyPrices::getInstance()->set('prices', ['class' => Prices::class]);
 
         $queries = CountingCommand::count(fn() => $order->recalculate(), 'currencyprices_prices');
 
         $this->assertSame(1, $queries);
-        $this->assertEqualsCanonicalizing([120.0, 130.0, 140.0], array_map(fn(LineItem $lineItem) => $lineItem->getPrice(), $order->getLineItems()));
+        $this->assertEqualsCanonicalizing($prices, array_map(fn(LineItem $lineItem) => $lineItem->getPrice(), $order->getLineItems()));
     }
 
     private function lineInCart(Variant $variant, string $paymentCurrency, ?User $customer): LineItem
@@ -318,21 +301,6 @@ class PricingTest extends Unit
     private function priceInCart(Variant $variant, string $paymentCurrency, ?User $customer): float
     {
         return $this->lineInCart($variant, $paymentCurrency, $customer)->getPrice();
-    }
-
-    /**
-     * @return array{user: User, group: UserGroup}
-     */
-    private function createUserInGroup(string $handle): array
-    {
-        $group = new UserGroup(['name' => ucfirst($handle), 'handle' => $handle]);
-        $this->assertTrue(Craft::$app->getUserGroups()->saveGroup($group));
-
-        $user = new User(['username' => $handle . uniqid(), 'email' => $handle . uniqid() . '@example.com']);
-        $this->assertTrue(Craft::$app->getElements()->saveElement($user, false));
-        Craft::$app->getUsers()->assignUserToGroups($user->id, [$group->id]);
-
-        return ['user' => $user, 'group' => $group];
     }
 
     private function payWithDummyGateway(Order $order): \craft\commerce\models\Transaction

@@ -6,13 +6,16 @@
 
 namespace webdna\commerce\currencyprices;
 
+use Craft;
 use craft\base\Element;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\commerce\base\Purchasable;
+use craft\events\PluginEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\models\FieldLayout;
 use craft\services\Fields;
+use craft\services\Plugins;
 use webdna\commerce\currencyprices\fields\CurrencyField;
 use webdna\commerce\currencyprices\services\Prices;
 use webdna\commerce\currencyprices\services\Purchasables;
@@ -57,6 +60,31 @@ class CurrencyPrices extends Plugin
 
         $this->registerFieldTypes();
         $this->registerPurchasableEditing();
+    }
+
+    /**
+     * Adds the Currency prices element below the price on every variant layout (BR-2). Craft enables the
+     * plugin only after this hook, and a layout tab silently drops an element whose plugin is not enabled
+     * (`FieldLayoutTab::setElements()`), so it waits for Craft's after-install event. When the install
+     * arrives in project config, the layouts it changed arrive with it.
+     */
+    protected function afterInstall(): void
+    {
+        parent::afterInstall();
+
+        if (Craft::$app->getProjectConfig()->getIsApplyingExternalChanges()) {
+            return;
+        }
+
+        $plugins = Craft::$app->getPlugins();
+        $handler = function(PluginEvent $event) use ($plugins, &$handler): void {
+            if ($event->plugin->handle !== $this->handle) {
+                return;
+            }
+            $plugins->off(Plugins::EVENT_AFTER_INSTALL_PLUGIN, $handler);
+            $this->getPurchasables()->addToVariantLayouts();
+        };
+        $plugins->on(Plugins::EVENT_AFTER_INSTALL_PLUGIN, $handler);
     }
 
     public function getPrices(): Prices

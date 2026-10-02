@@ -519,7 +519,16 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
 - [ ] **3.2 Upgrade migration** — `migrations/m261001_000000_currency_prices_4.php`. Rules: BR-18, BR-19
       · Verify: TS-8 steps 3–4 and 6, TN-9
 - [ ] **3.3 Legacy report** — `console/controllers/LegacyController.php`. Rules: BR-20 · Verify: TS-8 step 5, TN-10
-- [ ] **4.1 Import** — `console/controllers/ImportController.php`. Rules: BR-21 · Verify: TS-9, TN-11
+- [x] **4.1 Import** — `console/controllers/ImportController.php`. Rules: BR-21 · Verify: TS-9, TN-11
+      — built before 3.x, which is still blocked on A#1/#2 (2 Oct 2026). It walks every purchasable type
+      Commerce registers, in every site of the store, and prices each priced element once (an Events ticket
+      through its ticket type, read from the ticket type's field). An element whose layout lacks the field,
+      and whose owner's does too, counts as skipped as empty. "Unchanged" compares to 4 places, the column's
+      scale. A missing option, an unknown store or field, the store currency, or a currency the store does
+      not accept exits 64 before anything is read. Text, a negative, or anything else that is not a number
+      fails with the item id (TN-11). Any failure makes the exit code 1. The dry run prints the same counts,
+      then a line saying nothing was written. `ImportTest` (9 tests) covers TS-9 #1–#4, overwrite,
+      `--include-zero`, TN-11 and the stops. The ticket-type path has no test of its own.
 - [ ] **5.1 Release** — README, CHANGELOG `## Unreleased`, Store metadata, regression checks, B4.
       Rules: BR-24 · Verify: B5 all, TN-16, the regression table
 

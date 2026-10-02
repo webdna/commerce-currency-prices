@@ -3,16 +3,21 @@
 namespace webdna\commerce\currencyprices\tests\Support;
 
 use Craft;
+use craft\commerce\elements\conditions\customers\CatalogPricingRuleCustomerCondition;
 use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
+use craft\commerce\models\CatalogPricingRule;
 use craft\commerce\models\PaymentCurrency;
 use craft\commerce\models\ProductType;
 use craft\commerce\models\ProductTypeSite;
 use craft\commerce\models\Store;
 use craft\commerce\Plugin as Commerce;
+use craft\commerce\records\CatalogPricingRule as CatalogPricingRuleRecord;
 use craft\commerce\services\PaymentCurrencies;
+use craft\elements\conditions\users\GroupConditionRule;
 use craft\elements\User;
+use craft\models\UserGroup;
 use webdna\commerce\currencyprices\CurrencyPrices;
 
 /**
@@ -141,5 +146,48 @@ trait CommerceFixtures
         $lineItem = Commerce::getInstance()->getLineItems()->create($order, ['purchasableId' => $variant->id, 'qty' => $qty]);
         $order->addLineItem($lineItem);
         $this->assertTrue(Craft::$app->getElements()->saveElement($order), implode(', ', $order->getFirstErrors()));
+    }
+
+    /**
+     * @return array{user: User, group: UserGroup}
+     */
+    private function createUserInGroup(string $handle): array
+    {
+        // Groups live in project config, which outlasts a test, so each handle is new.
+        $handle .= uniqid();
+        $group = new UserGroup(['name' => ucfirst($handle), 'handle' => $handle]);
+        $this->assertTrue(Craft::$app->getUserGroups()->saveGroup($group), implode(', ', $group->getFirstErrors()));
+
+        $user = new User(['username' => $handle . uniqid(), 'email' => $handle . uniqid() . '@example.com']);
+        $this->assertTrue(Craft::$app->getElements()->saveElement($user, false));
+        Craft::$app->getUsers()->assignUserToGroups($user->id, [$group->id]);
+
+        return ['user' => $user, 'group' => $group];
+    }
+
+    /**
+     * A catalog pricing rule taking a percentage off every price in the store, for one customer group or
+     * for everyone, with the catalog prices generated.
+     */
+    private function createCatalogPricingRule(float $percentOff, ?UserGroup $group = null): CatalogPricingRule
+    {
+        $rule = new CatalogPricingRule([
+            'name' => $percentOff . '% off',
+            'storeId' => $this->store->id,
+            'apply' => CatalogPricingRuleRecord::APPLY_BY_PERCENT,
+            'applyAmount' => -$percentOff / 100,
+            'applyPriceType' => CatalogPricingRuleRecord::APPLY_PRICE_TYPE_PRICE,
+        ]);
+        if ($group !== null) {
+            $condition = new CatalogPricingRuleCustomerCondition();
+            $groupRule = new GroupConditionRule();
+            $groupRule->setValues([$group->uid]);
+            $condition->addConditionRule($groupRule);
+            $rule->setCustomerCondition($condition);
+        }
+        $this->assertTrue(Commerce::getInstance()->getCatalogPricingRules()->saveCatalogPricingRule($rule), implode(', ', $rule->getFirstErrors()));
+        Commerce::getInstance()->getCatalogPricing()->generateCatalogPrices();
+
+        return $rule;
     }
 }

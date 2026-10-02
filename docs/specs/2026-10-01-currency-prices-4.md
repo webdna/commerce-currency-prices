@@ -556,7 +556,20 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
       present, YAML already upgraded, so it ran like a deploy): exit 0, keys dropped before m230920, same 6 prices,
       layout from the YAML, then "No pending project config YAML changes". Logs: craft4-commerce `storage/cp4-*.log`.
       Snapshot `cp4-upgraded-from-3.0.0-beta.6` (composer in `storage/cp4-upgraded-composer`) is the starting point for 3.3.
-- [ ] **3.3 Legacy report** — `console/controllers/LegacyController.php`. Rules: BR-20 · Verify: TS-8 step 5, TN-10
+- [x] **3.3 Legacy report** — `console/controllers/LegacyController.php`. Rules: BR-20 · Verify: TS-8 step 5, TN-10
+      — built 2 Oct 2026. It reads the four 3.x amount tables directly and touches no Commerce service. Each
+      record appears once, with its name and its store-settings CP URL (a shipping rule's store comes through its
+      method, since Commerce 5's rules carry no `storeId`) or "deleted", followed by one line per currency listing
+      the amounts that are not zero. 3.x saved discount and Addons amounts negated, so they are flipped back. An
+      Addons discount gets its name if `addons_discounts` survives, but never a URL, because Addons has no
+      Craft 5 version. A row with no amount other than 0 is left out. When no table has an amount, the report
+      prints "No Craft 4 data found." `LegacyReportTest` (3 tests) covers this. On the fixture
+      (`cp4-upgraded-from-3.0.0-beta.6`), every baseline amount is listed with its sign flipped: discount 4
+      "Currency Prices 3.x fixture" GBP 40/4/0.8 and EUR 45/4.5/0.9, shipping rule 1 "Free Everywhere" GBP 3/1
+      and EUR 3.5/1, and category "General" on rule 1 GBP 2 and EUR 2.5, each with a
+      `…/store-management/primaryStore/…` URL (TS-8 #5). In craft5, which never had 3.x, it prints "No Craft 4
+      data found." and exits 0 (TN-10). The URLs follow Commerce's own `getCpEditUrl()` and the shipping-method
+      template's rule link. Nobody has opened them in a browser yet: Sam does that during TS-8.
 - [x] **4.1 Import** — `console/controllers/ImportController.php`. Rules: BR-21 · Verify: TS-9, TN-11
       — built before 3.x, which is still blocked on A#1/#2 (2 Oct 2026). It walks every purchasable type
       Commerce registers, in every site of the store, and prices each priced element once (an Events ticket

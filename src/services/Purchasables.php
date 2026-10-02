@@ -20,6 +20,7 @@ use craft\events\ModelEvent;
 use craft\helpers\Localization;
 use craft\helpers\StringHelper;
 use craft\models\FieldLayout;
+use craft\models\FieldLayoutTab;
 use webdna\commerce\currencyprices\behaviors\CurrencyPricesBehavior;
 use webdna\commerce\currencyprices\CurrencyPrices;
 use webdna\commerce\currencyprices\fieldlayoutelements\CurrencyPricesField;
@@ -266,19 +267,43 @@ class Purchasables extends Component
      * Adds the layout element below the price element of each variant layout that lacks one (BR-2).
      * Other purchasable types' layouts are left for an admin.
      *
+     * A layout without the price element gets it at the end of its first tab, or in a new tab if it has
+     * none. That happens on the console, where Commerce defines its variant fields only for CP requests,
+     * so a product type with no saved variant layout (common after the Commerce 4 → 5 upgrade) has an
+     * empty one. In the CP, Craft puts Commerce's mandatory fields ahead of it.
+     *
      * @return int The number of layouts changed
      */
     public function addToVariantLayouts(): int
     {
-        return $this->changeVariantLayouts(function(array $elements): ?array {
-            foreach ($elements as $i => $element) {
-                if ($element instanceof PurchasablePriceField) {
-                    array_splice($elements, $i + 1, 0, [new CurrencyPricesField(['uid' => StringHelper::UUID()])]);
-                    return $elements;
+        return $this->changeVariantLayouts(function(FieldLayout $layout): void {
+            $element = new CurrencyPricesField(['uid' => StringHelper::UUID()]);
+            $tabs = $layout->getTabs();
+
+            foreach ($tabs as $tab) {
+                $elements = $tab->getElements();
+                foreach ($elements as $i => $tabElement) {
+                    if ($tabElement instanceof PurchasablePriceField) {
+                        array_splice($elements, $i + 1, 0, [$element]);
+                        $tab->setElements($elements);
+                        return;
+                    }
                 }
             }
 
-            return null;
+            if (!empty($tabs)) {
+                $tabs[0]->setElements([...$tabs[0]->getElements(), $element]);
+                return;
+            }
+
+            $layout->setTabs([
+                new FieldLayoutTab([
+                    'layout' => $layout,
+                    'name' => Craft::t('app', 'Content'),
+                    'uid' => StringHelper::UUID(),
+                    'elements' => [$element],
+                ]),
+            ]);
         }, false);
     }
 
@@ -289,15 +314,19 @@ class Purchasables extends Component
      */
     public function removeFromVariantLayouts(): int
     {
-        return $this->changeVariantLayouts(function(array $elements): ?array {
-            $kept = array_values(array_filter($elements, fn($element) => !$element instanceof CurrencyPricesField));
-
-            return count($kept) === count($elements) ? null : $kept;
+        return $this->changeVariantLayouts(function(FieldLayout $layout): void {
+            foreach ($layout->getTabs() as $tab) {
+                $elements = $tab->getElements();
+                $kept = array_values(array_filter($elements, fn($element) => !$element instanceof CurrencyPricesField));
+                if (count($kept) !== count($elements)) {
+                    $tab->setElements($kept);
+                }
+            }
         }, true);
     }
 
     /**
-     * @param callable(array): ?array $change Given a tab's elements, returns them changed, or null for no change
+     * @param callable(FieldLayout): void $change Changes the layout
      * @param bool $whenPresent Whether to change layouts that have the element (true) or those that lack it
      */
     private function changeVariantLayouts(callable $change, bool $whenPresent): int
@@ -311,25 +340,13 @@ class Purchasables extends Component
                 continue;
             }
 
-            $layoutChanged = false;
-            foreach ($layout->getTabs() as $tab) {
-                $elements = $change($tab->getElements());
-                if ($elements !== null) {
-                    $tab->setElements($elements);
-                    $layoutChanged = true;
-                    if (!$whenPresent) {
-                        break;
-                    }
-                }
-            }
+            $change($layout);
 
             // The layout is the product type's own cached instance, so the save picks up the change.
-            if ($layoutChanged) {
-                if ($productTypes->saveProductType($productType)) {
-                    $changed++;
-                } else {
-                    Craft::warning("Could not update the variant layout of product type $productType->handle: " . implode(', ', $productType->getFirstErrors()), __METHOD__);
-                }
+            if ($productTypes->saveProductType($productType)) {
+                $changed++;
+            } else {
+                Craft::warning("Could not update the variant layout of product type $productType->handle: " . implode(', ', $productType->getFirstErrors()), __METHOD__);
             }
         }
 

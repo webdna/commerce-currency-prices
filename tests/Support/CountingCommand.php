@@ -13,11 +13,14 @@ class CountingCommand extends Command
 {
     public static int $count = 0;
 
+    private static ?string $match = null;
+
     /**
-     * The number of queries `$fn` runs.
+     * The number of queries `$fn` runs, or only those whose SQL contains `$match`.
      */
-    public static function count(callable $fn): int
+    public static function count(callable $fn, ?string $match = null): int
     {
+        self::$match = $match;
         $db = Craft::$app->getDb();
         $driver = $db->getDriverName();
         $commandMap = $db->commandMap;
@@ -35,15 +38,22 @@ class CountingCommand extends Command
 
     public function execute()
     {
-        self::$count++;
+        $this->countQuery();
 
         return parent::execute();
     }
 
     protected function queryInternal($method, $fetchMode = null)
     {
-        self::$count++;
+        $this->countQuery();
 
         return parent::queryInternal($method, $fetchMode);
+    }
+
+    private function countQuery(): void
+    {
+        if (self::$match === null || str_contains($this->getRawSql(), self::$match)) {
+            self::$count++;
+        }
     }
 }

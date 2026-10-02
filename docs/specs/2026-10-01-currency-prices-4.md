@@ -399,12 +399,12 @@ fixed as `currencyPrices.{currency,currencyPrice,ratio}`.
 
 ### Regression checks
 
-| Check | Why at risk |
-|---|---|
-| A store-currency basket prices exactly as without the plugin | BR-7 and BR-10 run on every line and order |
-| Discounts and shipping rules without the new condition behave as before | Registering a rule changes every order condition builder |
-| Commerce's own payment-currency screens still save | 3.x hooked them. 4.0 must not |
-| Heathfield's pattern: its own `EVENT_POPULATE_LINE_ITEM` handler running alongside the plugin's | Two handlers set the same line. Order matters (Appendix A assumption) |
+| Check | Why at risk | Covered by (5.1) |
+|---|---|---|
+| A store-currency basket prices exactly as without the plugin | BR-7 and BR-10 run on every line and order | `PricingTest` TN-7 test |
+| Discounts and shipping rules without the new condition behave as before | Registering a rule changes every order condition builder | `RegressionTest`: a fixed discount and a shipping rule with no condition apply as entered in GBP and USD; `PaymentCurrencyConditionTest`: a percentage with none |
+| Commerce's own payment-currency screens still save | 3.x hooked them. 4.0 must not | `RegressionTest`: Commerce's service adds, edits and deletes a currency (TN-3 too). `src/` only reads payment currencies. The CP screen itself is not walked |
+| Heathfield's pattern: its own `EVENT_POPULATE_LINE_ITEM` handler running alongside the plugin's | Two handlers set the same line. Order matters (Appendix A assumption) | `RegressionTest`: a handler attached after the plugin (heathfield's `onInit()`) wins; one ahead of it reaches the currency price by ratio. README documents both |
 
 ## 8. Build order
 
@@ -582,6 +582,19 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
       `--include-zero`, TN-11 and the stops. The ticket-type path has no test of its own.
 - [ ] **5.1 Release** — README, CHANGELOG `## Unreleased`, Store metadata, regression checks, B4.
       Rules: BR-24 · Verify: B5 all, TN-16, the regression table
+      — partly built 2 Oct 2026, and **left unticked**: 2.1 is still blocked (Bundles 3 has only its spec), and
+      Sam's manual walks are outstanding (AC-1–AC-11 in craft5, TS-5 #1, TS-6, opening TS-8's report URLs). B4's
+      "every task ticked" and "AC walked" cannot pass until both are done. Built: the README is rewritten for 4.x
+      (setup, how baskets are priced, the per-currency rule pattern with BR-13's warning, templates, the event and
+      the handler order, the Currencies field, import, and upgrading from 3.x via 3.0.0-beta.6, `craft up`, then
+      `legacy/report`). The 3.x screenshots are no longer referenced. The CHANGELOG `## Unreleased` lists every
+      BR-15 and BR-23 removal, the Twig `format` default (now false), the import and report decisions from 4.1 and
+      3.3, and copies 3.x's 3.0.0-beta.6 entry onto master. composer.json has the Store metadata (developer,
+      developerUrl, documentationUrl, changelogUrl, support source/docs, a new description, more keywords). The
+      regression table is covered by tests, listed in its new column (`RegressionTest`, 5 tests). Writing it
+      showed that a line-pricing handler that runs **before** the plugin's moves the currency price by ratio,
+      since BR-7 reads the line's price; the README says so. Still to do when 2.1 lands: the Bundles line in the
+      README is untested until then, and B5 #5 and #6 in craft5 (Sam's sandbox).
 
 ---
 
@@ -701,3 +714,4 @@ curl -s -b jar -c jar -H 'Accept: application/json' -H 'X-Requested-With: XMLHtt
 | 2026-10-02 | 0.1 | Task 1.3 built. Added `OrderCurrencyBehavior`, because Commerce formats amounts in the store currency whatever the order's currency is | Claude |
 | 2026-10-02 | 0.1 | Task 2.2 built ahead of 2.1. A#6 closed: Events tickets are priced from their ticket type. BR-2, the §4 `purchasableId` row and TS-6 #1 now say so | Claude |
 | 2026-10-02 | 0.1 | Task 3.1 built as 3.0.0-beta.6 on the `3.x` branch. A#1 and A#2 closed: the iso keys do stop Commerce 5's upgrade, and the fixture is in craft4-commerce | Claude |
+| 2026-10-02 | 0.1 | Task 5.1 partly built (README, CHANGELOG, Store metadata, regression tests). The regression table gained a "Covered by" column. 5.1 stays unticked until 2.1 and Sam's walks are done | Claude |

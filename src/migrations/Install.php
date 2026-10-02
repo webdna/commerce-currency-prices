@@ -18,7 +18,7 @@ use webdna\commerce\currencyprices\services\Purchasables;
  *
  * Deleting a purchasable or a store removes its rows through the foreign keys. Commerce's own tables
  * are never altered (B3). The Currency prices element is added below the price on every variant layout
- * (BR-2), and taken out again on uninstall.
+ * once the plugin is enabled (CurrencyPrices::afterInstall(), BR-2), and taken out again here on uninstall.
  *
  * The 3.x install (a column per currency, foreign keys on `commerce_paymentcurrencies.iso`) is at
  * `734fa63:src/migrations/Install.php`, for the upgrade tasks 3.1 and 3.2.
@@ -30,13 +30,9 @@ class Install extends Migration
 {
     public function safeUp(): bool
     {
+        // The layouts are changed by CurrencyPrices::afterInstall(), not here: Craft runs this before it
+        // enables the plugin, and a layout tab silently drops an element whose plugin is not enabled.
         $this->createPriceTable();
-
-        // When the install arrives in project config, the layouts it changed arrive with it. Craft runs this
-        // before it registers the plugin, so CurrencyPrices::getInstance() is null here: build the service.
-        if (!Craft::$app->getProjectConfig()->getIsApplyingExternalChanges()) {
-            (new Purchasables())->addToVariantLayouts();
-        }
 
         return true;
     }

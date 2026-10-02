@@ -13,9 +13,11 @@ use craft\commerce\fieldlayoutelements\VariantTitleField;
 use craft\commerce\Plugin as Commerce;
 use craft\db\Table;
 use craft\elements\User;
+use craft\events\PluginEvent;
 use craft\helpers\Db;
 use craft\models\FieldLayout;
 use craft\models\FieldLayoutTab;
+use craft\services\Plugins;
 use webdna\commerce\currencyprices\behaviors\CurrencyPricesBehavior;
 use webdna\commerce\currencyprices\CurrencyPrices;
 use webdna\commerce\currencyprices\fieldlayoutelements\CurrencyPricesField;
@@ -72,7 +74,7 @@ class CurrencyPricesFieldTest extends Unit
         $this->assertEmpty($layout->getElementsByType(CurrencyPricesField::class));
     }
 
-    public function testTheInstallMigrationAddsItBeforeThePluginIsRegistered(): void
+    public function testInstallAddsItOnceCraftHasEnabledThePlugin(): void
     {
         $productType = $this->getProductType();
         $layout = $productType->getVariantFieldLayout();
@@ -80,19 +82,23 @@ class CurrencyPricesFieldTest extends Unit
         $tab->setElements([new VariantTitleField(), new PurchasablePriceField()]);
         $layout->setTabs([$tab]);
         $this->assertTrue(Commerce::getInstance()->getProductTypes()->saveProductType($productType));
+        $count = fn() => count(Commerce::getInstance()->getProductTypes()->getProductTypeById($productType->id)
+            ->getVariantFieldLayout()->getElementsByType(CurrencyPricesField::class));
 
-        // Craft's plugin/install runs the migration before it registers the plugin.
+        // Craft runs the migration and afterInstall() before it enables the plugin; a layout tab drops an
+        // element whose plugin is not enabled, so neither touches the layouts.
+        (new Install())->safeUp();
         $plugin = CurrencyPrices::getInstance();
-        CurrencyPrices::setInstance(null);
-        try {
-            $this->assertNull(CurrencyPrices::getInstance());
-            (new Install())->safeUp();
-        } finally {
-            CurrencyPrices::setInstance($plugin);
-        }
+        (new \ReflectionMethod($plugin, 'afterInstall'))->invoke($plugin);
+        $this->assertSame(0, $count());
 
-        $layout = Commerce::getInstance()->getProductTypes()->getProductTypeById($productType->id)->getVariantFieldLayout();
-        $this->assertCount(1, $layout->getElementsByType(CurrencyPricesField::class));
+        $plugins = Craft::$app->getPlugins();
+        $plugins->trigger(Plugins::EVENT_AFTER_INSTALL_PLUGIN, new PluginEvent(['plugin' => Commerce::getInstance()]));
+        $this->assertSame(0, $count(), 'Another plugin\'s install is ignored');
+
+        $plugins->trigger(Plugins::EVENT_AFTER_INSTALL_PLUGIN, new PluginEvent(['plugin' => $plugin]));
+        $this->assertSame(1, $count());
+        $this->assertFalse($plugins->hasEventHandlers(Plugins::EVENT_AFTER_INSTALL_PLUGIN), 'The handler runs once');
     }
 
     public function testPricesPostedOnAVariantAreSavedInItsOwnSaveAndABlankIsNoPrice(): void

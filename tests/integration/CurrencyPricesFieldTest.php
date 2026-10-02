@@ -19,6 +19,7 @@ use craft\models\FieldLayoutTab;
 use webdna\commerce\currencyprices\behaviors\CurrencyPricesBehavior;
 use webdna\commerce\currencyprices\CurrencyPrices;
 use webdna\commerce\currencyprices\fieldlayoutelements\CurrencyPricesField;
+use webdna\commerce\currencyprices\migrations\Install;
 use webdna\commerce\currencyprices\services\Prices;
 use webdna\commerce\currencyprices\services\Purchasables;
 use webdna\commerce\currencyprices\tests\Support\CommerceFixtures;
@@ -69,6 +70,29 @@ class CurrencyPricesFieldTest extends Unit
         $this->assertSame(1, $purchasables->removeFromVariantLayouts());
         $layout = Commerce::getInstance()->getProductTypes()->getProductTypeById($productType->id)->getVariantFieldLayout();
         $this->assertEmpty($layout->getElementsByType(CurrencyPricesField::class));
+    }
+
+    public function testTheInstallMigrationAddsItBeforeThePluginIsRegistered(): void
+    {
+        $productType = $this->getProductType();
+        $layout = $productType->getVariantFieldLayout();
+        $tab = new FieldLayoutTab(['name' => 'Content', 'layout' => $layout]);
+        $tab->setElements([new VariantTitleField(), new PurchasablePriceField()]);
+        $layout->setTabs([$tab]);
+        $this->assertTrue(Commerce::getInstance()->getProductTypes()->saveProductType($productType));
+
+        // Craft's plugin/install runs the migration before it registers the plugin.
+        $plugin = CurrencyPrices::getInstance();
+        CurrencyPrices::setInstance(null);
+        try {
+            $this->assertNull(CurrencyPrices::getInstance());
+            (new Install())->safeUp();
+        } finally {
+            CurrencyPrices::setInstance($plugin);
+        }
+
+        $layout = Commerce::getInstance()->getProductTypes()->getProductTypeById($productType->id)->getVariantFieldLayout();
+        $this->assertCount(1, $layout->getElementsByType(CurrencyPricesField::class));
     }
 
     public function testPricesPostedOnAVariantAreSavedInItsOwnSaveAndABlankIsNoPrice(): void

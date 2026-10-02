@@ -48,7 +48,10 @@ class Install extends Migration
         return true;
     }
 
-    private function createPriceTable(): void
+    /**
+     * Also run by the 3.x upgrade (m261001_000000_currency_prices_4), since a 3.x site never ran this install.
+     */
+    public function createPriceTable(): void
     {
         if ($this->db->tableExists(PriceRecord::tableName())) {
             return;

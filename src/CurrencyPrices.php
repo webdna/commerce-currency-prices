@@ -53,9 +53,10 @@ class CurrencyPrices extends Plugin
     public const EVENT_DEFINE_CURRENCY_PRICE = 'defineCurrencyPrice';
 
     /**
-     * 3.x's last schema version. The 4.0 upgrade migration (task 3.2) raises it.
+     * Above 3.x's last (1.2.1, from 3.0.0-beta.6), or Craft refuses the update as a downgrade. Raised for
+     * m261001_000000_currency_prices_4.
      */
-    public string $schemaVersion = '1.2.0';
+    public string $schemaVersion = '4.0.0';
 
     public bool $hasCpSettings = false;
 

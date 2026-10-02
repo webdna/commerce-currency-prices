@@ -74,6 +74,21 @@ class CurrencyPricesFieldTest extends Unit
         $this->assertEmpty($layout->getElementsByType(CurrencyPricesField::class));
     }
 
+    public function testAVariantLayoutWithoutThePriceGetsItInItsOwnTab(): void
+    {
+        // A Commerce 4 product type with no variant fields has no variant layout after the upgrade, and on
+        // the console Commerce defines no variant fields to put in one (task 3.2).
+        $productType = $this->getProductType();
+        $productType->getVariantFieldLayout()->setTabs([]);
+        $this->assertTrue(Commerce::getInstance()->getProductTypes()->saveProductType($productType));
+
+        $this->assertGreaterThanOrEqual(1, CurrencyPrices::getInstance()->getPurchasables()->addToVariantLayouts());
+
+        $tabs = Commerce::getInstance()->getProductTypes()->getProductTypeById($productType->id)->getVariantFieldLayout()->getTabs();
+        $this->assertCount(1, $tabs);
+        $this->assertSame([CurrencyPricesField::class], array_map(fn($element) => $element::class, $tabs[0]->getElements()));
+    }
+
     public function testInstallAddsItOnceCraftHasEnabledThePlugin(): void
     {
         $productType = $this->getProductType();

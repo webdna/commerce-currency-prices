@@ -10,8 +10,8 @@ use Craft;
 use craft\commerce\db\Table as CommerceTable;
 use craft\db\Migration;
 use craft\db\Table;
-use webdna\commerce\currencyprices\CurrencyPrices;
 use webdna\commerce\currencyprices\records\PriceRecord;
+use webdna\commerce\currencyprices\services\Purchasables;
 
 /**
  * Fresh install: the price table, one row per purchasable × store × payment currency (spec §4).
@@ -32,9 +32,10 @@ class Install extends Migration
     {
         $this->createPriceTable();
 
-        // When the install arrives in project config, the layouts it changed arrive with it.
+        // When the install arrives in project config, the layouts it changed arrive with it. Craft runs this
+        // before it registers the plugin, so CurrencyPrices::getInstance() is null here: build the service.
         if (!Craft::$app->getProjectConfig()->getIsApplyingExternalChanges()) {
-            CurrencyPrices::getInstance()?->getPurchasables()->addToVariantLayouts();
+            (new Purchasables())->addToVariantLayouts();
         }
 
         return true;
@@ -43,7 +44,7 @@ class Install extends Migration
     public function safeDown(): bool
     {
         if (!Craft::$app->getProjectConfig()->getIsApplyingExternalChanges()) {
-            CurrencyPrices::getInstance()?->getPurchasables()->removeFromVariantLayouts();
+            (new Purchasables())->removeFromVariantLayouts();
         }
 
         $this->dropTableIfExists(PriceRecord::tableName());

@@ -8,7 +8,6 @@ namespace webdna\commerce\currencyprices\fieldlayoutelements;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\commerce\base\Purchasable;
 use craft\commerce\Plugin as Commerce;
 use craft\fieldlayoutelements\BaseNativeField;
 use craft\web\View;
@@ -18,8 +17,8 @@ use webdna\commerce\currencyprices\services\Purchasables;
 
 /**
  * The Currency prices layout element: one money input per eligible payment currency of the element's
- * store, below Commerce's own price (BR-2). It is offered on every purchasable type's layout, and the
- * install adds it to variant layouts.
+ * store, below Commerce's own price (BR-2). It is offered on every purchasable type's layout and on an
+ * Events ticket-type layout, and the install adds it to variant layouts.
  *
  * Its inputs post `currencyPrices[<ISO>]`, which the element's own save writes (BR-4). It reaches the
  * editor only through the element's edit screen, so it needs no permission of its own (BR-22).
@@ -43,11 +42,11 @@ class CurrencyPricesField extends BaseNativeField
 
     protected function inputHtml(?ElementInterface $element = null, bool $static = false): ?string
     {
-        if (!$element instanceof Purchasable) {
+        $plugin = CurrencyPrices::getInstance();
+        if ($element === null || !$plugin->getPurchasables()->isPricedElement($element)) {
             return null;
         }
 
-        $plugin = CurrencyPrices::getInstance();
         $storeId = $plugin->getPurchasables()->getStoreId($element);
         if ($storeId === null) {
             return null;

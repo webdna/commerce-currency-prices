@@ -7,6 +7,9 @@
 namespace webdna\commerce\currencyprices\services;
 
 use Craft;
+use craft\base\Element;
+use craft\base\ElementInterface;
+use craft\base\Model;
 use craft\commerce\base\Purchasable;
 use craft\commerce\fieldlayoutelements\PurchasablePriceField;
 use craft\commerce\Plugin as Commerce;
@@ -26,8 +29,13 @@ use yii\base\Component;
  * Edits a purchasable's currency prices: the layout element, validation, and the writes in the element's
  * own save (BR-2–BR-6).
  *
- * The handlers are registered on Commerce's base `Purchasable`, so variants, bundles, digital products
- * and tickets are all covered without referencing their classes (BR-17).
+ * The handlers are registered on Commerce's base `Purchasable`, so variants, bundles and digital products
+ * are covered without referencing their classes (BR-17).
+ *
+ * An Events ticket is the exception. Events generates one per session and ticket type, and a ticket has
+ * no layout of its own: its price is the ticket type's, edited on the event type's ticket-type layout. So
+ * a ticket type holds the currency prices, and every ticket of that type is priced from them. Events'
+ * classes are named here as strings, and used only while Events is enabled.
  *
  * @author webdna
  * @since 4.0.0
@@ -41,6 +49,70 @@ class Purchasables extends Component
 
     public const BEHAVIOR = 'currencyPrices';
 
+    public const EVENTS_HANDLE = 'events';
+
+    public const EVENTS_TICKET = 'verbb\\events\\elements\\Ticket';
+
+    public const EVENTS_TICKET_TYPE = 'verbb\\events\\elements\\TicketType';
+
+    /**
+     * @var string[]|null Class names, which need not exist
+     */
+    private ?array $_pricedElementTypes = null;
+
+    /**
+     * The element classes that carry currency prices: Commerce's base purchasable, and an Events ticket
+     * type while Events is enabled.
+     *
+     * @return string[] Class names
+     */
+    public function getPricedElementTypes(): array
+    {
+        if ($this->_pricedElementTypes === null) {
+            $this->_pricedElementTypes = [Purchasable::class];
+
+            if (Craft::$app->getPlugins()->isPluginEnabled(self::EVENTS_HANDLE) && class_exists(self::EVENTS_TICKET_TYPE)) {
+                $this->_pricedElementTypes[] = self::EVENTS_TICKET_TYPE;
+            }
+        }
+
+        return $this->_pricedElementTypes;
+    }
+
+    public function isPricedElement(mixed $element): bool
+    {
+        if (!$element instanceof ElementInterface) {
+            return false;
+        }
+
+        foreach ($this->getPricedElementTypes() as $type) {
+            if ($element instanceof $type) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * The element whose currency prices price this purchasable: an Events ticket's ticket type, otherwise
+     * the purchasable itself.
+     */
+    public function getPriceOwnerId(Purchasable $purchasable): int
+    {
+        // Compared by name, never `instanceof`, so nothing here needs Events' classes to exist (BR-17).
+        $classes = [$purchasable::class, ...array_values(class_parents($purchasable) ?: [])];
+
+        if (in_array(self::EVENTS_TICKET_TYPE, $this->getPricedElementTypes(), true) && in_array(self::EVENTS_TICKET, $classes, true)) {
+            $typeId = $purchasable->getAttributes(['typeId'])['typeId'] ?? null;
+            if ($typeId) {
+                return (int)$typeId;
+            }
+        }
+
+        return (int)$purchasable->id;
+    }
+
     public function defineBehaviors(DefineBehaviorsEvent $event): void
     {
         $event->behaviors[self::BEHAVIOR] = CurrencyPricesBehavior::class;
@@ -52,7 +124,7 @@ class Purchasables extends Component
      */
     public function defineRules(DefineRulesEvent $event): void
     {
-        /** @var Purchasable $purchasable */
+        /** @var ElementInterface&Model $purchasable */
         $purchasable = $event->sender;
 
         $event->rules[] = [[self::ATTRIBUTE], 'safe'];
@@ -66,15 +138,22 @@ class Purchasables extends Component
     }
 
     /**
-     * Offers the layout element on the field layout of every purchasable type (BR-2).
+     * Offers the layout element on the field layout of every purchasable type, and on an Events ticket-type
+     * layout (BR-2).
      */
     public function defineNativeFields(DefineFieldLayoutFieldsEvent $event): void
     {
         /** @var FieldLayout $fieldLayout */
         $fieldLayout = $event->sender;
+        if (!$fieldLayout->type) {
+            return;
+        }
 
-        if ($fieldLayout->type && is_subclass_of($fieldLayout->type, Purchasable::class)) {
-            $event->fields[] = CurrencyPricesField::class;
+        foreach ($this->getPricedElementTypes() as $type) {
+            if (is_a($fieldLayout->type, $type, true)) {
+                $event->fields[] = CurrencyPricesField::class;
+                return;
+            }
         }
     }
 
@@ -87,14 +166,14 @@ class Purchasables extends Component
     public function afterSave(ModelEvent $event): void
     {
         $purchasable = $event->sender;
-        if (!$purchasable instanceof Purchasable || $purchasable->propagating || !$purchasable->id) {
+        if (!$purchasable instanceof Element || !$this->isPricedElement($purchasable) || $purchasable->propagating || !$purchasable->id) {
             return;
         }
 
         $prices = CurrencyPrices::getInstance()->getPrices();
         $source = $purchasable->duplicateOf;
 
-        if ($source instanceof Purchasable && $source->id && $source->id !== $purchasable->id) {
+        if ($source instanceof ElementInterface && $source->id && $source->id !== $purchasable->id) {
             $prices->copyPrices($source->id, $purchasable->id);
         }
 
@@ -124,7 +203,7 @@ class Purchasables extends Component
      *
      * @return array{storeId: int|null, prices: array<string, float|null>, invalid: string[]}
      */
-    public function normalizePostedPrices(Purchasable $purchasable): array
+    public function normalizePostedPrices(ElementInterface $purchasable): array
     {
         /** @var CurrencyPricesBehavior|null $behavior */
         $behavior = $purchasable->getBehavior(self::BEHAVIOR);
@@ -170,10 +249,14 @@ class Purchasables extends Component
     /**
      * The store of the element's site, or null when the site belongs to none.
      */
-    public function getStoreId(Purchasable $purchasable): ?int
+    public function getStoreId(ElementInterface $purchasable): ?int
     {
         try {
-            return $purchasable->getStore()->id;
+            if ($purchasable instanceof Purchasable) {
+                return $purchasable->getStore()->id;
+            }
+
+            return $purchasable->siteId ? Commerce::getInstance()->getStores()->getStoreBySiteId($purchasable->siteId)?->id : null;
         } catch (\Throwable) {
             return null;
         }

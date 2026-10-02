@@ -11,7 +11,6 @@ use craft\base\conditions\BaseCondition;
 use craft\base\Element;
 use craft\base\Model;
 use craft\base\Plugin;
-use craft\commerce\base\Purchasable;
 use craft\commerce\elements\conditions\orders\OrderCondition;
 use craft\commerce\elements\Order;
 use craft\commerce\models\LineItem;
@@ -130,16 +129,20 @@ class CurrencyPrices extends Plugin
 
     /**
      * The layout element, the posted prices' validation, and their write in the element's own save
-     * (BR-2–BR-5). Registered on Commerce's base purchasable, so every purchasable type is covered.
+     * (BR-2–BR-5). Registered on Commerce's base purchasable, so every purchasable type is covered, and on
+     * an Events ticket type while Events is enabled (BR-17).
      */
     private function registerPurchasableEditing(): void
     {
         $purchasables = $this->getPurchasables();
 
         Event::on(FieldLayout::class, FieldLayout::EVENT_DEFINE_NATIVE_FIELDS, [$purchasables, 'defineNativeFields']);
-        Event::on(Purchasable::class, Model::EVENT_DEFINE_BEHAVIORS, [$purchasables, 'defineBehaviors']);
-        Event::on(Purchasable::class, Model::EVENT_DEFINE_RULES, [$purchasables, 'defineRules']);
-        Event::on(Purchasable::class, Element::EVENT_AFTER_SAVE, [$purchasables, 'afterSave']);
+
+        foreach ($purchasables->getPricedElementTypes() as $type) {
+            Event::on($type, Model::EVENT_DEFINE_BEHAVIORS, [$purchasables, 'defineBehaviors']);
+            Event::on($type, Model::EVENT_DEFINE_RULES, [$purchasables, 'defineRules']);
+            Event::on($type, Element::EVENT_AFTER_SAVE, [$purchasables, 'afterSave']);
+        }
     }
 
     /**

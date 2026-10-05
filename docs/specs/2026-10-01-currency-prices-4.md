@@ -594,7 +594,14 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
       regression table is covered by tests, listed in its new column (`RegressionTest`, 5 tests). Writing it
       showed that a line-pricing handler that runs **before** the plugin's moves the currency price by ratio,
       since BR-7 reads the line's price; the README says so. Still to do when 2.1 lands: the Bundles line in the
-      README is untested until then, and B5 #5 and #6 in craft5 (Sam's sandbox).
+      README is untested until then.
+      5 Oct 2026, with Sam's OK: B5 run in full. #1 on PHP 8.2 and 8.4: ECS and PHPStan no errors, Codeception
+      OK (100 tests, 1007 assertions). #2 valid. #3 "loaded 19". #4 no output. craft5 was snapshotted first
+      (`pre-currency-prices-b5-2026-10-05`). Its `craft up` had nothing pending, since the 4.0 migration was
+      already recorded there. #5: uninstall, install, uninstall, install, each "successfully", and the
+      element returned to `currencyTest`'s variant layout after the price. #6: variant 810's slideout
+      rendered EUR and GBP inputs (craft5's two extra currencies). Nothing in 5.1 is left for Claude to do.
+      Waiting on: 2.1 (Bundles 3 phase 1) and Sam's walks.
 
 ---
 
@@ -662,11 +669,11 @@ changing its store.
 ## B4. Definition of done
 
 - [ ] Every task in §8 ticked, with its verification run
-- [ ] B5 #1–#4 pass, output recorded in the commit message or the build memory
+- [x] B5 #1–#4 pass, output recorded in the commit message or the build memory
 - [ ] AC-1–AC-11 walked by Sam in craft5 (TS-8 on the fixture)
-- [ ] The test hooks in §7 exist
-- [ ] Regression checks done
-- [ ] README and CHANGELOG cover every removal and the upgrade steps
+- [x] The test hooks in §7 exist
+- [x] Regression checks done
+- [x] README and CHANGELOG cover every removal and the upgrade steps
 - [ ] Appendix A has no open row except those blocking release
 
 ## B5. Verification
@@ -715,3 +722,4 @@ curl -s -b jar -c jar -H 'Accept: application/json' -H 'X-Requested-With: XMLHtt
 | 2026-10-02 | 0.1 | Task 2.2 built ahead of 2.1. A#6 closed: Events tickets are priced from their ticket type. BR-2, the §4 `purchasableId` row and TS-6 #1 now say so | Claude |
 | 2026-10-02 | 0.1 | Task 3.1 built as 3.0.0-beta.6 on the `3.x` branch. A#1 and A#2 closed: the iso keys do stop Commerce 5's upgrade, and the fixture is in craft4-commerce | Claude |
 | 2026-10-02 | 0.1 | Task 5.1 partly built (README, CHANGELOG, Store metadata, regression tests). The regression table gained a "Covered by" column. 5.1 stays unticked until 2.1 and Sam's walks are done | Claude |
+| 2026-10-05 | 0.1 | B5 #1–#6 all pass, including #5 and #6 in craft5 with Sam's OK. B4's checkable items are ticked. 5.1 still waits on 2.1 and Sam's walks | Claude |

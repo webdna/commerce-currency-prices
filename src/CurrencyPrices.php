@@ -14,6 +14,7 @@ use craft\base\Plugin;
 use craft\commerce\elements\conditions\orders\OrderCondition;
 use craft\commerce\elements\Order;
 use craft\commerce\models\LineItem;
+use craft\commerce\models\ShippingMethodOption;
 use craft\commerce\services\LineItems;
 use craft\commerce\services\Purchasables as CommercePurchasables;
 use craft\events\PluginEvent;
@@ -131,7 +132,8 @@ class CurrencyPrices extends Plugin
     /**
      * The layout element, the posted prices' validation, and their write in the element's own save
      * (BR-2–BR-5). Registered on Commerce's base purchasable, so every purchasable type is covered, and on
-     * an Events ticket type while Events is enabled (BR-17).
+     * an Events ticket type while Events is enabled (BR-17). Digital Products' own save action needs the
+     * posted prices handed over, while Digital Products is enabled.
      */
     private function registerPurchasableEditing(): void
     {
@@ -143,6 +145,10 @@ class CurrencyPrices extends Plugin
             Event::on($type, Model::EVENT_DEFINE_BEHAVIORS, [$purchasables, 'defineBehaviors']);
             Event::on($type, Model::EVENT_DEFINE_RULES, [$purchasables, 'defineRules']);
             Event::on($type, Element::EVENT_AFTER_SAVE, [$purchasables, 'afterSave']);
+        }
+
+        if (Craft::$app->getPlugins()->isPluginEnabled(Purchasables::DIGITAL_PRODUCTS_HANDLE)) {
+            Event::on(Purchasables::DIGITAL_PRODUCT, Model::EVENT_BEFORE_VALIDATE, [$purchasables, 'beforeValidate']);
         }
     }
 
@@ -159,7 +165,7 @@ class CurrencyPrices extends Plugin
         Event::on(Order::class, Order::EVENT_BEFORE_LINE_ITEMS_REFRESHED, [$pricing, 'beforeLineItemsRefreshed']);
         Event::on(Order::class, Order::EVENT_AFTER_LINE_ITEMS_REFRESHED, [$pricing, 'afterLineItemsRefreshed']);
 
-        foreach ([Order::class, LineItem::class] as $class) {
+        foreach ([Order::class, LineItem::class, ShippingMethodOption::class] as $class) {
             Event::on($class, Model::EVENT_DEFINE_BEHAVIORS, [$pricing, 'defineOrderBehaviors']);
             Event::on($class, Model::EVENT_DEFINE_FIELDS, [$pricing, 'defineCurrencyFields']);
         }

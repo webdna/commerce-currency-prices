@@ -75,21 +75,27 @@ class RegressionTest extends Unit
 
     public function testAShippingRuleWithNoConditionChargesAsEnteredInEveryCurrency(): void
     {
-        $method = new ShippingMethod(['storeId' => $this->store->id, 'name' => 'Standard', 'handle' => 'standard' . uniqid(), 'enabled' => true]);
-        $this->assertTrue(Commerce::getInstance()->getShippingMethods()->saveShippingMethod($method), implode(', ', $method->getFirstErrors()));
-        $rule = new ShippingRule([
-            'storeId' => $this->store->id,
-            'methodId' => $method->id,
-            'name' => '7 flat',
-            'enabled' => true,
-            'baseRate' => 7,
-        ]);
-        $rule->setOrderCondition(['class' => ShippingRuleOrderCondition::class, 'storeId' => $this->store->id, 'conditionRules' => []]);
-        $this->assertTrue(Commerce::getInstance()->getShippingRules()->saveShippingRule($rule), implode(', ', $rule->getFirstErrors()));
+        $method = $this->createFlatShipping(7);
         $variant = $this->createPricedVariant(60, ['USD' => 70]);
 
         $this->assertSame(7.0, $this->basket('GBP', $variant, $method->getHandle())->getTotalShippingCost());
         $this->assertSame(7.0, $this->basket('USD', $variant, $method->getHandle())->getTotalShippingCost());
+    }
+
+    /**
+     * A shipping option's price is formatted in the basket's currency, as its order and lines are (BR-10).
+     * Commerce formatted it in the store currency: "US$7.00" in a pound basket (A#10).
+     */
+    public function testAShippingOptionsPriceIsFormattedInTheBasketsCurrency(): void
+    {
+        $method = $this->createFlatShipping(7);
+        $variant = $this->createPricedVariant(60, ['USD' => 70]);
+
+        $usd = $this->basket('USD', $variant)->getAvailableShippingMethodOptions()[$method->getHandle()];
+        $gbp = $this->basket('GBP', $variant)->getAvailableShippingMethodOptions()[$method->getHandle()];
+
+        $this->assertSame('$7.00', $usd->priceAsCurrency);
+        $this->assertSame('£7.00', $gbp->priceAsCurrency);
     }
 
     /**
@@ -144,6 +150,23 @@ class RegressionTest extends Unit
 
         $this->assertSame(118.8, $this->basket('USD', $variant)->getLineItems()[0]->getPrice());
         $this->assertSame(99.0, $this->basket('GBP', $variant)->getLineItems()[0]->getPrice());
+    }
+
+    private function createFlatShipping(float $rate): ShippingMethod
+    {
+        $method = new ShippingMethod(['storeId' => $this->store->id, 'name' => 'Standard', 'handle' => 'standard' . uniqid(), 'enabled' => true]);
+        $this->assertTrue(Commerce::getInstance()->getShippingMethods()->saveShippingMethod($method), implode(', ', $method->getFirstErrors()));
+        $rule = new ShippingRule([
+            'storeId' => $this->store->id,
+            'methodId' => $method->id,
+            'name' => "$rate flat",
+            'enabled' => true,
+            'baseRate' => $rate,
+        ]);
+        $rule->setOrderCondition(['class' => ShippingRuleOrderCondition::class, 'storeId' => $this->store->id, 'conditionRules' => []]);
+        $this->assertTrue(Commerce::getInstance()->getShippingRules()->saveShippingRule($rule), implode(', ', $rule->getFirstErrors()));
+
+        return $method;
     }
 
     private function basket(string $paymentCurrency, Variant $variant, ?string $shippingMethodHandle = null): Order

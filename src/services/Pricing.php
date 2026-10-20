@@ -15,6 +15,7 @@ use craft\commerce\events\OrderLineItemsRefreshEvent;
 use craft\commerce\events\PurchasableAvailableEvent;
 use craft\commerce\helpers\Currency;
 use craft\commerce\models\LineItem;
+use craft\commerce\models\ShippingMethodOption;
 use craft\commerce\Plugin as Commerce;
 use craft\events\DefineBehaviorsEvent;
 use craft\events\DefineFieldsEvent;
@@ -231,12 +232,13 @@ class Pricing extends Component
     }
 
     /**
-     * Formats an order's and its lines' `…AsCurrency` amounts in the order's currency (BR-10).
+     * Formats an order's, its lines' and its shipping options' `…AsCurrency` amounts in the order's currency
+     * (BR-10).
      */
     public function defineOrderBehaviors(DefineBehaviorsEvent $event): void
     {
         $model = $event->sender;
-        if ($model instanceof Order || $model instanceof LineItem) {
+        if ($model instanceof Order || $model instanceof LineItem || $model instanceof ShippingMethodOption) {
             $event->behaviors[self::CURRENCY_BEHAVIOR] = [
                 'class' => OrderCurrencyBehavior::class,
                 'currencyAttributes' => $model->currencyAttributes(),
@@ -251,7 +253,7 @@ class Pricing extends Component
     public function defineCurrencyFields(DefineFieldsEvent $event): void
     {
         $model = $event->sender;
-        $behavior = $model instanceof Order || $model instanceof LineItem ? $model->getBehavior(self::CURRENCY_BEHAVIOR) : null;
+        $behavior = $model instanceof Order || $model instanceof LineItem || $model instanceof ShippingMethodOption ? $model->getBehavior(self::CURRENCY_BEHAVIOR) : null;
         if ($behavior instanceof OrderCurrencyBehavior) {
             $event->fields = array_merge($event->fields, $behavior->currencyFields());
         }

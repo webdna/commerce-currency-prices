@@ -616,7 +616,63 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
       "successfully", element after the price on `currencyTest`. #6: variant 810's slideout rendered EUR and GBP.
       Appendix A #5 and #7 closed the same day (Sam). The walks (AC-1–AC-11, TS-5 #1, TS-6 without its bundle
       leg, TS-8's report URLs) are driven by Claude in Chrome, with GIFs, and reviewed by Sam (Sam, 20 Oct 2026).
-      Waiting on: those walks.
+      **Walked 20 Oct 2026** in craft5 (snapshot `pre-currency-prices-walks-2026-10-20`, the three plugins enabled,
+      restored afterwards) and on the craft4-commerce fixture. craft5's store is in USD, so "another currency" is
+      GBP or EUR throughout. The baskets were driven from a throwaway page in craft5 (`templates/walk/`, deleted)
+      that prints `|currencySalePrice(cart.paymentCurrency, true)` beside each item and posts to
+      `commerce/cart/update-cart`; the Dummy payment was made from a console script calling Commerce's
+      `processPayment()`, as PricingTest does. GIFs and transcripts: `~/Downloads/cp4-walks/` (12 GIFs, 2 text files).
+      - **AC-1 pass** (TS-1 #2–#4): EUR and GBP inputs under the price on variant 810; GBP −5 refused with "Enter a
+        price of 0 or more for GBP." and nothing saved; GBP 100 with EUR blank saved, EUR showing "No price — not
+        for sale in EUR"; `resave/products` and `resave/variants` left GBP 100.
+      - **AC-2 pass** (TS-1 #5, TN-3): with EUR and GBP removed (from a console script: the CP's delete is a browser
+        confirm), the variant shows the store-only notice; re-added, GBP 100 is back. Its wording says "Commerce →
+        Store Settings → Payment Currencies", but Commerce 5.7's navigation calls it **Store Management** (A#9).
+      - **AC-3 pass** (TS-2): basket GBP, order currency GBP, line £100, total £100.00; paid: transaction purchase
+        success, amount 100 GBP, payment amount 100 GBP (rate 0.79 recorded, nothing converted). After the price
+        went to 130 the completed order still showed £100 in the CP, its snapshot carrying `currencyPrices
+        {"currency":"GBP","currencyPrice":100,"ratio":1}`.
+      - **AC-4 pass** (TS-3): the overshirt (no EUR price) left a GBP basket switched to EUR with "Linen overshirt …
+        is no longer available.", the page saying "not available in EUR"; added again in EUR it was not added; back
+        in GBP it added at £130. Over HTTP the add answers 200 "Cart updated." with that notice, not the line error
+        "The item is not enabled for sale." TS-3 #1 names: Commerce's recalculation removes the line first. Same
+        outcome for the shopper. Commerce's own price notice compares across currencies ("increased from £32.00 to
+        €36.00").
+      - **AC-5 pass** (TS-4): a 10% catalog pricing rule made in the CP took 130/190/32 to £117/£171/£28.80 on the
+        page and in the basket; limited to a "Trade" group, Alex paid £130 outside it and £117 inside it.
+      - **AC-6 pass** (TS-5): "£5 off over £50 (GBP)" made in the CP: the Payment Currency rule offers USD, EUR and
+        GBP, with its instructions under it (TS-5 #1). The EUR discount and "Walk post" with "£7 flat (GBP)" and
+        "€9 flat (EUR)" rules came from a console script. GBP basket of £64: −£5 and the 10% (Commerce's own
+        unconditioned "Spring collection") −£6.40, shipping £7; switched to EUR (€72): −€6, −€7.20, shipping €9;
+        USD: only the 10%, and "The previously-selected shipping method is no longer available." The variants
+        had Promotable off in craft5's data, which stops every discount; it was turned on for the walk. **Finding:**
+        a shipping-method option's `priceAsCurrency` is formatted in the store currency ("Walk post US$7.00" in a
+        GBP basket); the amount is right. `OrderCurrencyBehavior` covers the order and its lines, not
+        `availableShippingMethodOptions` (A#10).
+      - **AC-7 fails for digital products** (TS-6): the element shows EUR and GBP inputs on a digital product type
+        and on an event's ticket-type layout. The ticket type saved GBP 32 from the CP. **The digital product did
+        not: "Product saved.", nothing stored, twice.** Digital Products 4.1's own `digital-products/products/save`
+        builds the product from named params and `fields[…]` only, so the posted `currencyPrices[…]` never reach
+        the behaviour. `DigitalProductsTest` sets the behaviour directly and cannot see it (A#8). With the prices
+        written to the table directly, a GBP basket charged the care guide £9.50 and the ticket £32. TS-6 #3:
+        after uninstalling both, the CP loads and variants price; a basket still holding a ticket line 500s inside
+        Commerce's `Purchasables::getPurchasableById()` (the dropped `events_tickets` table, no plugin frame in the
+        trace), and works once those lines are gone.
+      - **AC-8 does not hold in the CP** (TS-7): Commerce 5.7 gives a product draft the live product's variants
+        (variant 810 owned by both), so a variant edited from the draft saves the live variant. GBP 140 and a
+        base price of 129, both edited from Draft 1, reached the shop at once. Currency prices behave as
+        Commerce's own price does; `PricingTest`'s draft tests make variant drafts, which this CP path does not
+        (A#11). Seen on the way: until Commerce's catalog job runs after a base-price edit, the page priced
+        140 × 128/129 = £138.91 from the stale catalog price; £140 once the queue ran.
+      - **AC-9 pass** (TS-8): on the fixture `commerce-currency-prices/legacy/report` lists discount 4, shipping
+        rule 1 and category "General" with GBP and EUR amounts; both URLs open the right record (the category
+        override on the rule's Costs tab). The copied prices are EUR 20/21/22 and GBP 10/11/12 (TS-8 #4).
+      - **AC-10 pass** (TS-9, EUR): dry run "Written: 2 … Skipped as zero: 1 … nothing was written"; `--apply`
+        wrote 810 €55 (variant field) and 889 €50 (from its product); again: "Unchanged: 2"; `--currency=JPY`:
+        "The store "primary" does not accept JPY as a payment currency.", exit 64. The slideout shows EUR 55.
+      - **AC-11 pass** (TS-10 #1): on every basket screen above the page price equals the line price.
+      Not ticked: A#8 and A#11 decide whether 4.0 ships as it is. The release (CHANGELOG `## 4.0.0`, B5, tag)
+      waits for Sam.
 
 ### 4.1
 
@@ -641,6 +697,10 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
 | 5 | Plugin Store price for 4.0, and the upgrade price from 3.x licences | Sam | **Closed 20 Oct 2026.** 3.x's price and renewal are kept. A 3.x licence with updates gets 4.0; a lapsed one pays the usual renewal |
 | 6 | Do Events 3 tickets use a field layout that accepts a native layout element? | Build (2.2) | **Closed 2 Oct 2026.** No. A ticket has no layout of its own. The ticket-type layout (`TicketType`, an element) does, and it holds the prices (BR-2, §8 2.2) |
 | 7 | Sam to approve the copy quoted in §3 and §5 | Sam | **Closed 20 Oct 2026.** The five control-panel strings as shipped, the README and the CHANGELOG `## Unreleased` entry are approved as they are |
+| 8 | A digital product's currency prices typed in the CP are dropped: Digital Products' own save action never hands them to the behaviour (§8 5.1, AC-7). Fix in 4.0 (read `currencyPrices` from the request for that action, before validation, with a test), or ship and document? | Sam | Open — release-blocking |
+| 9 | The store-only notice names "Store Settings"; Commerce 5.7 calls it "Store Management". Change the string (A#7 approved it as shipped)? | Sam | Open |
+| 10 | A shipping-method option's `priceAsCurrency` shows the store currency's symbol in another currency's basket. Format it too, or document? | Sam | Open |
+| 11 | AC-8 cannot hold through the CP in Commerce 5.7: a product draft shares the live variants, for Commerce's own price as well. Reword AC-8 to "follows Commerce's draft model", or treat as blocking? | Sam | Open — release-blocking |
 
 **Assumptions**
 
@@ -751,3 +811,4 @@ curl -s -b jar -c jar -H 'Accept: application/json' -H 'X-Requested-With: XMLHtt
 | 2026-10-05 | 0.1 | B5 #1–#6 all pass, including #5 and #6 in craft5 with Sam's OK. B4's checkable items are ticked. 5.1 still waits on 2.1 and Sam's walks | Claude |
 | 2026-10-20 | 0.2 | Sam: 4.0 ships without Bundles 3. 2.1 moves to a new "4.1" list with 6.1 (release 4.1); §1, §2, TS-6, the build-order table, B4 and Appendix A #4 (deferred) say so. README and CHANGELOG no longer claim bundles | Claude |
 | 2026-10-20 | 0.2 | Sam: A#5 closed (3.x price and renewal kept), A#7 closed (copy approved as shipped); the manual walks are Claude's, in Chrome, for Sam to review | Claude |
+| 2026-10-20 | 0.2 | Walks run (5.1's notes): AC-1–6, 9–11 pass; AC-7 fails for digital products (A#8); AC-8 cannot hold through Commerce 5.7's CP (A#11); A#9 and A#10 opened. 5.1 stays unticked | Claude |

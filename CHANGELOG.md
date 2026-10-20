@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 3.0.0 - 2026-10-20
+### Changed
+- The stable Craft 4 / Commerce 4 release. The same code as 3.0.0-beta.6. Craft 5 / Commerce 5 support is coming in Currency Prices 4.
+
 ## 3.0.0-beta.6 - 2026-10-02
 ### Fixed
 - Commerce 5's upgrade no longer fails with “Cannot drop index … needed in a foreign key constraint”. A migration drops the foreign keys from the currency discount and shipping tables to `commerce_paymentcurrencies.iso`, and new installs no longer add them. Update to this version and run `php craft up` before upgrading to Craft 5.

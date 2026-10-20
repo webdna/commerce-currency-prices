@@ -21,10 +21,12 @@ use craft\helpers\Localization;
 use craft\helpers\StringHelper;
 use craft\models\FieldLayout;
 use craft\models\FieldLayoutTab;
+use craft\web\Request as WebRequest;
 use webdna\commerce\currencyprices\behaviors\CurrencyPricesBehavior;
 use webdna\commerce\currencyprices\CurrencyPrices;
 use webdna\commerce\currencyprices\fieldlayoutelements\CurrencyPricesField;
 use yii\base\Component;
+use yii\base\Event;
 
 /**
  * Edits a purchasable's currency prices: the layout element, validation, and the writes in the element's
@@ -55,6 +57,15 @@ class Purchasables extends Component
     public const EVENTS_TICKET = 'verbb\\events\\elements\\Ticket';
 
     public const EVENTS_TICKET_TYPE = 'verbb\\events\\elements\\TicketType';
+
+    public const DIGITAL_PRODUCTS_HANDLE = 'digital-products';
+
+    public const DIGITAL_PRODUCT = 'craft\\digitalproducts\\elements\\Product';
+
+    /**
+     * Digital Products' own CP save action, as `Request::getActionSegments()` gives it.
+     */
+    public const DIGITAL_PRODUCTS_SAVE_ACTION = ['digital-products', 'products', 'save'];
 
     /**
      * @var string[]|null Class names, which need not exist
@@ -136,6 +147,35 @@ class Purchasables extends Component
                 ]));
             }
         }];
+    }
+
+    /**
+     * Hands a digital product the prices its CP page posted. Digital Products saves a product from its own
+     * action, which sets the product's attributes one by one and never the layout element's, so without this
+     * the prices typed in were dropped. Only for that action and the product it names, and before
+     * validation, so the rule in `defineRules()` still applies (BR-3). The class is named as a string, so
+     * nothing here needs Digital Products to be installed (BR-17).
+     */
+    public function beforeValidate(Event $event): void
+    {
+        $product = $event->sender;
+        if (!$product instanceof ElementInterface || !is_a($product, self::DIGITAL_PRODUCT)) {
+            return;
+        }
+
+        $request = Craft::$app->getRequest();
+        if (!$request instanceof WebRequest || !$request->getIsPost() || $request->getActionSegments() !== self::DIGITAL_PRODUCTS_SAVE_ACTION) {
+            return;
+        }
+
+        /** @var CurrencyPricesBehavior|null $behavior */
+        $behavior = $product->getBehavior(self::BEHAVIOR);
+        $posted = $request->getBodyParam(self::ATTRIBUTE);
+        if ($behavior === null || $behavior->currencyPrices !== null || !is_array($posted) || (int)$request->getParam('productId') !== (int)$product->id) {
+            return;
+        }
+
+        $behavior->currencyPrices = $posted;
     }
 
     /**

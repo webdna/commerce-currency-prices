@@ -23,7 +23,7 @@ Or install it from the Plugin Store in the control panel.
 
 ## Setup
 
-1. **Add your payment currencies.** In **Commerce → Store Settings → Payment Currencies**, add each currency the store should accept besides its own. The plugin never reads a currency's exchange rate, so its value does not matter to prices.
+1. **Add your payment currencies.** In **Commerce → Store Management → Payment Currencies**, add each currency the store should accept besides its own. The plugin never reads a currency's exchange rate, so its value does not matter to prices.
 2. **Check the field layouts.** On install the plugin adds a **Currency prices** element below the price on every existing variant field layout. For anything else, add it to the layout yourself from the field layout designer:
    - product types created after install (variant layout)
    - Digital Products product types
@@ -35,7 +35,7 @@ How prices are kept:
 - **Blank means not for sale in that currency.** The item cannot be added to a basket in that currency, and a basket that switches to that currency loses it, with Commerce's usual "… is no longer available." notice. It is never sold at 0 or at a converted price.
 - **0 is a real price.** Use it for an item that is free in one currency.
 - **Prices belong to a store.** With several stores, edit an item from a site of the store whose prices you want to change. Each store's prices are separate.
-- Drafts, revisions and duplicates keep their own copy of the prices, as they do for the rest of the item.
+- Drafts, revisions and duplicates keep their own copy of the prices, as they do for the rest of the item. In Commerce 5.7 a product draft shares the live product's variants, so a variant edited from a draft is saved at once, its price and currency prices alike.
 
 Editing currency prices needs the same permission as editing the item. There are no new permissions.
 

@@ -206,6 +206,8 @@ class CurrencyPricesFieldTest extends Unit
 
         $this->assertStringContainsString('data-currency-prices-none', $html);
         $this->assertStringContainsString('This store only accepts GBP.', $html);
+        // Commerce 5's name for the screen (A#9)
+        $this->assertStringContainsString('Commerce → Store Management → Payment Currencies', $html);
         $this->assertStringNotContainsString('data-currency-price=', $html);
     }
 

@@ -3,7 +3,7 @@
 
 {% if currencies is empty %}
     <p class="light" data-currency-prices-none>
-        {{ 'This store only accepts {currency}. Add payment currencies in Commerce → Store Settings → Payment Currencies to price items in other currencies.'|t('commerce-currency-prices', {
+        {{ 'This store only accepts {currency}. Add payment currencies in Commerce → Store Management → Payment Currencies to price items in other currencies.'|t('commerce-currency-prices', {
             currency: storeCurrency,
         }) }}
     </p>

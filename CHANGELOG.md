@@ -6,12 +6,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## Unreleased
 
-4.0.0, for Craft CMS 5 and Craft Commerce 5. Craft 4 sites stay on 3.x. Upgrade from 3.0.0-beta.6 or later. The README's "Upgrading from 3.x" has the steps.
+4.0.0, for Craft CMS 5 and Craft Commerce 5. Craft 4 sites stay on 3.x. Upgrade from 3.0.0 (or 3.0.0-beta.6) or later. The README's "Upgrading from 3.x" has the steps.
 
 ### Added
 - Craft CMS 5 and Craft Commerce 5 compatibility, including multiple stores. Prices are kept per item, per store and per payment currency.
-- A **Currency prices** field layout element, with one price per payment currency of the store beside the item's own price. Install adds it below the price on every existing variant layout. Add it yourself to other product types' variant layouts, Commerce Bundles 3 bundle types, Digital Products product types and Events ticket-type layouts.
-- Currency prices for Commerce Bundles 3 bundles, Digital Products 4.1 products and Events 3.1 tickets. An Events ticket is priced from its ticket type.
+- A **Currency prices** field layout element, with one price per payment currency of the store beside the item's own price. Install adds it below the price on every existing variant layout. Add it yourself to other product types' variant layouts, Digital Products product types and Events ticket-type layouts.
+- Currency prices for Digital Products 4.1 products and Events 3.1 tickets. An Events ticket is priced from its ticket type.
 - A **Payment Currency** order condition rule (*is one of*, *is not one of*) for discounts, shipping methods, shipping rules and the order index. Use one discount or shipping rule per currency for fixed amounts.
 - Promotions reach the currency price by ratio: a catalog pricing rule, sale or customer-specific price that takes 10% off the store-currency price takes 10% off the currency price.
 - `CurrencyPrices::EVENT_DEFINE_CURRENCY_PRICE` (`DefineCurrencyPriceEvent`), raised for basket lines and the Twig filters, so a site can adjust a currency price, for example to round it. A negative price is set to 0 and logged.
@@ -39,6 +39,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - The control panel asset bundles and templates that moved hidden inputs next to Commerce 4's price fields.
 - The `service`, `shipping`, `discounts` and `addons` plugin components, their records, and the `CurrencyPrices::$plugin` static. Use `CurrencyPrices::getInstance()->getPrices()`.
 - `CurrencyPricesService::getSalePrice()`, which re-implemented Commerce 4's sales. Promotions now follow by ratio.
+
+## 3.0.0 - 2026-10-20
+### Changed
+- The stable Craft 4 / Commerce 4 release. The same code as 3.0.0-beta.6. Craft 5 / Commerce 5 support is coming in Currency Prices 4.
 
 ## 3.0.0-beta.6 - 2026-10-02
 ### Fixed

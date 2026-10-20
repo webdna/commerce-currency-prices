@@ -2,8 +2,8 @@
 spec: Currency Prices 4 — Craft 5 and Commerce 5
 slug: currency-prices-4
 status: draft
-version: 0.1
-date: 2026-10-01
+version: 0.2
+date: 2026-10-20
 author: Claude (with Sam Birch)
 client: webdna (Plugin Store product)
 approver: Sam Birch
@@ -13,7 +13,7 @@ related: [commerce-bundles-3 (~/Projects/plugins/commerce-bundles/docs/specs/202
 
 # Currency Prices 4 — Craft 5 and Commerce 5
 
-> **Status:** draft - **Version:** 0.1 - **Profile:** `_PROFILE.commerce-currency-prices.md`
+> **Status:** draft - **Version:** 0.2 - **Profile:** `_PROFILE.commerce-currency-prices.md`
 > A single Craft 5 shop can sell in several currencies at prices it sets for each currency, not prices
 > converted by an exchange rate.
 
@@ -25,7 +25,7 @@ A shop owner sells from one store but lets shoppers pay in several currencies �
 euros, dirhams. With Currency Prices 4 they type a price for each of those currencies beside the
 product's normal price. A shopper who pays in dollars sees and pays the dollar price that was typed,
 not the pound price converted at today's rate. It works for products and their variants, for
-bundles, for digital products and for event tickets.
+digital products and for event tickets, and from 4.1 for bundles.
 
 Promotions follow the shopper's currency without being set up twice. When a pricing rule takes 10%
 off a product in the store's own currency, the dollar price drops by the same 10%. That includes
@@ -71,8 +71,9 @@ item for £100.
 
 **In scope**
 
-- Currency prices on variants, Commerce Bundles 3 bundles, Digital Products and Events tickets,
-  entered in the control panel beside the normal price, per store.
+- Currency prices on variants, Digital Products and Events tickets, and in 4.1 on Commerce Bundles 3
+  bundles, entered in the control panel beside the normal price, per store. 4.0 ships without the
+  bundle leg, because Bundles 3 is not built yet (Sam, 20 Oct 2026; §8 2.1).
 - Baskets and orders priced in the shopper's payment currency, with promotions carried across by
   ratio, and an order whose currency always matches its payment currency.
 - Items without a price in the shopper's currency are unavailable in that currency.
@@ -253,7 +254,7 @@ when he reviews the spec.
 |---|---|
 | craft5 primary store with USD and EUR payment currencies added (GBP store) | **Made by task 1.2** — Sam approved the craft5 change (1 Oct 2026). Snapshot craft5 first; never commit there |
 | Digital Products 4.1 and Events 3.1 installed in craft5 | **Made by task 1.2**, same approval |
-| Commerce Bundles 3 at least through its phase 1 | **Not built yet** — AC-7's bundle leg waits for it (Appendix A) |
+| Commerce Bundles 3 at least through its phase 1 | **Not built yet** — AC-7's bundle leg waits for it and ships in 4.1 (Appendix A #4) |
 | A Commerce 4 site with 3.x installed and currency prices on variants, discounts and shipping | **Must be made** in `~/Projects/craftcms/craft4-commerce` (Appendix A) |
 | A customer user group and a catalog pricing rule limited to it ("trade") | Made by TS-4 |
 | A second store with its own site in craft5 | Not needed. TN-6 runs in the suite |
@@ -320,6 +321,7 @@ when he reviews the spec.
 | 3 | Uninstall Digital Products and Events, then load the CP and a basket | No error. Variants and bundles still price |
 
 *Success criterion: anything Commerce can sell can be priced in another currency, and no integration is required.*
+*For 4.0 the bundle leg of #1–#3 is not run; it is 2.1, released in 4.1.*
 
 **TS-7 — Drafts and duplicates** · Type: integration · AC-8 · BR-5
 | # | Step | Expect |
@@ -412,10 +414,14 @@ fixed as `currencyPrices.{currency,currencyPrice,ratio}`.
 |---|---|---|
 | 0 | Test harness, plugin skeleton on Craft 5 with the 3.x code removed | — |
 | 1 | Storage, editing, line pricing, availability, order currency, condition, templates | 0 |
-| 2 | Bundles, Digital Products and Events tested | 1. Bundles 3 phase 1 for 2.1 |
+| 2 | Digital Products and Events tested (2.2); Bundles (2.1) in 4.1 | 1. Bundles 3 phase 1 for 2.1 |
 | 3 | Upgrade: 3.0.x foreign keys, 4.0 migration, legacy report | 1 (the price table). The Commerce 4 fixture |
 | 4 | Import command | 1 |
-| 5 | Release | all |
+| 5 | Release 4.0 | all but 2.1 |
+| 6 | Release 4.1: Bundles 3 | 2.1 |
+
+4.0 is released without 2.1 (Sam, 20 Oct 2026): Bundles 3 is still only its spec, and nothing else
+waits on it. 2.1 is listed under "4.1" below and is not part of 4.0's definition of done.
 
 Phase 1 comes before everything because every later phase writes or reads its table. Phase 3 is
 separate because it needs the Commerce 4 fixture and touches the 3.x line.
@@ -497,8 +503,7 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
       covers TS-10 #1–#3, BR-14 per item, TN-15 and TN-16. PricingTest's recalculation test now has TS-10 #4's
       20 lines. User groups live in project config, which outlasts a test, so `createUserInGroup()` makes each
       handle unique.
-- [ ] **2.1 Bundles 3** — test the layout element and the basket with Bundles 3 installed. Rules: BR-2, BR-17
-      · Verify: TS-6 (bundle leg)
+- **2.1 Bundles 3** — moved to 4.1 (Sam, 20 Oct 2026); its task line is under "4.1" after 5.1.
 - [x] **2.2 Digital Products and Events** — the same for both, and the uninstalled case. Rules: BR-2, BR-17 · Verify: TS-6
       — built before 2.1, because Bundles 3 is not built yet (Sam, 2 Oct 2026). A digital product is an ordinary
       purchasable and needed no code. An Events ticket did (A#6): Events 3.1 generates one per session and
@@ -601,7 +606,27 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
       already recorded there. #5: uninstall, install, uninstall, install, each "successfully", and the
       element returned to `currencyTest`'s variant layout after the price. #6: variant 810's slideout
       rendered EUR and GBP inputs (craft5's two extra currencies). Nothing in 5.1 is left for Claude to do.
-      Waiting on: 2.1 (Bundles 3 phase 1) and Sam's walks.
+      20 Oct 2026: 2.1 moved to 4.1 (Sam), so 5.1 no longer waits on it. The README and CHANGELOG drop the
+      bundle claims, and point the upgrade at 3.0.0 (released from `3.x` the same day), whose entry is copied
+      onto master. B5 run again: #1 on PHP 8.2 and 8.4: ECS and PHPStan no errors, Codeception OK (100 tests,
+      1007 assertions); the suite now takes more than Composer's 300-second process timeout, so run it with
+      `-e COMPOSER_PROCESS_TIMEOUT=0`. #2 valid. #3 "loaded 19". #4 no output. craft5 was in the Plugin Store
+      screenshot state, with this plugin disabled, so it was snapshotted (`pre-currency-prices-b5-2026-10-20`),
+      enabled for the run and put back afterwards. #5: uninstall, install, uninstall, install, each
+      "successfully", element after the price on `currencyTest`. #6: variant 810's slideout rendered EUR and GBP.
+      Waiting on: Sam's walks (AC-1–AC-11, TS-5 #1, TS-6 without its bundle leg, TS-8's report URLs) and
+      Appendix A #5 (price) and #7 (copy).
+
+### 4.1
+
+- [ ] **2.1 Bundles 3** — test the layout element and the basket with Bundles 3 installed. Rules: BR-2, BR-17
+      · Verify: TS-6 (bundle leg)
+      — moved out of 4.0 (Sam, 20 Oct 2026), waiting on Bundles 3 phase 1 (Appendix A #4). Require Bundles 3 as a
+      dev dependency from a path repository, add it to the `integrations` suite beside Digital Products and
+      Events, put the element on a bundle type's layout, price a bundle in USD and buy it in a USD basket. If a
+      bundle is an ordinary purchasable, as a digital product is, no `src/` change is expected.
+- [ ] **6.1 Release 4.1** — README and CHANGELOG gain Commerce Bundles 3 (layout list, intro line), B5 #1–#6.
+      Rules: BR-24 · Verify: B5 all, TS-6 bundle leg walked by Sam
 
 ---
 
@@ -611,7 +636,7 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
 |---|---|---|---|
 | 1 | Do 3.x's foreign keys on `commerce_paymentcurrencies.iso` actually stop Commerce's `m230920_051125` upgrade? Read from source, not yet run | Build (3.1) | **Closed 2 Oct 2026.** Yes: MariaDB 10.11 refused with 1553 and the upgrade stopped. Without the keys it passes (§8 3.1) |
 | 2 | A Commerce 4 fixture with 3.x and currency prices on variants, discounts and shipping, in `~/Projects/craftcms/craft4-commerce` | Build (3.1) | **Closed 2 Oct 2026.** Built. Snapshots `cp3-fixture-3.0.0-beta.5` and `cp3-fixture-3.0.0-beta.6` (§8 3.1) |
-| 4 | Bundles 3 phase 1 must exist for 2.1 | Bundles 3 build | **Open — blocking build of 2.1** |
+| 4 | Bundles 3 phase 1 must exist for 2.1 | Bundles 3 build | **Deferred to 4.1 (Sam, 20 Oct 2026).** Still open, but blocks only 2.1 and 4.1, not 4.0 |
 | 5 | Plugin Store price for 4.0, and the upgrade price from 3.x licences | Sam | **Open — blocking release** |
 | 6 | Do Events 3 tickets use a field layout that accepts a native layout element? | Build (2.2) | **Closed 2 Oct 2026.** No. A ticket has no layout of its own. The ticket-type layout (`TicketType`, an element) does, and it holds the prices (BR-2, §8 2.2) |
 | 7 | Sam to approve the copy quoted in §3 and §5 | Sam | **Open — blocking sign-off** |
@@ -668,7 +693,7 @@ changing its store.
 
 ## B4. Definition of done
 
-- [ ] Every task in §8 ticked, with its verification run
+- [ ] Every 4.0 task in §8 ticked, with its verification run (2.1 and 6.1 are 4.1's)
 - [x] B5 #1–#4 pass, output recorded in the commit message or the build memory
 - [ ] AC-1–AC-11 walked by Sam in craft5 (TS-8 on the fixture)
 - [x] The test hooks in §7 exist
@@ -723,3 +748,4 @@ curl -s -b jar -c jar -H 'Accept: application/json' -H 'X-Requested-With: XMLHtt
 | 2026-10-02 | 0.1 | Task 3.1 built as 3.0.0-beta.6 on the `3.x` branch. A#1 and A#2 closed: the iso keys do stop Commerce 5's upgrade, and the fixture is in craft4-commerce | Claude |
 | 2026-10-02 | 0.1 | Task 5.1 partly built (README, CHANGELOG, Store metadata, regression tests). The regression table gained a "Covered by" column. 5.1 stays unticked until 2.1 and Sam's walks are done | Claude |
 | 2026-10-05 | 0.1 | B5 #1–#6 all pass, including #5 and #6 in craft5 with Sam's OK. B4's checkable items are ticked. 5.1 still waits on 2.1 and Sam's walks | Claude |
+| 2026-10-20 | 0.2 | Sam: 4.0 ships without Bundles 3. 2.1 moves to a new "4.1" list with 6.1 (release 4.1); §1, §2, TS-6, the build-order table, B4 and Appendix A #4 (deferred) say so. README and CHANGELOG no longer claim bundles | Claude |

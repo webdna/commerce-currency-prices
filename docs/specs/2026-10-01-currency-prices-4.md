@@ -614,8 +614,9 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
       screenshot state, with this plugin disabled, so it was snapshotted (`pre-currency-prices-b5-2026-10-20`),
       enabled for the run and put back afterwards. #5: uninstall, install, uninstall, install, each
       "successfully", element after the price on `currencyTest`. #6: variant 810's slideout rendered EUR and GBP.
-      Waiting on: Sam's walks (AC-1–AC-11, TS-5 #1, TS-6 without its bundle leg, TS-8's report URLs) and
-      Appendix A #5 (price) and #7 (copy).
+      Appendix A #5 and #7 closed the same day (Sam). The walks (AC-1–AC-11, TS-5 #1, TS-6 without its bundle
+      leg, TS-8's report URLs) are driven by Claude in Chrome, with GIFs, and reviewed by Sam (Sam, 20 Oct 2026).
+      Waiting on: those walks.
 
 ### 4.1
 
@@ -637,9 +638,9 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
 | 1 | Do 3.x's foreign keys on `commerce_paymentcurrencies.iso` actually stop Commerce's `m230920_051125` upgrade? Read from source, not yet run | Build (3.1) | **Closed 2 Oct 2026.** Yes: MariaDB 10.11 refused with 1553 and the upgrade stopped. Without the keys it passes (§8 3.1) |
 | 2 | A Commerce 4 fixture with 3.x and currency prices on variants, discounts and shipping, in `~/Projects/craftcms/craft4-commerce` | Build (3.1) | **Closed 2 Oct 2026.** Built. Snapshots `cp3-fixture-3.0.0-beta.5` and `cp3-fixture-3.0.0-beta.6` (§8 3.1) |
 | 4 | Bundles 3 phase 1 must exist for 2.1 | Bundles 3 build | **Deferred to 4.1 (Sam, 20 Oct 2026).** Still open, but blocks only 2.1 and 4.1, not 4.0 |
-| 5 | Plugin Store price for 4.0, and the upgrade price from 3.x licences | Sam | **Open — blocking release** |
+| 5 | Plugin Store price for 4.0, and the upgrade price from 3.x licences | Sam | **Closed 20 Oct 2026.** 3.x's price and renewal are kept. A 3.x licence with updates gets 4.0; a lapsed one pays the usual renewal |
 | 6 | Do Events 3 tickets use a field layout that accepts a native layout element? | Build (2.2) | **Closed 2 Oct 2026.** No. A ticket has no layout of its own. The ticket-type layout (`TicketType`, an element) does, and it holds the prices (BR-2, §8 2.2) |
-| 7 | Sam to approve the copy quoted in §3 and §5 | Sam | **Open — blocking sign-off** |
+| 7 | Sam to approve the copy quoted in §3 and §5 | Sam | **Closed 20 Oct 2026.** The five control-panel strings as shipped, the README and the CHANGELOG `## Unreleased` entry are approved as they are |
 
 **Assumptions**
 
@@ -749,3 +750,4 @@ curl -s -b jar -c jar -H 'Accept: application/json' -H 'X-Requested-With: XMLHtt
 | 2026-10-02 | 0.1 | Task 5.1 partly built (README, CHANGELOG, Store metadata, regression tests). The regression table gained a "Covered by" column. 5.1 stays unticked until 2.1 and Sam's walks are done | Claude |
 | 2026-10-05 | 0.1 | B5 #1–#6 all pass, including #5 and #6 in craft5 with Sam's OK. B4's checkable items are ticked. 5.1 still waits on 2.1 and Sam's walks | Claude |
 | 2026-10-20 | 0.2 | Sam: 4.0 ships without Bundles 3. 2.1 moves to a new "4.1" list with 6.1 (release 4.1); §1, §2, TS-6, the build-order table, B4 and Appendix A #4 (deferred) say so. README and CHANGELOG no longer claim bundles | Claude |
+| 2026-10-20 | 0.2 | Sam: A#5 closed (3.x price and renewal kept), A#7 closed (copy approved as shipped); the manual walks are Claude's, in Chrome, for Sam to review | Claude |

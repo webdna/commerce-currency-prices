@@ -2,7 +2,7 @@
 spec: Currency Prices 4 — Craft 5 and Commerce 5
 slug: currency-prices-4
 status: draft
-version: 0.2
+version: 0.3
 date: 2026-10-20
 author: Claude (with Sam Birch)
 client: webdna (Plugin Store product)
@@ -146,7 +146,7 @@ item for £100.
 **First run.** Straight after installing, nothing changes for shoppers: no item has a currency price,
 so a basket in the store currency behaves exactly as before. A basket in another currency finds
 nothing to buy. On the editing screen, a store with no extra payment currencies shows: "This store
-only accepts GBP. Add payment currencies in Commerce → Store Settings → Payment Currencies to price
+only accepts GBP. Add payment currencies in Commerce → Store Management → Payment Currencies to price
 items in other currencies."
 
 ## 4. Data model
@@ -243,7 +243,7 @@ when he reviews the spec.
 | AC-5 | A percentage pricing rule or sale on the store price moves the currency price by the same proportion, including a trade-only rule | TS-4 |
 | AC-6 | A discount and a shipping rule limited to USD apply to dollar baskets only | TS-5 |
 | AC-7 | A bundle, a digital product and an event ticket can each be priced and bought in another currency | TS-6 |
-| AC-8 | A change to a draft's currency prices does not reach shoppers until the draft is published | TS-7 |
+| AC-8 | Currency prices follow Commerce's drafts exactly as the store price does: a change held in a draft reaches shoppers only when the draft is published, and a change Commerce saves at once (a variant edited from a product draft, in Commerce 5.7) reaches them at once, as the store price does | TS-7 |
 | AC-9 | After upgrading from the Craft 4 version, every currency price is still there, and the report lists the old discount and shipping amounts | TS-8 |
 | AC-10 | Prices in a shop's own number field can be previewed, then imported | TS-9 |
 | AC-11 | A product page using the template helpers shows the same price the basket charges | TS-10 |
@@ -332,6 +332,8 @@ when he reviews the spec.
 | 4 | Duplicate the product | The copy's variants carry the same USD prices |
 
 *Success criterion: a draft is invisible to shoppers until published, and history keeps its prices.*
+*#1–#3 hold for a draft that holds its own variants. Commerce 5.7's CP gives a product draft the live
+variants, so a variant edited from it is saved at once, store price and currency prices alike (AC-8, A#11).*
 
 **TS-8 — Upgrade from 3.x** · Type: manual (fixture) · AC-9 · BR-18–BR-20
 | # | Step | Expect |
@@ -585,7 +587,21 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
       fails with the item id (TN-11). Any failure makes the exit code 1. The dry run prints the same counts,
       then a line saying nothing was written. `ImportTest` (9 tests) covers TS-9 #1–#4, overwrite,
       `--include-zero`, TN-11 and the stops. The ticket-type path has no test of its own.
-- [ ] **5.1 Release** — README, CHANGELOG `## Unreleased`, Store metadata, regression checks, B4.
+- [x] **4.2 Walk fixes** — the three defects 5.1's walks found, fixed for 4.0 (Sam, 20 Oct 2026). Rules: BR-2,
+      BR-3, BR-10, BR-17 · Verify: `DigitalProductsTest`, `RegressionTest`, `CurrencyPricesFieldTest`
+      — built 20 Oct 2026. **A#8:** `Purchasables::beforeValidate()`, registered on the digital product class
+      (named as a string) while Digital Products is enabled, hands the product the posted `currencyPrices` when
+      the request is a POST to `digital-products/products/save` naming that product, and only while the
+      behaviour holds nothing yet. Before validation, so BR-3's rule refuses a negative price. Three tests in
+      `DigitalProductsTest` (a stand-in `craft\web\Request` answering the action's segments): prices saved; −5
+      fails the save and keeps the old price; nothing taken from `elements/save` or for another product. With
+      the handler unregistered the first two fail. **A#9:** the store-only notice, its translation, the README
+      and §3 say "Commerce → Store Management → Payment Currencies"; `CurrencyPricesFieldTest` asserts it.
+      **A#10:** `OrderCurrencyBehavior` is attached to `ShippingMethodOption` too, and reads the option's
+      currency through its own protected `getCurrency()` (the order is private), so `priceAsCurrency` is "$7.00"
+      in a USD basket; `RegressionTest`'s new test fails without it. **A#11:** AC-8, TS-7 and the README say
+      that currency prices follow Commerce's drafts, including Commerce 5.7's shared variants.
+- [x] **5.1 Release** — README, CHANGELOG `## Unreleased`, Store metadata, regression checks, B4.
       Rules: BR-24 · Verify: B5 all, TN-16, the regression table
       — partly built 2 Oct 2026, and **left unticked**: 2.1 is still blocked (Bundles 3 has only its spec), and
       Sam's manual walks are outstanding (AC-1–AC-11 in craft5, TS-5 #1, TS-6, opening TS-8's report URLs). B4's
@@ -671,8 +687,15 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
         wrote 810 €55 (variant field) and 889 €50 (from its product); again: "Unchanged: 2"; `--currency=JPY`:
         "The store "primary" does not accept JPY as a payment currency.", exit 64. The slideout shows EUR 55.
       - **AC-11 pass** (TS-10 #1): on every basket screen above the page price equals the line price.
-      Not ticked: A#8 and A#11 decide whether 4.0 ships as it is. The release (CHANGELOG `## 4.0.0`, B5, tag)
-      waits for Sam.
+      Sam (20 Oct 2026): fix A#8, A#9 and A#10 in 4.0, reword AC-8 — done as 4.2. **AC-7 re-walked** in craft5
+      (snapshot `pre-currency-prices-dp-rewalk-2026-10-20`, restored): on a digital product's own CP page GBP −5
+      was refused ("Enter a price of 0 or more for GBP.", "Couldn't save product."), then EUR 11 / GBP 9.50
+      saved, stored and shown on reopening. **Released as 4.0.0:** CHANGELOG `## 4.0.0 - 2026-10-20`, with a
+      line for amounts formatted in the basket's currency. B5 run again: #1 on PHP 8.2.34 and 8.4.26 ECS and
+      PHPStan no errors, Codeception OK (104 tests, 1043 assertions); #2 valid; #3 "loaded 19"; #4 no output;
+      craft5 (snapshot `pre-currency-prices-b5-4.0.0-2026-10-20`, plugin enabled for the run, shoot state put
+      back) #5 uninstall, install, uninstall, install each "successfully", element after the price on
+      `currencyTest`; #6 variant 810's slideout renders EUR and GBP. The tag and push are Sam's call.
 
 ### 4.1
 
@@ -697,10 +720,10 @@ separate because it needs the Commerce 4 fixture and touches the 3.x line.
 | 5 | Plugin Store price for 4.0, and the upgrade price from 3.x licences | Sam | **Closed 20 Oct 2026.** 3.x's price and renewal are kept. A 3.x licence with updates gets 4.0; a lapsed one pays the usual renewal |
 | 6 | Do Events 3 tickets use a field layout that accepts a native layout element? | Build (2.2) | **Closed 2 Oct 2026.** No. A ticket has no layout of its own. The ticket-type layout (`TicketType`, an element) does, and it holds the prices (BR-2, §8 2.2) |
 | 7 | Sam to approve the copy quoted in §3 and §5 | Sam | **Closed 20 Oct 2026.** The five control-panel strings as shipped, the README and the CHANGELOG `## Unreleased` entry are approved as they are |
-| 8 | A digital product's currency prices typed in the CP are dropped: Digital Products' own save action never hands them to the behaviour (§8 5.1, AC-7). Fix in 4.0 (read `currencyPrices` from the request for that action, before validation, with a test), or ship and document? | Sam | Open — release-blocking |
-| 9 | The store-only notice names "Store Settings"; Commerce 5.7 calls it "Store Management". Change the string (A#7 approved it as shipped)? | Sam | Open |
-| 10 | A shipping-method option's `priceAsCurrency` shows the store currency's symbol in another currency's basket. Format it too, or document? | Sam | Open |
-| 11 | AC-8 cannot hold through the CP in Commerce 5.7: a product draft shares the live variants, for Commerce's own price as well. Reword AC-8 to "follows Commerce's draft model", or treat as blocking? | Sam | Open — release-blocking |
+| 8 | A digital product's currency prices typed in the CP are dropped: Digital Products' own save action never hands them to the behaviour (§8 5.1, AC-7). Fix in 4.0 (read `currencyPrices` from the request for that action, before validation, with a test), or ship and document? | Sam | **Closed 20 Oct 2026.** Fixed in 4.0 (§8 4.2) |
+| 9 | The store-only notice names "Store Settings"; Commerce 5.7 calls it "Store Management". Change the string (A#7 approved it as shipped)? | Sam | **Closed 20 Oct 2026.** Changed in 4.0 (§8 4.2) |
+| 10 | A shipping-method option's `priceAsCurrency` shows the store currency's symbol in another currency's basket. Format it too, or document? | Sam | **Closed 20 Oct 2026.** Formatted in 4.0 (§8 4.2) |
+| 11 | AC-8 cannot hold through the CP in Commerce 5.7: a product draft shares the live variants, for Commerce's own price as well. Reword AC-8 to "follows Commerce's draft model", or treat as blocking? | Sam | **Closed 20 Oct 2026.** AC-8 reworded: currency prices follow Commerce's drafts (§7, README) |
 
 **Assumptions**
 
@@ -754,13 +777,13 @@ changing its store.
 
 ## B4. Definition of done
 
-- [ ] Every 4.0 task in §8 ticked, with its verification run (2.1 and 6.1 are 4.1's)
+- [x] Every 4.0 task in §8 ticked, with its verification run (2.1 and 6.1 are 4.1's)
 - [x] B5 #1–#4 pass, output recorded in the commit message or the build memory
-- [ ] AC-1–AC-11 walked by Sam in craft5 (TS-8 on the fixture)
+- [x] AC-1–AC-11 walked in craft5 (TS-8 on the fixture) — by Claude in Chrome with GIFs for Sam's review (5.1)
 - [x] The test hooks in §7 exist
 - [x] Regression checks done
 - [x] README and CHANGELOG cover every removal and the upgrade steps
-- [ ] Appendix A has no open row except those blocking release
+- [x] Appendix A has no open row except those blocking release (#4 is 4.1's)
 
 ## B5. Verification
 
@@ -812,3 +835,5 @@ curl -s -b jar -c jar -H 'Accept: application/json' -H 'X-Requested-With: XMLHtt
 | 2026-10-20 | 0.2 | Sam: 4.0 ships without Bundles 3. 2.1 moves to a new "4.1" list with 6.1 (release 4.1); §1, §2, TS-6, the build-order table, B4 and Appendix A #4 (deferred) say so. README and CHANGELOG no longer claim bundles | Claude |
 | 2026-10-20 | 0.2 | Sam: A#5 closed (3.x price and renewal kept), A#7 closed (copy approved as shipped); the manual walks are Claude's, in Chrome, for Sam to review | Claude |
 | 2026-10-20 | 0.2 | Walks run (5.1's notes): AC-1–6, 9–11 pass; AC-7 fails for digital products (A#8); AC-8 cannot hold through Commerce 5.7's CP (A#11); A#9 and A#10 opened. 5.1 stays unticked | Claude |
+| 2026-10-20 | 0.3 | Sam: A#8, A#9 and A#10 fixed in 4.0 (new task 4.2), AC-8 reworded (A#11). Appendix A has no open row for 4.0 | Claude |
+| 2026-10-20 | 0.3 | AC-7 re-walked, B5 all pass, CHANGELOG `## 4.0.0`; 5.1 and B4 ticked. 4.0 is complete bar Sam's tag and push | Claude |

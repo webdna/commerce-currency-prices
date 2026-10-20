@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## 4.0.0 - 2026-10-20
 
 4.0.0, for Craft CMS 5 and Craft Commerce 5. Craft 4 sites stay on 3.x. Upgrade from 3.0.0 (or 3.0.0-beta.6) or later. The README's "Upgrading from 3.x" has the steps.
 
@@ -25,6 +25,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - Now requires Craft CMS 5.0+, Craft Commerce 5.3+ and PHP 8.2+.
 - An item with no price in the basket's currency is no longer for sale in that currency. It cannot be added, and a basket that switches to that currency loses it with Commerce's "… is no longer available." notice. 3.x left the store-currency price on the line, which Commerce then converted at the exchange rate.
 - While an order is a basket, its currency is kept equal to its payment currency, so Commerce never converts by exchange rate and the exchange rate is never read. 3.x set it at completion and at payment. You no longer need to set every rate to 1.
+- Formatted amounts (`…AsCurrency`) on a basket, its lines and its shipping method options are in the basket's currency. Commerce formats them in the store's currency.
 - The Twig filters `currencyPrice` and `currencySalePrice` now return a number by default. Pass `true` as the second argument for a formatted price such as "$120.00", which used to be the default. They return `null` when the item has no price in that currency, or when the store does not accept the currency (which also logs a warning). For the store's own currency they return Commerce's price for the current customer.
 - The **Currencies** field offers the payment currencies of the current site's store. Its class name and saved values are unchanged.
 - Prices are stored in a new `currencyprices_prices` table, one row per item, store and currency, instead of a column per currency.

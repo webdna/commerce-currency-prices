@@ -2,7 +2,7 @@
 
 Sell from one Craft Commerce store in several currencies, at prices you set for each currency rather than prices converted by an exchange rate.
 
-A shopper who pays in dollars sees and pays the dollar price you typed, not the pound price converted at today's rate. It works for variants, Commerce Bundles bundles, Digital Products and Events tickets.
+A shopper who pays in dollars sees and pays the dollar price you typed, not the pound price converted at today's rate. It works for variants, Digital Products and Events tickets.
 
 ## Requirements
 
@@ -26,7 +26,6 @@ Or install it from the Plugin Store in the control panel.
 1. **Add your payment currencies.** In **Commerce → Store Settings → Payment Currencies**, add each currency the store should accept besides its own. The plugin never reads a currency's exchange rate, so its value does not matter to prices.
 2. **Check the field layouts.** On install the plugin adds a **Currency prices** element below the price on every existing variant field layout. For anything else, add it to the layout yourself from the field layout designer:
    - product types created after install (variant layout)
-   - Commerce Bundles 3 bundle types
    - Digital Products product types
    - Events ticket-type layouts. A ticket has no layout of its own, so its ticket type holds the prices for every session's tickets.
 3. **Enter the prices.** The element shows one price per payment currency, next to the item's normal price. If the store accepts only its own currency, it says so instead.
@@ -139,10 +138,10 @@ Run it once per field and currency.
 
 3.x is the Craft 4 version. Upgrading keeps every product price. Commerce 5 rebuilt discounts and shipping, so 3.x's per-currency discount and shipping amounts cannot be carried across. The upgrade keeps them in the database and a report lists each one, so you can set it up again as a per-currency rule.
 
-1. **On Craft 4, update to 3.0.0-beta.6 or later and run `php craft up`.** Earlier 3.x versions add database foreign keys that stop Commerce 5's upgrade with "Cannot drop index … needed in a foreign key constraint". 3.0.0-beta.6 removes them and changes nothing else.
+1. **On Craft 4, update to 3.0.0 or later and run `php craft up`.** Versions before 3.0.0-beta.6 add database foreign keys that stop Commerce 5's upgrade with "Cannot drop index … needed in a foreign key constraint". 3.0.0-beta.6 removes them and changes nothing else, and 3.0.0 is the same code as a stable release.
 
    ```bash
-   composer require webdna/commerce-currency-prices:3.0.0-beta.6
+   composer require webdna/commerce-currency-prices:^3.0
    php craft up
    ```
 

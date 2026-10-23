@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 4.0.1 - 2026-10-23
+
+### Changed
+- New plugin icon: a white glyph on a black circle, with a white icon mask for the control panel nav.
+
 ## 4.0.0 - 2026-10-20
 
 4.0.0, for Craft CMS 5 and Craft Commerce 5. Craft 4 sites stay on 3.x. Upgrade from 3.0.0 (or 3.0.0-beta.6) or later. The README's "Upgrading from 3.x" has the steps.
